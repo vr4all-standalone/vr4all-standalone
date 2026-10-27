@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 380" role="img" aria-labelledby="title desc">
+  <title id="title">House of the Dead 2 VR artwork</title><desc id="desc">Original illustrated rail shooter scene for House of the Dead 2 VR</desc>
+  <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#0b1423"/><stop offset=".55" stop-color="#1a2537"/><stop offset="1" stop-color="#e77b91" stop-opacity=".6"/></linearGradient><linearGradient id="shade" x2="0" y2="1"><stop stop-color="#08111b" stop-opacity="0"/><stop offset="1" stop-color="#050a12" stop-opacity=".96"/></linearGradient></defs>
+  <rect width="720" height="380" fill="url(#bg)"/><path d="M0 50h720M0 105h720M0 160h720M0 215h720M0 270h720M90 0v380M180 0v380M270 0v380M360 0v380M450 0v380M540 0v380M630 0v380" stroke="#ffffff0b" stroke-width="2"/>
+  <circle cx="495" cy="112" r="95" fill="#e77b91" opacity=".22"/><circle cx="495" cy="112" r="95" fill="none" stroke="#ffffff55" stroke-width="2"/><path d="M205 278V128l120-80 120 80v150M240 278V143h170v135M276 278V200h32v78M345 278V200h32v78" fill="#0b121d" stroke="#e77b91" stroke-width="5"/><path d="M240 150h170M250 180h150" stroke="#ffffff4b" stroke-width="2"/><path d="M460 272c19-58 38-57 53 0m30 0c17-47 34-46 47 0" fill="none" stroke="#ffffff55" stroke-width="5"/>
+  <rect y="224" width="720" height="156" fill="url(#shade)"/><path d="M35 310h85" stroke="#e77b91" stroke-width="6"/>
+  <text x="36" y="41" fill="#ffffffa8" font-size="15" font-family="Arial,sans-serif" letter-spacing="4">VR4ALL  /  DREAMCAST</text>
+  <text x="36" y="358" fill="#f7f9ff" font-size="36" font-weight="800" font-family="Arial,sans-serif" letter-spacing="1">HOUSE OF THE DEAD 2 VR</text>
+  </svg>

@@ -1,0 +1,11 @@
+.cache/
+.questdesk/
+node_modules/
+dist/
+/.env
+/.env.*
+/*.png
+*.log
+/docs/launch/
+/docs/superpowers/
+/vr4all-public/

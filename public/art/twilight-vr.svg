@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 380" role="img" aria-labelledby="title desc">
+  <title id="title">Twilight Princess VR artwork</title><desc id="desc">Original illustrated adventure scene for Twilight Princess VR</desc>
+  <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#0b1423"/><stop offset=".55" stop-color="#1a2537"/><stop offset="1" stop-color="#9ca7dd" stop-opacity=".6"/></linearGradient><linearGradient id="shade" x2="0" y2="1"><stop stop-color="#08111b" stop-opacity="0"/><stop offset="1" stop-color="#050a12" stop-opacity=".96"/></linearGradient></defs>
+  <rect width="720" height="380" fill="url(#bg)"/><path d="M0 50h720M0 105h720M0 160h720M0 215h720M0 270h720M90 0v380M180 0v380M270 0v380M360 0v380M450 0v380M540 0v380M630 0v380" stroke="#ffffff0b" stroke-width="2"/>
+  <circle cx="509" cy="100" r="101" fill="#9ca7dd" opacity=".23"/><path d="M0 268l190-164 122 130 112-171 175 205Z" fill="#15243a" stroke="#ffffff66" stroke-width="3"/><path d="M235 279l64-196 23 196M271 94h59M250 151h93" fill="#9ca7dd" stroke="#fff" stroke-width="5"/><path d="M50 280h640" stroke="#ffffff77" stroke-width="3"/>
+  <rect y="224" width="720" height="156" fill="url(#shade)"/><path d="M35 310h85" stroke="#9ca7dd" stroke-width="6"/>
+  <text x="36" y="41" fill="#ffffffa8" font-size="15" font-family="Arial,sans-serif" letter-spacing="4">VR4ALL  /  GAMECUBE</text>
+  <text x="36" y="358" fill="#f7f9ff" font-size="36" font-weight="800" font-family="Arial,sans-serif" letter-spacing="1">TWILIGHT PRINCESS VR</text>
+  </svg>

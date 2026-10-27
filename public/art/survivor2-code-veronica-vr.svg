@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Survivor 2 - Code: Veronica VR</title>
+  <desc id="desc">Original red and ivory project typography on a dark background. Experimental NAOMI preview for Quest and PC VR.</desc>
+  <defs>
+    <linearGradient id="back" x2="1" y2="1"><stop stop-color="#171d23"/><stop offset="1" stop-color="#080b10"/></linearGradient>
+    <radialGradient id="glow"><stop stop-color="#773037" stop-opacity=".38"/><stop offset="1" stop-color="#773037" stop-opacity="0"/></radialGradient>
+    <pattern id="grid" width="80" height="80" patternUnits="userSpaceOnUse"><path d="M80 0H0V80" fill="none" stroke="#d7b6ad" stroke-opacity=".045"/></pattern>
+  </defs>
+  <path fill="url(#back)" d="M0 0h1600v900H0z"/>
+  <ellipse cx="1220" cy="410" rx="650" ry="620" fill="url(#glow)"/>
+  <path fill="url(#grid)" d="M0 0h1600v900H0z"/>
+  <g fill="none" stroke="#cf5d61" stroke-opacity=".22" stroke-width="2">
+    <circle cx="1330" cy="430" r="230"/><circle cx="1330" cy="430" r="204"/>
+    <path d="M1330 152v64m0 428v64m-278-278h64m428 0h56"/>
+  </g>
+  <path fill="#da5d63" d="M104 108h76v7h-76zM104 730h1392v2H104z"/>
+  <g font-family="Arial, Helvetica, sans-serif">
+    <text x="104" y="160" fill="#b7bac1" font-size="25" letter-spacing="7">NAOMI / WORLD BHF2 VER. E</text>
+    <text x="96" y="390" fill="#f1e9df" font-size="168" font-weight="900" letter-spacing="-7">SURVIVOR <tspan fill="#df656a">2</tspan></text>
+    <text x="106" y="490" fill="#df656a" font-size="65" font-weight="700" letter-spacing="9">CODE: VERONICA</text>
+    <text x="106" y="598" fill="#f1e9df" font-size="63" font-weight="700" letter-spacing="5">VR</text>
+    <text x="252" y="594" fill="#b7bac1" font-size="29" letter-spacing="3">TRACKED AIM / FREE MOVEMENT</text>
+    <text x="104" y="795" fill="#f1e9df" font-size="29" font-weight="700" letter-spacing="3">QUEST + PC VR</text>
+    <text x="1496" y="795" text-anchor="end" fill="#df656a" font-size="24" letter-spacing="4">EXPERIMENTAL PREVIEW</text>
+    <text x="104" y="845" fill="#898e98" font-size="19" letter-spacing="1">VR4ALL / UNOFFICIAL FAN PROJECT / YOUR OWN GAME REQUIRED</text>
+  </g>
+</svg>

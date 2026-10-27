@@ -1,0 +1,42 @@
+name: Report a problem
+description: Report an installation, update, headset scan, or library problem.
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve VR4ALL. Do not upload ROMs, game files, headset serial numbers, passwords, or unredacted local paths.
+  - type: input
+    id: version
+    attributes:
+      label: VR4ALL version
+      placeholder: "Version shown at the bottom of VR4ALL"
+    validations:
+      required: true
+  - type: input
+    id: headset
+    attributes:
+      label: Quest model
+      placeholder: "For example, Quest 3"
+    validations:
+      required: true
+  - type: input
+    id: port
+    attributes:
+      label: Game or port
+      placeholder: "Name shown on the game card"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: What did you do, and what happened?
+      description: Include the step where it failed and the result you expected.
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Relevant log excerpt (optional)
+      description: Remove serial numbers, account names, and full file paths before pasting.

@@ -1,0 +1,41 @@
+name: Suggest a standalone port
+description: Suggest a community-made port that runs on Quest without PC streaming.
+title: "[Port] "
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Port name
+    validations:
+      required: true
+  - type: input
+    id: creator
+    attributes:
+      label: Creator or team
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Official project or download URL
+      description: Link to the creator's GitHub, itch.io, SideQuest, or project page.
+    validations:
+      required: true
+  - type: dropdown
+    id: headset
+    attributes:
+      label: Quest compatibility you have verified
+      options:
+        - I have not tested it
+        - Quest 2
+        - Quest 3
+        - Quest 3S
+        - Quest Pro
+        - Multiple models
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: APK and game-file requirements
+      description: Describe any creator installer, patch, build, or owned game data needed. Do not attach game files.

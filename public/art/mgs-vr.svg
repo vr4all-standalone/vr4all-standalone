@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 380" role="img" aria-labelledby="title desc">
+  <title id="title">Metal Gear Solid VR artwork</title><desc id="desc">Original illustrated stealth scene for Metal Gear Solid VR</desc>
+  <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#0b1423"/><stop offset=".55" stop-color="#1a2537"/><stop offset="1" stop-color="#a0bbaa" stop-opacity=".6"/></linearGradient><linearGradient id="shade" x2="0" y2="1"><stop stop-color="#08111b" stop-opacity="0"/><stop offset="1" stop-color="#050a12" stop-opacity=".96"/></linearGradient></defs>
+  <rect width="720" height="380" fill="url(#bg)"/><path d="M0 50h720M0 105h720M0 160h720M0 215h720M0 270h720M90 0v380M180 0v380M270 0v380M360 0v380M450 0v380M540 0v380M630 0v380" stroke="#ffffff0b" stroke-width="2"/>
+  <path d="M50 270h620M95 270V90h146v180M480 270V65h98v205" stroke="#ffffff44" stroke-width="4" fill="none"/><path d="M315 270v-130l52-45 51 45v130" fill="#101d1b" stroke="#a0bbaa" stroke-width="6"/><path d="M270 75l210 195h-60L250 130" fill="#a0bbaa" opacity=".18"/><circle cx="365" cy="126" r="31" fill="none" stroke="#ffffffaa" stroke-width="4"/><path d="M325 154h80" stroke="#a0bbaa" stroke-width="10"/>
+  <rect y="224" width="720" height="156" fill="url(#shade)"/><path d="M35 310h85" stroke="#a0bbaa" stroke-width="6"/>
+  <text x="36" y="41" fill="#ffffffa8" font-size="15" font-family="Arial,sans-serif" letter-spacing="4">VR4ALL  /  PLAYSTATION</text>
+  <text x="36" y="358" fill="#f7f9ff" font-size="42" font-weight="800" font-family="Arial,sans-serif" letter-spacing="1">METAL GEAR SOLID VR</text>
+  </svg>

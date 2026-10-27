@@ -1,0 +1,62 @@
+{
+  "name": "vr4all",
+  "version": "0.3.42",
+  "description": "Desktop installer for standalone Quest game ports",
+  "main": "desktop/main.js",
+  "private": true,
+  "scripts": {
+    "start:desktop": "electron .",
+    "dist:win": "electron-builder --win portable --x64",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "electron": "45.0.0",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "app.vr4all.desktop",
+    "productName": "VR4ALL",
+    "asar": true,
+    "files": [
+      "desktop/main.js",
+      "desktop/exit-guard.js",
+      "desktop/preload.js",
+      "desktop/profile-paths.js",
+      "desktop/icon.ico",
+      "public/**/*",
+      "!public/models/**",
+      "src/**/*",
+      "server.js",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "vendor/platform-tools",
+        "to": "platform-tools"
+      },
+      {
+        "from": "vendor/7zip",
+        "to": "7zip"
+      },
+      {
+        "from": "vendor/chdman",
+        "to": "chdman"
+      }
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "icon": "desktop/icon.ico",
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "VR4ALL-${version}-win-${arch}.${ext}"
+    }
+  }
+}

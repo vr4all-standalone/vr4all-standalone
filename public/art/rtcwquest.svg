@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 380" role="img" aria-labelledby="title desc">
+  <title id="title">Return to Castle Wolfenstein VR artwork</title><desc id="desc">Original illustrated shooter scene for Return to Castle Wolfenstein VR</desc>
+  <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#0b1423"/><stop offset=".55" stop-color="#1a2537"/><stop offset="1" stop-color="#97b393" stop-opacity=".6"/></linearGradient><linearGradient id="shade" x2="0" y2="1"><stop stop-color="#08111b" stop-opacity="0"/><stop offset="1" stop-color="#050a12" stop-opacity=".96"/></linearGradient></defs>
+  <rect width="720" height="380" fill="url(#bg)"/><path d="M0 50h720M0 105h720M0 160h720M0 215h720M0 270h720M90 0v380M180 0v380M270 0v380M360 0v380M450 0v380M540 0v380M630 0v380" stroke="#ffffff0b" stroke-width="2"/>
+  <circle cx="515" cy="101" r="92" fill="#97b393" opacity=".2"/><path d="M0 270l125-93 111 79 126-114 113 92 116-137 129 173" fill="#17232f" stroke="#ffffff55" stroke-width="4"/><path d="M54 275V182h81v93M166 275V119h77v156M295 275V193h95v82M452 275V101h64v174" fill="#111924" stroke="#97b393" stroke-width="4"/><path d="M382 260l58-83 69 10 29 73Z" fill="#97b393" stroke="#ffffffad" stroke-width="5"/><path d="M420 177v-46l18-14M510 189l26-62" stroke="#fff" stroke-width="5"/><circle cx="467" cy="192" r="34" fill="none" stroke="#fff9" stroke-width="3"/>
+  <rect y="224" width="720" height="156" fill="url(#shade)"/><path d="M35 310h85" stroke="#97b393" stroke-width="6"/>
+  <text x="36" y="41" fill="#ffffffa8" font-size="15" font-family="Arial,sans-serif" letter-spacing="4">VR4ALL  /  PC</text>
+  <text x="36" y="358" fill="#f7f9ff" font-size="31" font-weight="800" font-family="Arial,sans-serif" letter-spacing="1">RETURN TO CASTLE WOLFENSTEIN</text>
+  </svg>

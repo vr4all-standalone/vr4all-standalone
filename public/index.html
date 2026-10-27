@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>VR4ALL</title>
+  <link rel="icon" href="/brand-headset.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/brand.css">
+  <link rel="stylesheet" href="/themes.css">
+  <link rel="stylesheet" href="/blue-glass.css">
+  <link rel="stylesheet" href="/sdk-setup.css">
+  <script>window.QUESTDESK_TOKEN = '__QUESTDESK_TOKEN__';</script>
+  <script defer src="/app.js"></script>
+</head>
+<body data-theme="graphite" data-palette="blue">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark"><img src="/brand-headset.svg" alt="" aria-hidden="true"></span><span><strong>VR4ALL</strong><small>STANDALONE VR MOD INSTALLER</small></span></div>
+      <section class="headsets-panel" aria-label="Connected headsets">
+        <div class="headsets-heading"><span>CONNECTED HEADSETS</span><span id="headsetCount">Checking…</span></div>
+        <select id="deviceSelect" aria-label="Choose connected headset"><option value="">Checking USB…</option></select>
+        <div class="headsets-footer"><span id="sidebarDeviceStatus" aria-live="polite">Looking for your headset</span><button id="refreshDevices" type="button" title="Refresh headsets" aria-label="Refresh headsets">↻</button></div>
+        <button id="connectionHelpButton" class="sidebar-connection-help" type="button">Connection help</button>
+      </section>
+      <label class="sidebar-label" for="libraryScope">LIBRARY</label>
+      <select id="libraryScope" class="library-scope" aria-label="Library view"><option value="all">All games</option><option value="available">Available to install</option><option value="new">New games</option></select>
+      <label class="sidebar-label" for="sidebarSearchInput">SEARCH GAMES</label>
+      <div class="search-box sidebar-search"><span aria-hidden="true">⌕</span><input id="sidebarSearchInput" type="search" placeholder="Search all games" aria-label="Search all games"></div>
+      <div class="sidebar-tools"><button id="sidebarUpdatesButton" class="sidebar-tool" type="button"><span>↻</span> Check updates</button><button id="scanHeadsetButton" class="sidebar-tool" type="button"><span>◎</span> Scan connected headset</button><button id="bulkInstallNewButton" class="sidebar-tool" type="button"><span>⇧</span> Bulk install new games</button></div>
+      <div class="sidebar-label">BROWSE BY</div>
+      <div class="browse-switch" role="group" aria-label="Browse games by"><button id="browseConsole" class="active" type="button" aria-pressed="true">Console</button><button id="browseGenre" type="button" aria-pressed="false">Genre</button></div>
+      <nav id="categoryNav" class="nav-list" aria-label="Game categories"></nav>
+      <div class="sidebar-spacer"></div>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-label sidebar-footer-heading">HELP &amp; APPEARANCE</div>
+      <button id="changeThemeButton" class="sidebar-action" type="button"><span aria-hidden="true">◐</span> Change theme</button>
+      <button id="pcBuildFolderButton" class="sidebar-action" type="button"><span aria-hidden="true">▣</span> PC build folder</button>
+      <a class="sidebar-action" href="https://github.com/vr4all-standalone/vr4all-standalone/issues/new?template=port_suggestion.yml" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">＋</span> Request a port</a>
+      <a class="sidebar-action" href="https://github.com/vr4all-standalone/vr4all-standalone/issues/new?template=bug_report.yml" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">⚑</span> Report a bug</a>
+      <a class="sidebar-action" href="https://github.com/vr4all-standalone/vr4all-standalone/blob/main/docs/user-guide.md" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">?</span> Help &amp; guide</a>
+      <div class="sidebar-foot"><span class="pulse-dot"></span><span>VR4ALL v__VR4ALL_VERSION__ · Your own files</span></div>
+    </aside>
+
+    <div class="main-column">
+      <header class="topbar">
+        <div class="breadcrumbs">Library <span>/</span> <strong id="crumbCategory">All games</strong></div>
+        <div class="topbar-right"><span class="topbar-label">TARGET</span><strong id="topbarDeviceName" class="topbar-device-name">Checking USB…</strong></div>
+      </header>
+
+      <main class="content">
+        <div class="overview-row">
+          <section class="hero" aria-label="Library overview">
+            <div class="hero-copy"><div class="eyebrow"><span class="eyebrow-line"></span> VR4ALL <span class="eyebrow-separator">/</span> PORT LIBRARY</div><h1>Play beyond<br><em>the screen.</em></h1><p>Community VR ports for the games you own.</p><div class="hero-actions"><button id="browseGames" class="primary-button" type="button">Browse ports <span>↗</span></button><span id="heroDeviceStatus" class="hero-status">Looking for your headset…</span></div></div>
+            <div class="hero-art" aria-hidden="true"><img src="/quest3-hero.webp" alt=""><span class="hero-art-label">VR / 004</span><span class="hero-art-caption">THE ORIGINALS<br>REIMAGINED</span></div>
+          </section>
+          <section id="deviceBanner" class="device-banner" aria-live="polite"></section>
+        </div>
+
+        <section id="library" class="library-section">
+          <div class="section-heading"><div><div class="eyebrow muted">GAME LIBRARY</div><h2>All ports <span id="gameCount"></span></h2></div><div class="library-tools"><label class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="Find a game or port" aria-label="Search games"></label><div class="sort-controls"><select id="librarySort" class="library-sort" aria-label="Sort games"><option value="name-asc">A–Z</option><option value="name-desc">Z–A</option><option value="latest">Latest release</option><option value="downloads">Most downloaded</option></select><label class="installed-first-toggle"><input id="installedFirst" type="checkbox">Installed first</label></div></div></div>
+          <div id="bulkUpdatePanel" class="bulk-update-panel" hidden><button id="bulkUpdateButton" class="primary-button bulk-update-page-button" type="button" disabled><span>↥</span> Update all installed games</button><div id="bulkUpdateStatus" class="bulk-update-status" role="status" aria-live="polite" hidden><i class="bulk-update-spinner" aria-hidden="true"></i><span id="bulkUpdateStatusText"></span></div></div>
+          <p id="libraryScopeNote" class="library-scope-note" hidden></p>
+          <div class="status-legend"><span><i class="legend-dot current"></i>Ready on selected headset</span><span><i class="legend-dot update"></i>APK update available</span><span><i class="legend-dot staged"></i>Local file matched · install available</span><span><i class="legend-dot ready-unverified"></i>Ready · version unverified</span></div>
+          <div id="gameGrid" class="game-grid"></div>
+          <div id="emptyState" class="empty-state" hidden>No ports match that search.</div>
+        </section>
+      </main>
+    </div>
+
+    <aside id="detailPanel" class="detail-panel" aria-label="Install game" hidden>
+      <div class="detail-top"><span class="detail-kicker">INSTALL PORT</span><button id="closeDetail" class="close-button" aria-label="Close details">×</button></div>
+      <div id="detailBody"></div>
+    </aside>
+  </div>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+  <div id="updateStatus" class="update-status" role="status" aria-live="polite" hidden></div>
+
+  <dialog id="settingsDialog" class="app-dialog">
+    <form method="dialog">
+      <div class="dialog-head settings-head">
+        <div><div class="eyebrow muted">YOUR WORKSPACE</div><h2>Appearance &amp; setup</h2></div>
+        <button value="cancel" class="close-button" aria-label="Close settings">×</button>
+      </div>
+      <div class="settings-body">
+        <section class="theme-section" aria-labelledby="appearanceHeading">
+          <div class="appearance-heading"><h3 id="appearanceHeading">Appearance</h3><span id="appearanceSummary" aria-live="polite">Graphite · Glacier</span></div>
+          <div class="theme-choices" role="group" aria-label="Appearance theme">
+            <button type="button" class="theme-choice" data-theme-choice="graphite" value="graphite" aria-pressed="true">
+              <span class="theme-swatch theme-swatch-graphite" aria-hidden="true"><b></b><i></i><i></i><i></i></span>
+              <span class="theme-choice-copy"><strong>Graphite</strong><small>Matte &amp; understated</small><span class="theme-check" aria-hidden="true">✓</span></span>
+            </button>
+            <button type="button" class="theme-choice" data-theme-choice="y2k" value="y2k" aria-pressed="false">
+              <span class="theme-swatch theme-swatch-glass" aria-hidden="true"><b></b><i></i><i></i><i></i></span>
+              <span class="theme-choice-copy"><strong>Glass</strong><small>Translucent &amp; luminous</small><span class="theme-check" aria-hidden="true">✓</span></span>
+            </button>
+            <button type="button" class="theme-choice" data-theme-choice="frost" value="frost" aria-pressed="false">
+              <span class="theme-swatch theme-swatch-frost" aria-hidden="true"><b></b><i></i><i></i><i></i></span>
+              <span class="theme-choice-copy"><strong>Frost</strong><small>Light &amp; softly layered</small><span class="theme-check" aria-hidden="true">✓</span></span>
+            </button>
+          </div>
+          <div class="palette-heading"><span>Accent color</span><small>Highlights, controls &amp; focus</small></div>
+          <div class="palette-choices" role="group" aria-label="Accent color">
+            <button type="button" class="palette-choice" data-palette-choice="blue" aria-pressed="true"><span class="palette-dot palette-blue" aria-hidden="true"></span><span>Glacier</span></button>
+            <button type="button" class="palette-choice" data-palette-choice="mint" aria-pressed="false"><span class="palette-dot palette-mint" aria-hidden="true"></span><span>Mint</span></button>
+            <button type="button" class="palette-choice" data-palette-choice="iris" aria-pressed="false"><span class="palette-dot palette-iris" aria-hidden="true"></span><span>Iris</span></button>
+            <button type="button" class="palette-choice" data-palette-choice="rose" aria-pressed="false"><span class="palette-dot palette-rose" aria-hidden="true"></span><span>Rose</span></button>
+            <button type="button" class="palette-choice" data-palette-choice="amber" aria-pressed="false"><span class="palette-dot palette-amber" aria-hidden="true"></span><span>Amber</span></button>
+            <button type="button" class="palette-choice" data-palette-choice="silver" aria-pressed="false"><span class="palette-dot palette-silver" aria-hidden="true"></span><span>Silver</span></button>
+          </div>
+          <input id="themeInput" type="hidden" value="graphite">
+          <input id="paletteInput" type="hidden" value="blue">
+        </section>
+        <section class="settings-section" aria-labelledby="workspaceHeading">
+          <h3 id="workspaceHeading">Workspace</h3>
+          <label class="field-label" for="detailLayoutInput">Game details</label>
+          <select id="detailLayoutInput" class="settings-select"><option value="docked">Dock beside the library</option><option value="overlay">Slide over the library</option><option value="focus">Open a focused game view</option></select>
+          <p class="field-help">Choose how a game opens from your library.</p>
+          <label class="field-label" for="buildWorkspaceInput">PC build folder</label>
+          <div class="input-row"><input id="buildWorkspaceInput" class="text-input" placeholder="VR4ALL AppData build folder"><button type="button" id="pickBuildWorkspaceButton" class="small-button">Browse</button><button type="button" id="resetBuildWorkspaceButton" class="small-button">Default</button></div>
+          <p class="field-help">VR4ALL uses this folder for temporary game conversions and builds, including GalaxyQuest. Default: VR4ALL's AppData folder. Vice City, RDR, and San Andreas use the build-tools folder you select during their setup.</p>
+        </section>
+        <section class="settings-section" aria-labelledby="connectionHeading">
+          <h3 id="connectionHeading">Connection</h3>
+          <label class="field-label" for="adbPathInput">ADB executable path</label>
+          <div class="input-row"><input id="adbPathInput" class="text-input" placeholder="Auto-detect from Android SDK or PATH"><button type="button" id="pickAdbButton" class="small-button">Browse</button></div>
+          <p class="field-help">Detected automatically. Choose a path if your headset cannot connect.</p>
+          <div id="sourceSettings" class="source-settings">
+            <div class="dialog-subhead">GitHub source for <strong id="sourceGameName"></strong></div>
+            <label class="field-label" for="repoInput">Repository</label><input id="repoInput" class="text-input" placeholder="owner/repository">
+            <label class="field-label" for="assetPatternInput">APK filename pattern</label><input id="assetPatternInput" class="text-input" placeholder="^Game-.*\.apk$">
+            <p class="field-help">Selects this game's APK when a repository has several ports.</p>
+          </div>
+        </section>
+      </div>
+      <div class="dialog-actions settings-actions"><span class="settings-preview-note">Appearance previews instantly</span><button value="cancel" class="outline-button">Cancel</button><button id="saveSettingsButton" type="button" class="primary-button">Save settings</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="bulkDialog" class="app-dialog bulk-dialog"><div class="dialog-head"><div><div class="eyebrow muted">YOUR GAME FILES</div><h2 id="bulkDialogTitle">Bulk install new games</h2></div><button id="closeBulkButton" class="close-button" aria-label="Close bulk action">×</button></div><p class="field-help">Choose or drop files on each game card first. VR4ALL remembers those paths without copying your files. Select the ready games below, or forget a saved path.</p><p id="bulkScanSummary" class="field-help" aria-live="polite">Loading saved game choices…</p><div id="bulkMatches" class="bulk-matches"></div><div id="savedLibraryFiles" class="saved-library-files"></div><p id="bulkProgress" class="field-help" aria-live="polite"></p><div class="dialog-actions"><button id="bulkRunButton" class="primary-button" type="button" disabled>Install selected new games</button></div></dialog>
+  <dialog id="phoneExportDialog" class="app-dialog sdk-setup-dialog" aria-labelledby="phoneExportTitle">
+    <div class="dialog-head"><h2 id="phoneExportTitle">Export game from Android phone</h2><button id="closePhoneExportButton" type="button" class="close-button" aria-label="Close phone export">×</button></div>
+    <p class="field-help">Install your game on an Android phone or tablet, open it and finish all game downloads. Enable USB debugging, connect the phone to this PC, unlock it and approve this computer.</p>
+    <p id="phoneExportEditionNote" class="guide-note"></p>
+    <div id="phoneExportEditionField" hidden><label class="field-label" for="phoneExportEdition">RDR edition on the phone</label><select id="phoneExportEdition" class="text-input"><option value="auto">Detect installed edition</option><option value="google-play">Rockstar / Google Play</option><option value="netflix">Netflix</option></select></div>
+    <label class="field-label" for="phoneExportDevice">Source phone or tablet</label>
+    <div class="input-row"><select id="phoneExportDevice" class="text-input"><option value="">Connect your phone</option></select><button id="phoneExportRefreshButton" type="button" class="small-button">Refresh phones</button></div>
+    <div id="phoneExportCheckField" class="sdk-setup-card" hidden>
+      <strong>Does this phone have the complete game data?</strong>
+      <p id="phoneExportReadiness" class="field-help" role="status" aria-live="polite"></p>
+      <button id="phoneExportCheckButton" type="button" class="small-button">Check phone</button>
+    </div>
+    <div id="phoneExportDataField" hidden>
+      <label class="field-label" for="phoneExportDataSource">Additional RDR game data — only if the phone export needs it</label>
+      <input id="phoneExportDataSource" class="text-input" placeholder="Choose matching world, cutscene and audio files if needed">
+      <div class="build-pickers"><button id="phoneExportDataFileButton" type="button" class="small-button browse-btn" data-picker="file" data-target="phoneExportDataSource">Choose data archive</button><button id="phoneExportDataFolderButton" type="button" class="small-button browse-btn" data-picker="directory" data-target="phoneExportDataSource">Choose data folder</button></div>
+      <p class="field-help">These are the game's world, cutscenes and audio, about 3.7 GB. Use matching 1.58.63226194 data: split_game0.apk–split_game3.apk in a folder or archive, or a complete export's asset-packs folder. If your phone APKs contain all required data, leave this blank. Otherwise use your existing matching files or a complete export from a device that can read the packs. VR4ALL remembers your selection and imports only resources. It does not include or download this game data; there is no official standalone download configured.</p>
+    </div>
+    <label class="field-label" for="phoneExportLocation">Save exported game in</label>
+    <div class="input-row"><input id="phoneExportLocation" class="text-input" placeholder="Choose a folder on a drive with free space"><button id="phoneExportBrowseButton" type="button" class="small-button browse-btn" data-picker="directory" data-target="phoneExportLocation">Browse</button></div>
+    <p class="field-help">A new VR4ALL-export folder is created here. Allow several GB of free space. The verified export is automatically selected as your game input; your phone's files stay in place.</p>
+    <div class="dialog-actions"><button id="phoneExportStartButton" type="button" class="primary-button">Export game</button></div>
+    <p id="phoneExportStatus" role="status" aria-live="polite"></p>
+    <details><summary>Export activity</summary><pre id="phoneExportLog"></pre></details>
+  </dialog>
+  <dialog id="sdkSetupDialog" class="app-dialog sdk-setup-dialog" aria-labelledby="sdkSetupTitle">
+    <div class="dialog-head"><h2 id="sdkSetupTitle">Game build tools</h2><button id="closeSdkSetupButton" type="button" class="close-button" aria-label="Close build tools window">×</button></div>
+    <p class="field-help">Choose where to download and keep the build tools. Google’s tools will ask you to review any required licenses before installation.</p>
+    <label class="field-label" for="sdkDownloadLocation">Download folder</label>
+    <div class="input-row"><input id="sdkDownloadLocation" class="text-input" placeholder="Choose a folder on a drive with free space"><button id="sdkBrowseButton" type="button" class="small-button browse-btn" data-picker="directory" data-target="sdkDownloadLocation">Browse</button></div>
+    <p class="field-help">The first setup defaults to your game folder. Other games reuse your saved tools folder. Shared tools stay in VR4ALL-build-tools/builds/shared; only missing versions are downloaded. Allow several GB of free space.</p>
+    <div class="dialog-actions"><button id="sdkStartButton" type="button" class="primary-button">Download and set up tools</button></div>
+    <p id="sdkSetupStatus" role="status" aria-live="polite">Choose a download folder to continue.</p>
+    <section id="sdkLicenseSection" hidden><h3>Google license</h3><pre id="sdkLicenseText" tabindex="0"></pre></section>
+    <div id="sdkLicenseActions" class="dialog-actions" hidden><button id="sdkDeclineButton" type="button" class="outline-button" disabled>Decline</button><button id="sdkAcceptButton" type="button" class="primary-button" disabled>Accept license and install tools</button></div>
+    <details><summary>Download activity</summary><pre id="sdkSetupLog"></pre></details>
+  </dialog>
+</body>
+</html>

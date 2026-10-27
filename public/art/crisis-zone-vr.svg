@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 380" role="img" aria-labelledby="title desc">
+  <title id="title">Crisis Zone VR artwork</title><desc id="desc">Original illustrated rail shooter scene for Crisis Zone VR</desc>
+  <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#0b1423"/><stop offset=".55" stop-color="#1a2537"/><stop offset="1" stop-color="#efb674" stop-opacity=".6"/></linearGradient><linearGradient id="shade" x2="0" y2="1"><stop stop-color="#08111b" stop-opacity="0"/><stop offset="1" stop-color="#050a12" stop-opacity=".96"/></linearGradient></defs>
+  <rect width="720" height="380" fill="url(#bg)"/><path d="M0 50h720M0 105h720M0 160h720M0 215h720M0 270h720M90 0v380M180 0v380M270 0v380M360 0v380M450 0v380M540 0v380M630 0v380" stroke="#ffffff0b" stroke-width="2"/>
+  <path d="M0 275L600 40L720 85L180 320Z" fill="#efb674" opacity=".09"/><path d="M48 275V120h86V80h82v70h68V88h70v187" fill="none" stroke="#dbe7ff33" stroke-width="5"/><path d="M0 276h720" stroke="#ffffff33" stroke-width="3"/><circle cx="465" cy="136" r="67" fill="none" stroke="#efb674" stroke-width="9"/><circle cx="465" cy="136" r="32.16" fill="none" stroke="#ffffff88" stroke-width="3"/><path d="M364 136L566 136" stroke="#ffffff99" stroke-width="3"/><path d="M465 35L465 237" stroke="#ffffff99" stroke-width="3"/><circle cx="465" cy="136" r="7" fill="#fff"/><path d="M60 260L312 24M90 260L342 24" stroke="#efb674" stroke-width="3" opacity=".38"/>
+  <rect y="224" width="720" height="156" fill="url(#shade)"/><path d="M35 310h85" stroke="#efb674" stroke-width="6"/>
+  <text x="36" y="41" fill="#ffffffa8" font-size="15" font-family="Arial,sans-serif" letter-spacing="4">VR4ALL  /  ARCADE</text>
+  <text x="36" y="358" fill="#f7f9ff" font-size="42" font-weight="800" font-family="Arial,sans-serif" letter-spacing="1">CRISIS ZONE VR</text>
+  </svg>

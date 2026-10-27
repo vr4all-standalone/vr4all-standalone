@@ -1,0 +1,10 @@
+.sdk-setup-dialog { width: min(800px, 92vw); max-width: 92vw; padding: 24px; }
+.sdk-setup-dialog h2 { margin: 0; }
+.sdk-setup-dialog [hidden] { display: none !important; }
+.sdk-setup-dialog pre { white-space: pre-wrap; overflow-wrap: anywhere; overflow-y: auto; border: 1px solid #58677c66; border-radius: 10px; background: #101723; color: #e1e8f2; padding: 16px; font: 12px/1.6 monospace; }
+#sdkLicenseText { max-height: 44vh; }
+#sdkSetupLog { max-height: 18vh; }
+#phoneExportLog { max-height: 22vh; }
+#phoneExportDevice { min-width: 0; }
+.sdk-setup-card { margin: 14px 0; padding: 16px; border: 1px solid #58677c66; border-radius: 10px; }
+.sdk-setup-card .field-help { margin: 8px 0 12px; }

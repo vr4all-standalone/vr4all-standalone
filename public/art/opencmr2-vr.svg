@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 380" role="img" aria-labelledby="title desc">
+  <title id="title">OPENCMR2 VR artwork</title><desc id="desc">Simple graphic placeholder for OPENCMR2 VR</desc>
+  <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#101a27"/><stop offset="1" stop-color="#9ec4b5" stop-opacity=".56"/></linearGradient></defs>
+  <rect width="720" height="380" fill="url(#bg)"/>
+  <circle cx="530" cy="164" r="128" fill="none" stroke="#9ec4b5" stroke-width="4" opacity=".7"/>
+  <circle cx="530" cy="164" r="82" fill="none" stroke="#ffffff" stroke-width="3" opacity=".4"/>
+  <path d="M0 270 130 202 261 258 388 172 521 239 720 122" fill="none" stroke="#9ec4b5" stroke-width="8" opacity=".6"/>
+  <path d="M0 296h720M0 318h720M0 340h720" stroke="#ffffff" stroke-width="2" opacity=".09"/>
+  <text x="35" y="48" fill="#ffffff" font-size="16" font-family="Arial,sans-serif" letter-spacing="4">VR4ALL  /  PC</text>
+  <text x="35" y="346" fill="#ffffff" font-size="39" font-weight="800" font-family="Arial,sans-serif">OPENCMR2 VR</text>
+</svg>

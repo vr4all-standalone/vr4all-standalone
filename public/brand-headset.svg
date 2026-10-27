@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 92" role="img" aria-label="VR headset">
+  <defs>
+    <linearGradient id="shell" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#ffffff"/>
+      <stop offset=".55" stop-color="#e8e8f6"/>
+      <stop offset="1" stop-color="#a6a7bf"/>
+    </linearGradient>
+    <linearGradient id="visor" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#4b5a85"/>
+      <stop offset=".4" stop-color="#192339"/>
+      <stop offset="1" stop-color="#090f1a"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#8b7cff"/>
+      <stop offset="1" stop-color="#b1fbdf"/>
+    </linearGradient>
+  </defs>
+  <path d="M12 38C4 40 2 50 5 60l6 17 12-5-3-27Z" fill="#37344d" stroke="#cac9e4" stroke-width="3"/>
+  <path d="M116 38c8 2 10 12 7 22l-6 17-12-5 3-27Z" fill="#37344d" stroke="#cac9e4" stroke-width="3"/>
+  <path d="M22 32c2-13 14-20 42-20s40 7 42 20l4 25c2 12-7 21-18 21H36c-11 0-20-9-18-21Z" fill="url(#shell)" stroke="#fff" stroke-width="2"/>
+  <path d="M24 42c1-8 8-13 17-13h46c9 0 16 5 17 13l2 14c1 8-5 14-14 14H36c-9 0-15-6-14-14Z" fill="url(#visor)"/>
+  <path d="M34 35c9-5 44-7 59 0" fill="none" stroke="#c8d5ff" stroke-width="2" opacity=".7"/>
+  <path d="M35 62c14 3 44 4 58-1" fill="none" stroke="url(#shine)" stroke-linecap="round" stroke-width="3" opacity=".95"/>
+  <path d="M43 72c4 8 13 11 21 11s17-3 21-11" fill="none" stroke="#a8a5bf" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="34" cy="52" r="2.5" fill="#b4ffe2"/>
+  <circle cx="94" cy="52" r="2.5" fill="#b4ffe2"/>
+</svg>

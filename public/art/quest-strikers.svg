@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 380" role="img" aria-labelledby="title desc">
+  <title id="title">QuestStrikers artwork</title><desc id="desc">Original illustrated sports scene for QuestStrikers</desc>
+  <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#0b1423"/><stop offset=".55" stop-color="#1a2537"/><stop offset="1" stop-color="#e8a17d" stop-opacity=".6"/></linearGradient><linearGradient id="shade" x2="0" y2="1"><stop stop-color="#08111b" stop-opacity="0"/><stop offset="1" stop-color="#050a12" stop-opacity=".96"/></linearGradient></defs>
+  <rect width="720" height="380" fill="url(#bg)"/><path d="M0 50h720M0 105h720M0 160h720M0 215h720M0 270h720M90 0v380M180 0v380M270 0v380M360 0v380M450 0v380M540 0v380M630 0v380" stroke="#ffffff0b" stroke-width="2"/>
+  <ellipse cx="375" cy="267" rx="320" ry="103" fill="none" stroke="#e8a17d" stroke-width="7"/><path d="M375 165v205M48 267h650" stroke="#ffffff77" stroke-width="4"/><circle cx="375" cy="267" r="67" fill="none" stroke="#ffffff88" stroke-width="4"/><circle cx="540" cy="115" r="66" fill="#e8edf2"/><path d="M540 68l31 25-14 34h-36l-14-34Z" fill="#18202c"/><path d="M540 181l-10-28m59-23-23-8m-77-19 20 4" stroke="#18202c" stroke-width="9"/>
+  <rect y="224" width="720" height="156" fill="url(#shade)"/><path d="M35 310h85" stroke="#e8a17d" stroke-width="6"/>
+  <text x="36" y="41" fill="#ffffffa8" font-size="15" font-family="Arial,sans-serif" letter-spacing="4">VR4ALL  /  GAMECUBE</text>
+  <text x="36" y="358" fill="#f7f9ff" font-size="42" font-weight="800" font-family="Arial,sans-serif" letter-spacing="1">QUESTSTRIKERS</text>
+  </svg>
