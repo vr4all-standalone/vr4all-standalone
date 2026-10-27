@@ -3,6 +3,21 @@ const assert = require('node:assert/strict');
 const { inspectDevice } = require('../src/device-library');
 const { getCatalog } = require('../src/catalog');
 
+test('Morrowind is ready only after its Data Files folder reaches the Quest', async () => {
+  let dataFilesPresent = false;
+  const adb = { async run(args) {
+    const command = args.slice(2).join(' ');
+    if (command === 'shell pm list packages -3') return 'package:xyz.morrowind.tes3mpvr';
+    if (command === 'shell dumpsys package xyz.morrowind.tes3mpvr') return 'versionName=0.9.0';
+    if (command === 'shell ls -1 /sdcard/Morrowind/') return dataFilesPresent ? 'Morrowind.ini\nData Files' : 'Morrowind.ini';
+    return '';
+  } };
+  const game = getCatalog().find((entry) => entry.id === 'tes3mp-vr');
+  assert.equal((await inspectDevice(adb, 'Q3', [game]))[game.id].dataReady, false);
+  dataFilesPresent = true;
+  assert.equal((await inspectDevice(adb, 'Q3', [game]))[game.id].dataReady, true);
+});
+
 test('X-Wing Revival is recognized only after its included missions unpack', async () => {
   let missions = 'rebel0.def\nrebel1.def\nempire0.def';
   const adb = { async run(args) {

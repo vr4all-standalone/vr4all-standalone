@@ -288,7 +288,7 @@ async function inspectDevice(adb, serial, games, knownPackages = {}) {
     for (const item of game.data.filter((entry) => !entry.optional)) {
       if (item.kind === 'directory') {
         const names = await list(item.destination);
-        if (!names.length || item.requiredEntries?.some((name) => !names.includes(name))) return false;
+        if (!names.length || [...(item.requiredEntries || []), ...(item.requiredDirectories || [])].some((name) => !names.includes(name))) return false;
       } else if (item.destination.endsWith('/')) {
         const names = await list(item.destination);
         if (!names.some((name) => downloadPatterns[game.id]?.test(name)

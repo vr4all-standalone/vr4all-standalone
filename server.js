@@ -334,9 +334,11 @@ function createApp(options = {}) {
     if (item.kind === 'directory') {
       if (stat.isFile() && ['.zip', '.7z', '.rar'].includes(path.extname(local).toLowerCase())) return Boolean(stat.size) && Boolean(await inspectDirectoryArchive(item, local).catch(() => null));
       if (!stat.isDirectory()) return false;
-      const names = await fs.readdir(local).catch(() => []);
-      return names.length > 0 && (item.requiredEntries || []).every((entry) => names.includes(entry))
-        && (item.requiredExtensions || []).every((extension) => names.some((name) => name.toLowerCase().endsWith(extension.toLowerCase())));
+      const entries = await fs.readdir(local, { withFileTypes: true }).catch(() => []);
+      const names = new Map(entries.map((entry) => [entry.name.toLowerCase(), entry]));
+      return entries.length > 0 && (item.requiredEntries || []).every((name) => names.get(name.toLowerCase())?.isFile())
+        && (item.requiredDirectories || []).every((name) => names.get(name.toLowerCase())?.isDirectory())
+        && (item.requiredExtensions || []).every((extension) => entries.some((entry) => entry.isFile() && entry.name.toLowerCase().endsWith(extension.toLowerCase())));
     }
     const extensions = (item.extensions || []).map((extension) => extension.toLowerCase());
     if (extensions.includes('.zip')) extensions.push('.7z', '.rar');

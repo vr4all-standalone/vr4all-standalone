@@ -203,6 +203,24 @@ test('Simpsons PC input requires its core asset folders before transfer', async 
   } finally { app.server.close(); await fs.rm(root, { recursive: true, force: true }); }
 });
 
+test('Morrowind accepts a game root containing its INI and Data Files directory', async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-morrowind-'));
+  const gamePath = path.join(root, 'Morrowind');
+  const dataFiles = path.join(gamePath, 'Data Files');
+  await fs.mkdir(dataFiles, { recursive: true });
+  await fs.writeFile(path.join(gamePath, 'Morrowind.ini'), '[Game Files]');
+  await fs.writeFile(path.join(dataFiles, 'Morrowind.esm'), 'owned fixture');
+  const app = createApp({ settingsPath: path.join(root, 'settings.json'), adb: { listDevices: async () => [], run: async () => '' } });
+  try {
+    const result = await request(app, 'POST', '/api/validate-file', { gameId: 'tes3mp-vr', itemId: 'game', path: gamePath });
+    assert.equal(result.status, 200, JSON.stringify(result.body));
+    assert.equal((await request(app, 'POST', '/api/local-paths', { gameId: 'tes3mp-vr', key: 'game', path: gamePath })).status, 200);
+    assert.equal((await request(app, 'GET', '/api/local-paths')).body.availability['tes3mp-vr'].game, true);
+    await fs.rm(dataFiles, { recursive: true });
+    assert.equal((await request(app, 'GET', '/api/local-paths')).body.availability['tes3mp-vr'].game, false);
+  } finally { app.server.close(); await fs.rm(root, { recursive: true, force: true }); }
+});
+
 test('selected game files keep their original path across restart', async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-paths-'));
   const settingsPath = path.join(root, 'settings.json');

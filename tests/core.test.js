@@ -16,6 +16,16 @@ test('parseDevices names Quest 2, Quest 3, Quest 3S, and Quest Pro', () => {
   assert.deepEqual(parseDevices(output).map(({ model }) => model), ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro']);
 });
 
+test('Morrowind transfers only the INI and Data Files to the creator’s Quest folder', () => {
+  const game = getCatalog().find((entry) => entry.id === 'tes3mp-vr');
+  const plan = buildInstallPlan(game, {
+    serial: 'Q3', apkPath: 'C:\\tes3mp.apk', files: { game: 'C:\\Morrowind' },
+    directoryEntries: { game: ['Morrowind.ini', 'Data Files', 'Morrowind.exe', 'manual.pdf'] },
+  });
+  const copied = plan.filter((step) => step.args.includes('push')).map((step) => step.label);
+  assert.deepEqual(copied, ['Copy game/Morrowind.ini', 'Copy game/Data Files']);
+});
+
 test('selectRelease chooses the matching APK in a shared release repository', () => {
   const releases = [
     { tag_name: 'tc2-v1', name: 'Time Crisis II', html_url: 'https://github.com/a/b/releases/tag/tc2-v1', assets: [{ name: 'TimeCrisis2VR-v1.apk', browser_download_url: 'https://github.com/a/b/releases/download/tc2-v1/TimeCrisis2VR-v1.apk' }] },
