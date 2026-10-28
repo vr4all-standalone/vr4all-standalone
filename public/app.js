@@ -46,7 +46,7 @@ function setActivity(key, message, active = true, error = false) {
   if (!message) activities.delete(key);
   else {
     const queuedJob = key.startsWith('job:') && state.jobs.find((job) => job.id === key.slice(4))?.status === 'queued';
-    const priority = key.startsWith('job:') ? queuedJob ? 2 : 4 : key.startsWith('bulk') ? 3 : key === 'updates' ? 2 : 1;
+    const priority = key.startsWith('job:') ? queuedJob ? 2 : 4 : key.startsWith('bulk') ? 3 : key === 'updates' || key === 'app-update' ? 2 : 1;
     const entry = { message, active, error, priority, sequence: ++activitySequence, timer: null };
     if (!active) entry.timer = setTimeout(() => {
       if (activities.get(key) === entry) { activities.delete(key); renderActivity(); }
@@ -54,6 +54,13 @@ function setActivity(key, message, active = true, error = false) {
     activities.set(key, entry);
   }
   renderActivity();
+}
+
+if (window.vr4allDesktop?.onAppUpdateProgress) {
+  window.vr4allDesktop.onAppUpdateProgress(({ done, total, version }) => {
+    const percent = total > 0 ? ` ${Math.min(100, Math.floor(done / total * 100))}%` : '';
+    setActivity('app-update', `Downloading VR4ALL ${version || 'update'}${percent}…`);
+  });
 }
 
 function sourceFor(game) { return state.sources[game.id] || game.source; }
@@ -676,10 +683,31 @@ async function checkAllReleases() {
     setActivity('updates', `Update check stopped: ${error.message}. Details saved to update-checks.txt.`, false, true);
     toast(error.message, true);
   } finally {
+    await checkVr4allUpdate();
     state.updateChecking = false;
     updateBulkUpdateButton();
     button.disabled = false;
     button.innerHTML = '<span>↻</span> Check updates';
+  }
+}
+
+async function checkVr4allUpdate() {
+  const desktop = window.vr4allDesktop;
+  if (!desktop?.checkAppUpdate) return;
+  setActivity('app-update', 'Checking VR4ALL for an app update…');
+  try {
+    const update = await desktop.checkAppUpdate();
+    if (!update.available) {
+      setActivity('app-update', update.supported === false ? '' : 'VR4ALL is up to date.', false);
+      return;
+    }
+    setActivity('app-update', `VR4ALL ${update.version} is available. Waiting for your choice…`);
+    const result = await desktop.installAppUpdate();
+    setActivity('app-update', result?.cancelled
+      ? `VR4ALL ${update.version} is available. Run Check updates when you are ready.`
+      : `VR4ALL ${update.version} downloaded. Restarting…`, false);
+  } catch (error) {
+    setActivity('app-update', `VR4ALL update check failed: ${error.message}`, false, true);
   }
 }
 

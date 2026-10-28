@@ -15,6 +15,7 @@ The catalog has **96 game cards and 102 port choices**, including alternate mods
 - 🧭 **One hub for ALL standalone Quest VR ports.** Browse 96 games in VR4ALL, search by game, console, or genre, and find each mod creator's project in one place.
 - ⚡ **Simple, one-click installation.** Bring the game files or creator APK requested on the card, then click **Install**. VR4ALL handles the build, patch, and headset transfer steps in the app, so players do not need to follow a separate build guide.
 - 🔄 **Auto update installed mods.** Scan your connected Quest to find new creator releases, then approve the updates you want VR4ALL to install on the headset.
+- 🖥️ **Update VR4ALL itself.** Check updates also looks for a newer VR4ALL Windows release. Approve it to download, restart, and reopen the portable app with your settings intact.
 - 📦 **Bulk install and bulk update.** Choose or drop game files on their individual cards; VR4ALL remembers the original paths. Select saved, ready games in Bulk install, or update eligible installed mods together without supplying files already on the headset.
 
 ### Updates on a connected Quest

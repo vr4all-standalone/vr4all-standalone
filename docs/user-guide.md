@@ -18,6 +18,8 @@ To rebuild on Windows with the project dependencies installed, run `npm install`
 
 The bottom activity indicator shows live progress for ROM/APK checks, installs, personal builds, headset scans, bulk actions, and GitHub release checks. Bulk installs also show progress at the bottom of their dialog. Success or failure remains visible briefly after the task finishes.
 
+**Check updates** checks the game ports and then VR4ALL itself. If a newer VR4ALL Windows portable release is available, choose **Update and restart** to download its EXE, verify the GitHub SHA-256 digest, replace the portable file you launched, and reopen the app. Choose **Later** to keep working. The app will not close for its own update while a game install is running or queued. If file replacement fails, the updater restores and reopens the previous EXE and writes the reason to `%APPDATA%\vr4all\updates\last-update.txt`. Self-update works in the packaged Windows portable EXE; the development browser preview cannot replace itself. Versions before 0.3.46 need one manual download of 0.3.46 to gain this feature.
+
 The installer uses `adb -s SERIAL install -r` and `adb -s SERIAL push` so multiple connected headsets are handled separately. The activity panel shows each command’s result. A completed transfer means the files reached the headset; open the game under **Unknown Sources** to confirm it runs.
 
 ## How profiles work

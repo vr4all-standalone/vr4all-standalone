@@ -1,10 +1,11 @@
 const path = require('node:path');
 const fs = require('node:fs');
-const { app, BrowserWindow, dialog, shell, session } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain, shell, session } = require('electron');
 const { createApp } = require('../server');
 const { GitHubReleases } = require('../src/releases');
 const { profilePaths } = require('./profile-paths');
 const { confirmExitWithInstalls } = require('./exit-guard');
+const { AppUpdater, installApprovedUpdate, startReplacement } = require('./app-updater');
 
 // Keep Windows PowerShell helpers independent of the shell that opened VR4ALL.
 if (process.platform === 'win32') delete process.env.PSModulePath;
@@ -47,9 +48,10 @@ if (!ownsInstanceLock) {
     try {
       traceStartup('ready');
       const dataDir = profiles.dataDir;
+      const releases = new GitHubReleases(path.join(dataDir, 'apks'));
       const instance = createApp({
         settingsPath: path.join(dataDir, 'settings.json'),
-        releases: new GitHubReleases(path.join(dataDir, 'apks')),
+        releases,
         openFolder: async (folder) => {
           const error = await shell.openPath(folder);
           if (error) throw new Error(error);
@@ -57,6 +59,33 @@ if (!ownsInstanceLock) {
       });
       server = instance.server;
       getActiveInstallJobs = instance.getActiveInstallJobs;
+      const appUpdater = new AppUpdater({
+        releases,
+        currentVersion: app.getVersion(),
+        portablePath: app.isPackaged ? process.env.PORTABLE_EXECUTABLE_FILE : '',
+      });
+      ipcMain.handle('app-update-check', () => appUpdater.check());
+      ipcMain.handle('app-update-install', () => installApprovedUpdate({
+        updater: appUpdater,
+        getActiveJobs: getActiveInstallJobs,
+        confirm: async () => {
+          const version = appUpdater.pending?.tag?.replace(/^v/i, '').replace(/-beta$/i, '') || 'new version';
+          const { response } = await dialog.showMessageBox(window, {
+            type: 'question', title: 'Update VR4ALL',
+            message: `VR4ALL ${version} is available. Update and restart now?`,
+            detail: 'VR4ALL will download the verified Windows EXE, close, replace the portable app you opened, and reopen it. Your game files and settings stay in place.',
+            buttons: ['Update and restart', 'Later'], defaultId: 0, cancelId: 1, noLink: true,
+          });
+          return response === 0;
+        },
+        onProgress: (done, total) => {
+          if (window && !window.isDestroyed()) window.webContents.send('app-update-progress', {
+            done, total, version: appUpdater.pending?.tag?.replace(/^v/i, '').replace(/-beta$/i, ''),
+          });
+        },
+        startReplacement: (input) => startReplacement({ ...input, dataDir }),
+        quit: () => app.quit(),
+      }));
       await new Promise((resolve, reject) => {
         server.once('error', reject);
         server.listen(0, '127.0.0.1', resolve);

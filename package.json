@@ -1,6 +1,6 @@
 {
   "name": "vr4all",
-  "version": "0.3.45",
+  "version": "0.3.46",
   "description": "Desktop installer for standalone Quest game ports",
   "main": "desktop/main.js",
   "private": true,
@@ -22,6 +22,8 @@
       "desktop/exit-guard.js",
       "desktop/preload.js",
       "desktop/profile-paths.js",
+      "desktop/app-updater.js",
+      "desktop/update-helper.ps1",
       "desktop/icon.ico",
       "public/**/*",
       "!public/models/**",

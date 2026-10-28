@@ -616,6 +616,32 @@ test('Check updates shows persistent progress while GitHub is still responding',
   assert.match(elements.get('#updateStatus').textContent, /Checked 1 GitHub source/);
 });
 
+test('Check updates checks VR4ALL after the game sources and offers the app update', async () => {
+  const { context, game, elements } = appHarness();
+  const order = [];
+  context.checkGame = async () => { order.push('game'); return null; };
+  context.window.vr4allDesktop = {
+    async checkAppUpdate() { order.push('app-check'); return { available: true, version: '0.3.46' }; },
+    async installAppUpdate() { order.push('app-offer'); return { cancelled: true }; },
+  };
+  vm.runInContext('state.games = [game]; checkRelease = checkGame', context);
+  await vm.runInContext('checkAllReleases()', context);
+  assert.deepEqual(order, ['game', 'app-check', 'app-offer']);
+  assert.match(elements.get('#updateStatus').textContent, /VR4ALL 0\.3\.46/);
+});
+
+test('an app update check failure leaves game release results intact', async () => {
+  const { context, game } = appHarness();
+  let checked = 0;
+  context.checkGame = async () => { vm.runInContext("state.releases[game.id] = { tag: 'v2.0.0' }", context); return null; };
+  context.window.vr4allDesktop = { async checkAppUpdate() { checked++; throw new Error('GitHub unavailable'); } };
+  vm.runInContext('state.games = [game]; checkRelease = checkGame', context);
+  await vm.runInContext('checkAllReleases()', context);
+  assert.equal(vm.runInContext('state.releases[game.id].tag', context), 'v2.0.0');
+  assert.equal(checked, 1);
+  assert.equal(vm.runInContext('state.updateChecking', context), false);
+});
+
 test('install jobs show live progress and completion in the bottom activity indicator', async () => {
   const { context, elements } = appHarness();
   context.jobResult = { id: 'job-activity', gameId: 'time-crisis-vr', title: 'Time Crisis VR', status: 'running', log: ['Downloading APK 50%'] };
