@@ -3,6 +3,22 @@ const assert = require('node:assert/strict');
 const { inspectDevice } = require('../src/device-library');
 const { getCatalog } = require('../src/catalog');
 
+test('BioShock requires both the creator APK and copied game cache on the Quest', async () => {
+  let hasGame = false;
+  const adb = { async run(args) {
+    const command = args.slice(2).join(' ');
+    if (command === 'shell pm list packages -3') return 'package:com.winlator.cmod';
+    if (command === 'shell dumpsys package com.winlator.cmod') return 'versionName=initial-release';
+    if (command === 'shell ls -1 /sdcard/BioshockMQ2') return hasGame ? 'Builds\nContent' : '';
+    if (command === 'shell ls -1 /sdcard/BioshockMQ2/Builds/Release') return hasGame ? 'Bioshock.exe' : '';
+    return '';
+  } };
+  const game = getCatalog().find((entry) => entry.id === 'bioshock-vr');
+  assert.equal((await inspectDevice(adb, 'Q3S', [game]))[game.id].dataReady, false);
+  hasGame = true;
+  assert.equal((await inspectDevice(adb, 'Q3S', [game]))[game.id].dataReady, true);
+});
+
 test('Morrowind is ready only after its Data Files folder reaches the Quest', async () => {
   let dataFilesPresent = false;
   const adb = { async run(args) {

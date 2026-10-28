@@ -1,5 +1,6 @@
 // Read-only probes for catalogued ports on the selected Android headset.
 const packages = {
+  'bioshock-vr': 'com.winlator.cmod',
   'survivor2-code-veronica-vr': 'com.vrlightgunhub.survivor2',
   'lupin-the-third-vr': 'com.vrlightgunhub.lupin',
   'ninja-assault-vr': 'com.vrlightgunhub.ninjaassault',
@@ -110,7 +111,7 @@ const downloadPatterns = {
 
 // Some upstream release tags use unrelated build numbering. Leave these neutral
 // until the project exposes a reliable installed-to-release version mapping.
-const incomparableVersions = new Set(['wii-compiled', 'nfsu2-vr', 'revolt-vr', 'mgs-vr', 'sourcevr', 'hotd2-dreamcast-vr', 'mok-upstream-vr', 'twilight-vr', 'gta-sa-vr', 'rdr1-vr', 'crazy-taxi-vr']);
+const incomparableVersions = new Set(['wii-compiled', 'nfsu2-vr', 'revolt-vr', 'mgs-vr', 'sourcevr', 'hotd2-dreamcast-vr', 'mok-upstream-vr', 'twilight-vr', 'gta-sa-vr', 'rdr1-vr', 'crazy-taxi-vr', 'bioshock-vr']);
 
 async function inspectDevice(adb, serial, games, knownPackages = {}) {
   const result = {};
@@ -126,6 +127,11 @@ async function inspectDevice(adb, serial, games, knownPackages = {}) {
     return listCache.get(directory);
   }
   async function hasData(game) {
+    if (game.id === 'bioshock-vr') {
+      const root = await list('/sdcard/BioshockMQ2');
+      const release = await list('/sdcard/BioshockMQ2/Builds/Release');
+      return root.includes('Content') && release.includes('Bioshock.exe');
+    }
     if (game.id === 'pokemon-gen1-vr') {
       const imported = await list('/sdcard/Android/data/com.heurazy.gen1pokemonvr.quest/files/save/pokemon-love2d');
       if (imported.includes('red') || imported.includes('blue')) return true;

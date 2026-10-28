@@ -4,6 +4,18 @@ const download = '/sdcard/Download/';
 
 const additions = [
   {
+    id: 'bioshock-vr', title: 'BioShock VR', gameName: 'BioShock', series: 'terx1232', category: 'PC', color: '#8aaec6',
+    description: 'Experimental standalone Quest port of the original BioShock (2007). Quest 3 and 3S hardware testing is still pending.',
+    projectUrl: 'https://github.com/terx1232/BioShock-Quest-VR',
+    source: { repo: 'terx1232/BioShock-Quest-VR', assetPattern: '^BioShockVR-Setup\\.exe$' }, releaseKind: 'installer',
+    personalBuild: { specialInstaller: true, gameLabel: 'Owned original BioShock 2007 PC folder',
+      gameHint: 'Choose the installed original game folder containing Builds/Release/Bioshock.exe and Content. The Remastered edition is not supported.',
+      actionLabel: 'Prepare and install', processDescription: 'VR4ALL downloads the creator’s checksum-verified Windows installer (about 1 GB), gives it your selected game folder and Quest 3 or 3S, then confirms the creator’s installation receipt. Allow about 7 GB of free PC space and 14 GB on the headset.' },
+    data: [],
+    guidance: 'Experimental. The creator has not yet confirmed gameplay on Quest 3/3S hardware. The installer uses the com.winlator.cmod package and may replace an existing app with that package ID. VR4ALL uses temporary build files and removes them after success.',
+    afterInstall: 'On first launch, wait for the Windows environment to finish setting up. Test gameplay on your headset.',
+  },
+  {
     id: 'questzdoom', title: 'QuestZDoom', gameName: 'Doom, Doom II, Heretic and Hexen', series: 'Team Beef', category: 'PC', color: '#b7605e',
     description: 'One Quest engine for several classic Doom-family games.', projectUrl: 'https://github.com/Team-Beef-Studios/QuestZDoom/releases',
     source: { repo: 'Team-Beef-Studios/QuestZDoom', assetPattern: '^questzdoom-[0-9].*\\.apk$' },
@@ -279,6 +291,7 @@ const additions = [
 ];
 
 const additionFacets = {
+  'bioshock-vr': ['PC', 'Shooter'],
   'survivor2-code-veronica-vr': ['Arcade', 'Shooter'],
   'lupin-the-third-vr': ['Arcade', 'Rail shooter'],
   'ninja-assault-vr': ['Arcade', 'Rail shooter'],

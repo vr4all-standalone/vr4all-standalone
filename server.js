@@ -37,6 +37,7 @@ const { installAstroQuest, validateAstroGame } = require('./src/astroquest-runne
 const { installGalaxyQuest, validateGalaxyInput, chooseGalaxyWorkRoot } = require('./src/galaxyquest-runner');
 const { installSclerosis, validateSclerosisGame } = require('./src/sclerosis-runner');
 const { installJkxr } = require('./src/jkxr-runner');
+const { validateBioShockGame, installBioShock } = require('./src/bioshock-runner');
 const { inspectBeefRaiderData, installBeefRaiderApk, transferBeefRaiderData } = require('./src/beef-raider-runner');
 const { pickPath } = require('./src/picker');
 const { needsZipConversion, acceptsZipContents, convertArchiveToZip, packageDirectoryToZip, inspectDirectoryArchive, extractDirectoryArchive, inspectSingleFileArchive, extractSingleFileArchive, removeConversionDirectory } = require('./src/archive-conversion');
@@ -122,6 +123,7 @@ function createApp(options = {}) {
   const picker = options.picker || pickPath;
   const inspectApk = options.inspectApkPackage || inspectApkPackage;
   const personalBuilder = options.personalBuilder || runPersonalBuild;
+  const bioshockInstaller = options.bioshockInstaller || installBioShock;
   const viceCityBuilder = options.viceCityBuilder || runViceCityBuild;
   const sdkSetup = options.sdkSetup || setupBuildTools;
   const phoneExporter = options.phoneExporter || exportPhoneGame;
@@ -301,6 +303,7 @@ function createApp(options = {}) {
   async function localPathAvailable(game, key, local) {
     const stat = await fs.stat(local).catch(() => null);
     if (!stat) return false;
+    if (game.id === 'bioshock-vr' && key === 'gamePackage') return Boolean(await validateBioShockGame(local).catch(() => null));
     if (game.id === 'fzero-x-virtuavr' && key === 'gamePackage') {
       return stat.isFile() && stat.size > 0 && (path.extname(local).toLowerCase() === '.z64'
         || ['.zip', '.7z', '.rar'].includes(path.extname(local).toLowerCase()) && Boolean(await inspectSingleFileArchive(fzeroRomInput, local).catch(() => null)));
@@ -646,6 +649,27 @@ function createApp(options = {}) {
       await saveSettings();
     } catch (error) { job.status = 'error'; job.error = error.message; log(`Error: ${error.message}`); }
     finally { if (convertedGame) await removeConversionDirectory(convertedGame.directory, path.dirname(convertedGame.directory));  busyBuildGames.delete(game.id); await rememberFinishedJob(job); }
+  }
+
+  async function runBioShockJob(job, game, input) {
+    const log = (message) => { job.log.push(String(message).slice(0, 500)); if (job.log.length > 150) job.log.shift(); job.updatedAt = new Date().toISOString(); };
+    job.status = 'running';
+    try {
+      const rawModel = String(await adb.run(['-s', input.serial, 'shell', 'getprop', 'ro.product.model'])).trim();
+      const model = /\bQuest\s*3S\b/i.test(rawModel) ? 'Quest 3S' : /\bQuest\s*3\b/i.test(rawModel) ? 'Quest 3' : null;
+      if (!model) throw new Error('The creator’s BioShock installer currently supports Quest 3 and Quest 3S only');
+      const release = await releases.latest(sourceFor(game), { force: true });
+      if (!release || release.stale) throw new Error('Could not confirm the latest BioShock installer on GitHub. Check updates and retry.');
+      const result = await bioshockInstaller({ gamePath: input.gamePackage, serial: input.serial, model, release, releases,
+        workspaceRoot: path.join(buildWorkRoot(), 'bioshock-vr'), adb, onLog: log });
+      settings.installed[input.serial] ||= {};
+      settings.installed[input.serial][game.id] = { at: new Date().toISOString(), tag: result.tag, packageId: result.packageId };
+      await saveSettings();
+      job.status = 'success';
+      log('Official BioShock installer completed on the selected headset. Open the game to confirm it plays.');
+      if (game.afterInstall) { job.afterInstall = game.afterInstall; log(game.afterInstall); }
+    } catch (error) { job.status = 'error'; job.error = error.message; log(`Error: ${error.message}`); }
+    finally { await rememberFinishedJob(job); }
   }
 
   async function runBuildToolsJob(job) {
@@ -1140,7 +1164,7 @@ function createApp(options = {}) {
         try {
           let release = await releases.latest(source, { force: url.searchParams.get('refresh') === '1' });
           const serial = url.searchParams.get('serial');
-          if (release && serial && packages[game.id] && (release.digest || game.verifyApkHash || typeof releases.cachedFile === 'function')) {
+          if (release && serial && packages[game.id] && game.releaseKind !== 'installer' && (release.digest || game.verifyApkHash || typeof releases.cachedFile === 'function')) {
             const devices = await adb.listDevices().catch(() => []);
             if (devices.some((device) => device.serial === serial && device.state === 'device')) {
               let installedApkMatchesRelease = null;
@@ -1653,7 +1677,7 @@ function createApp(options = {}) {
       if (url.pathname === '/api/personal-build' && req.method === 'POST') {
         const requestInput = await body(req);
         const game = gameById(requestInput.gameId);
-        if (!game || !['gta-sa-vr', 'rdr1-vr', 'vice-city-vr', 'crazy-taxi-vr', 'fzero-x-virtuavr'].includes(game.id)) throw new Error('Choose a supported personal build');
+        if (!game || !['gta-sa-vr', 'rdr1-vr', 'vice-city-vr', 'crazy-taxi-vr', 'fzero-x-virtuavr', 'bioshock-vr'].includes(game.id)) throw new Error('Choose a supported personal build');
         if (buildToolGames.has(game.id) && busyBuildGames.has(game.id)) return json(res, 409, { error: 'Game tool setup or build is already running' });
         const downloadLocation = buildToolGames.has(game.id) && (game.id === 'vice-city-vr' || buildToolsLocation(game.id))
           ? await validateBuildToolsLocation(buildToolsLocation(game.id)) : null;
@@ -1667,6 +1691,8 @@ function createApp(options = {}) {
         }
         const input = game.id === 'crazy-taxi-vr'
           ? { gamePackage: requestInput.gamePackage, serial: requestInput.serial }
+          : game.id === 'bioshock-vr'
+          ? { gamePackage: await validateBioShockGame(requestInput.gamePackage), serial: requestInput.serial }
           : game.id === 'fzero-x-virtuavr'
           ? await validateFzeroRequest(requestInput)
           : game.id === 'vice-city-vr'
@@ -1686,6 +1712,7 @@ function createApp(options = {}) {
           jobs.set(job.id, job);
           queueInstall(job, () => game.id === 'crazy-taxi-vr' ? runCrazyTaxiJob(job, game, input)
             : game.id === 'fzero-x-virtuavr' ? runFzeroVirtuaJob(job, game, input)
+              : game.id === 'bioshock-vr' ? runBioShockJob(job, game, input)
               : runPersonalJob(job, game, input));
           return json(res, 202, { job });
         } catch (error) { busyBuildGames.delete(game.id); throw error; }

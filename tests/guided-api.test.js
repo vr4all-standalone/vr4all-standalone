@@ -7,6 +7,7 @@ const { Readable } = require('node:stream');
 const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const { createApp } = require('../server');
+const { getCatalog } = require('../src/catalog');
 const runFile = promisify(execFile);
 
 function request(app, method, url, payload) {
@@ -28,6 +29,32 @@ async function settledJob(app, id) {
   }
   throw new Error('Job did not settle');
 }
+
+test('BioShock card uses the official Quest 3/3S installer and validates the owned PC game before queueing', async () => {
+  const card = getCatalog().find((game) => game.id === 'bioshock-vr');
+  assert.equal(card.source.repo, 'terx1232/BioShock-Quest-VR');
+  assert.equal(card.source.assetPattern, '^BioShockVR-Setup\\.exe$');
+  assert.ok(card.personalBuild);
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-bioshock-api-'));
+  const gamePackage = path.join(root, 'BioShock');
+  await fs.mkdir(path.join(gamePackage, 'Builds', 'Release'), { recursive: true });
+  await fs.mkdir(path.join(gamePackage, 'Content'));
+  await fs.writeFile(path.join(gamePackage, 'Builds', 'Release', 'Bioshock.exe'), 'fixture');
+  const calls = [];
+  const app = createApp({ settingsPath: path.join(root, 'settings.json'),
+    adb: { listDevices: async () => [{ serial: 'Q3S-ONE', state: 'device' }], run: async () => 'Quest 3S' },
+    releases: { latest: async () => ({ tag: 'initial-release' }) },
+    bioshockInstaller: async (input) => { calls.push(input); return { tag: 'initial-release', packageId: 'com.winlator.cmod', version: 'initial-release' }; },
+  });
+  try {
+    assert.equal((await request(app, 'POST', '/api/personal-build', { gameId: 'bioshock-vr', serial: 'Q3S-ONE', gamePackage: root })).status, 400);
+    const started = await request(app, 'POST', '/api/personal-build', { gameId: 'bioshock-vr', serial: 'Q3S-ONE', gamePackage });
+    assert.equal(started.status, 202, JSON.stringify(started.body));
+    assert.equal((await settledJob(app, started.body.job.id)).status, 'success');
+    assert.equal(calls[0].gamePath, gamePackage);
+    assert.equal(calls[0].model, 'Quest 3S');
+  } finally { app.server.close(); await fs.rm(root, { recursive: true, force: true }); }
+});
 
 test('Vice City accepts one owned game folder and builds only for the selected Quest', async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-vc-api-'));

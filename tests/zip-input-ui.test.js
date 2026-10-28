@@ -263,6 +263,18 @@ test('installed personal builds show ready with an unverified build when headset
   assert.doesNotMatch(vm.runInContext('releaseLabel(personalGame)', context), /READY/);
 });
 
+test('BioShock shows a current creator install as ready and a newer installer as update ready', () => {
+  const { context } = appHarness();
+  context.bio = getCatalog().find((item) => item.id === 'bioshock-vr');
+  vm.runInContext("state.games = [bio]; state.selectedSerial = 'QUEST'; state.deviceLibrary.QUEST = { 'bioshock-vr': { packageId: 'com.winlator.cmod', versionName: '1', dataReady: true, versionComparable: false } }; state.installed.QUEST = { 'bioshock-vr': { packageId: 'com.winlator.cmod', tag: 'initial-release' } }; state.releases['bioshock-vr'] = { tag: 'initial-release', stale: false }", context);
+  assert.equal(vm.runInContext('cardStatus(bio)', context), 'status-current');
+  assert.match(vm.runInContext('releaseLabel(bio)', context), /READY/);
+  vm.runInContext("state.releases['bioshock-vr'] = { tag: 'newer-release', stale: false }", context);
+  assert.equal(vm.runInContext('cardStatus(bio)', context), 'status-update');
+  assert.match(vm.runInContext('releaseLabel(bio)', context), /UPDATE READY/);
+  assert.equal(vm.runInContext('installType(bio)', context), 'special');
+});
+
 test('Sclerosis is ready when its APK and owned game folders are on the Quest, even if the creator APK remains saved on PC', () => {
   const { context } = appHarness();
   context.sclerosis = getCatalog().find((item) => item.id === 'sclerosis-vr');

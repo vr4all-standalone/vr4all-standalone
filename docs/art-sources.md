@@ -4,6 +4,7 @@ These are project images or media previews. Lupin uses an original software-proj
 
 | Catalog ID | Local file | Exact image source | Context and rights note |
 | --- | --- | --- | --- |
+| `bioshock-vr` | `public/art/bioshock-vr.png` | [BioShock Quest VR creator release screenshot](https://github.com/terx1232/BioShock-Quest-VR/releases/download/initial-release/screenshot-rapture.png) | Creator's in-game screenshot; BioShock game art and trademarks remain with their owners. Redistribution permission is unverified. |
 | `survivor2-code-veronica-vr` | `public/art/survivor2-code-veronica-vr.jpg` | [Survivor 2 VR project banner](https://github.com/vr4all-standalone/survivor2-code-veronica-vr/blob/main/hotd2-vr/assets/readme-banner.jpg) | Project banner with game character artwork. Underlying game artwork and trademarks remain with their owners. |
 | `lupin-the-third-vr` | `public/art/lupin-the-third-vr.jpg` | [Lupin the Third VR project banner](https://github.com/vr4all-standalone/lupin-the-third-vr/blob/main/hotd2-vr/assets/readme-banner.jpg) | Official project banner with in-game character imagery; underlying game artwork rights remain with their owners. |
 | `ninja-assault-vr` | `public/art/ninja-assault-vr.jpg` | [Ninja Assault VR project banner](https://github.com/vr4all-standalone/ninja-assault-vr/blob/main/hotd2-vr/assets/readme-banner.jpg) | Project promotional banner with game-capture character imagery; underlying Ninja Assault artwork rights remain with their owners. |

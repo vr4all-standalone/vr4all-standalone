@@ -279,7 +279,7 @@ class GitHubReleases {
   async downloadTo(release, target, onProgress, allowZip = false, allowExe = false) {
     await fsp.mkdir(this.cacheDir, { recursive: true });
     if (await this.cachedFile(release, allowZip, allowExe)) return target;
-    const response = await fetch(release.downloadUrl, { headers: { 'User-Agent': 'vr4all/0.2' }, signal: AbortSignal.timeout(10 * 60 * 1000) });
+    const response = await fetch(release.downloadUrl, { headers: { 'User-Agent': 'vr4all/0.2' }, signal: AbortSignal.timeout((allowExe ? 45 : 10) * 60 * 1000) });
     if (!response.ok || !response.body) throw new Error(`GitHub asset download failed (${response.status})`);
     const expected = Number(response.headers.get('content-length') || release.size || 0);
     if (expected > 2 * 1024 ** 3) throw new Error('GitHub asset is unexpectedly large');
