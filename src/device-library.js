@@ -1,6 +1,7 @@
 // Read-only probes for catalogued ports on the selected Android headset.
 const packages = {
   'bioshock-vr': 'com.winlator.cmod',
+  'carnevil-vr': 'com.vrlightgunhub.carnevil',
   'survivor2-code-veronica-vr': 'com.vrlightgunhub.survivor2',
   'lupin-the-third-vr': 'com.vrlightgunhub.lupin',
   'ninja-assault-vr': 'com.vrlightgunhub.ninjaassault',

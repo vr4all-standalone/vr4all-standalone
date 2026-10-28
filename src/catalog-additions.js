@@ -288,10 +288,25 @@ const additions = [
     guidance: 'For World BHF2 Ver. E only. VR4ALL installs the Quest APK, enables All files access and copies your packed cartridge and optional separate BIOS; no CHD or PIC is needed. The port checks ROM lengths and CRC metadata before Play, which does not certify compressed payload integrity. One player per app instance; wider view is unavailable. No game files are included. The user reports successful headset gameplay on preview 1; physical testing of the weapon update remains open.',
     afterInstall: 'Open Survivor 2 - Code: Veronica VR under Unknown Sources. Its setup checks the World cartridge and supported BIOS before Play. First launch prepares eight weapon models locally from your own cartridge; B or Y skips preparation. Select In-game weapons to follow native swaps automatically. Left stick moves, right stick snap-turns, either fresh trigger takes the solo gun, A/X starts and B/Y sends the native gun button/action. Reload follows the native game.',
   },
+  {
+    id: 'carnevil-vr', title: 'CarnEvil VR', gameName: 'CarnEvil', series: 'vr4all-standalone', category: 'Arcade', color: '#b95362',
+    description: 'The Midway arcade light-gun game on Quest 3 and 3S with stereo characters, tracked guns and two-player play.',
+    matchNames: ['CarnEvil', 'carnevil'],
+    projectUrl: 'https://github.com/vr4all-standalone/carnevil-vr',
+    source: { repo: 'vr4all-standalone/carnevil-vr', assetPattern: '^carnevil-vr-quest\\.apk$' },
+    fileAccessPackage: 'com.vrlightgunhub.carnevil', verifyApkHash: true,
+    data: [
+      { id: 'game', label: 'Owned CarnEvil v1.0.3 ROM ZIP', kind: 'file', extensions: ['.zip'], destination: `${download}carnevil.zip`, note: 'Keep the v1.0.3 ZIP packed. It must contain carnevil1_9.u32, sound102.u95 and 486_carnevil.u96.' },
+      { id: 'disk', label: 'Owned CarnEvil v1.0.3 CHD', kind: 'file', extensions: ['.chd'], destination: `${download}carnevil/carnevil.chd`, note: 'Matching CarnEvil v1.0.3 CHDv5 disc. The port checks its disk identity and ROM hashes in the headset setup screen.' },
+    ],
+    guidance: 'VR4ALL downloads the official Quest APK, enables All files access and copies your owned ROM ZIP and CHD to the locations the game expects. No game data or BIOS is included. The creator has confirmed core gameplay on Quest 3S; complete route coverage remains untested.',
+    afterInstall: 'Open CarnEvil VR under Unknown Sources. Its setup screen checks the ROM and CHD before starting. A starts player one, X starts player two, and B/Y pumps.',
+  },
 ];
 
 const additionFacets = {
   'bioshock-vr': ['PC', 'Shooter'],
+  'carnevil-vr': ['Arcade', 'Rail shooter'],
   'survivor2-code-veronica-vr': ['Arcade', 'Shooter'],
   'lupin-the-third-vr': ['Arcade', 'Rail shooter'],
   'ninja-assault-vr': ['Arcade', 'Rail shooter'],

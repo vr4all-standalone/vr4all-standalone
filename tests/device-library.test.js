@@ -3,6 +3,23 @@ const assert = require('node:assert/strict');
 const { inspectDevice } = require('../src/device-library');
 const { getCatalog } = require('../src/catalog');
 
+test('CarnEvil is ready only when its APK, packed ROM and CHD are on the headset', async () => {
+  const files = { '/sdcard/Download': 'carnevil.zip', '/sdcard/Download/carnevil': '' };
+  const adb = { async run(args) {
+    const command = args.slice(2).join(' ');
+    if (command === 'shell pm list packages -3') return 'package:com.vrlightgunhub.carnevil';
+    if (command === 'shell dumpsys package com.vrlightgunhub.carnevil') return 'versionName=0.1.0-dev';
+    if (command.startsWith('shell ls -1 ')) return files[command.slice('shell ls -1 '.length)] || '';
+    return '';
+  } };
+  const game = getCatalog().find((entry) => entry.id === 'carnevil-vr');
+  assert.equal((await inspectDevice(adb, 'Q3S', [game]))[game.id].dataReady, false);
+  files['/sdcard/Download/carnevil'] = 'carnevil.chd';
+  const ready = (await inspectDevice(adb, 'Q3S', [game]))[game.id];
+  assert.equal(ready.dataReady, true);
+  assert.equal(ready.packageId, 'com.vrlightgunhub.carnevil');
+});
+
 test('BioShock requires both the creator APK and copied game cache on the Quest', async () => {
   let hasGame = false;
   const adb = { async run(args) {

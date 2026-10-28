@@ -27,9 +27,9 @@ test('PC ports that need original files expose the correct folder inputs', () =>
 
 test('every starter port has a console, genre, and local artwork', () => {
   const games = getCatalog();
-  assert.equal(games.length, 101);
-  assert.equal(games.filter((game) => !game.variantOf).length, 95);
-  assert.equal(new Set(games.filter((game) => !game.variantOf).map((game) => game.art)).size, 95);
+  assert.equal(games.length, 102);
+  assert.equal(games.filter((game) => !game.variantOf).length, 96);
+  assert.equal(new Set(games.filter((game) => !game.variantOf).map((game) => game.art)).size, 96);
   for (const game of games) {
     assert.ok(game.console, `${game.id}: console`);
     assert.ok(game.genre, `${game.id}: genre`);
@@ -45,6 +45,33 @@ test('every starter port has a console, genre, and local artwork', () => {
     assert.ok(game.gameName, `${game.id}: original game name`);
   }
   assert.equal(games.find((game) => game.id === 'fzero-x-virtuavr').art, '/art/fzero-x-vr.jpg');
+});
+
+test('CarnEvil installs the creator Quest APK with both owned arcade files', () => {
+  const game = getCatalog().find((entry) => entry.id === 'carnevil-vr');
+  assert.ok(game);
+  assert.deepEqual([game.gameName, game.console, game.genre], ['CarnEvil', 'Arcade', 'Rail shooter']);
+  assert.equal(game.source.repo, 'vr4all-standalone/carnevil-vr');
+  assert.equal(game.fileAccessPackage, 'com.vrlightgunhub.carnevil');
+  assert.equal(game.verifyApkHash, true);
+  assert.deepEqual(game.data.map((item) => item.destination), [
+    '/sdcard/Download/carnevil.zip',
+    '/sdcard/Download/carnevil/carnevil.chd',
+  ]);
+  assert.ok(game.data.every((item) => !item.optional));
+  const selected = require('../src/core').selectRelease([{ tag_name: 'v0.1.0', assets: [
+    { name: 'carnevil-vr-pcvr.zip', browser_download_url: 'https://github.com/vr4all-standalone/carnevil-vr/releases/download/v0.1.0/carnevil-vr-pcvr.zip' },
+    { name: 'carnevil-vr-quest.apk', browser_download_url: 'https://github.com/vr4all-standalone/carnevil-vr/releases/download/v0.1.0/carnevil-vr-quest.apk' },
+  ] }], game.source);
+  assert.equal(selected?.assetName, 'carnevil-vr-quest.apk');
+  const plan = require('../src/core').buildInstallPlan(game, {
+    serial: 'Q3S', apkPath: 'C:\\Downloads\\carnevil-vr-quest.apk',
+    files: { game: 'C:\\Games\\carnevil.zip', disk: 'C:\\Games\\carnevil.chd' },
+  });
+  assert.deepEqual(plan.filter((step) => step.args.includes('push')).map((step) => step.args.at(-1)), [
+    '/sdcard/Download/carnevil.zip', '/sdcard/Download/carnevil/carnevil.chd',
+  ]);
+  assert.ok(plan.some((step) => step.args.includes('MANAGE_EXTERNAL_STORAGE')));
 });
 
 test('18 Wheeler selects the official Quest APK and accepts either owned disc format', () => {

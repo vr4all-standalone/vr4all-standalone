@@ -106,6 +106,7 @@ These are project images or media previews. Lupin uses an original software-proj
 | `astroquest` | `public/art/astroquest.jpg` | https://scale.coolshop-cdn.com/product-media.coolshop-cdn.com/237D9C/35004b21dbe848c2846e6e85bd0331f0.jpg/f/astro-bot-psvr-uk-arabic.jpg | Original Astro Bot Rescue Mission retail cover, not a Quest screenshot; reuse permission unverified. |
 | `pokemon-gen1-recomp` | `public/art/pokemon-gen1-recomp.png` | https://raw.githubusercontent.com/HimioneGranger/Gen1recomp-Quest-Standalone/HEAD/assets/logo/gen1recomp_vr_unplugged_8bit.png | Author's Gen1Recomp port logo; reuse permission unverified. |
 | `mjolnir-vr` | `public/art/mjolnir-vr.png` | https://raw.githubusercontent.com/Cesarus85/mjolnir-vr/HEAD/port/android/steam_frame_grid/library.png | Author's Mjolnir VR library image; reuse permission unverified. |
+| `carnevil-vr` | `public/art/carnevil-vr.png` | https://github.com/vr4all-standalone/carnevil-vr/blob/main/docs/github/readme-banner.png | CarnEvil VR project's banner, using an original Midway arcade flyer scan; source and attribution are documented in that project's `docs/github/readme-banner.md`. |
 
 The SVG files remain only as offline fallbacks.
 

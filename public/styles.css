@@ -30,6 +30,7 @@
 .card-art img[src$="/art/lupin-the-third-vr.jpg"],.detail-art img[src$="/art/lupin-the-third-vr.jpg"]{object-position:10% center}
 .card-art img[src$="/art/ninja-assault-vr.jpg"]{object-fit:contain;object-position:center;background:#0b111b}
 .card-art img[src$="/art/survivor2-code-veronica-vr.jpg"],.detail-art img[src$="/art/survivor2-code-veronica-vr.jpg"]{object-fit:contain;object-position:center;background:#0b111b}
+.card-art img[src$="/art/carnevil-vr.png"],.detail-art img[src$="/art/carnevil-vr.png"]{object-position:right center}
 .game-card:hover .card-art img{transform:scale(1.035)}
 .game-card.status-current,.game-card.status-current:hover{border-color:#54c996;box-shadow:0 0 0 1px #54c99644,0 0 22px #36b8841e}
 .game-card.status-ready-unverified,.game-card.status-ready-unverified:hover{border-color:#78ae8a;box-shadow:0 0 0 1px #78ae8a3d,0 0 20px #78ae8a19}
