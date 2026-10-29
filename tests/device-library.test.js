@@ -3,6 +3,23 @@ const assert = require('node:assert/strict');
 const { inspectDevice } = require('../src/device-library');
 const { getCatalog } = require('../src/catalog');
 
+test('GT3 Revisited scan requires its Quest app and a GT3 disc image', async () => {
+  const game = getCatalog().find((entry) => entry.id === 'gt3-revisited');
+  const files = { '/sdcard/Download': 'Other Game.iso' };
+  const adb = { async run(args) {
+    const command = args.slice(2).join(' ');
+    if (command === 'shell pm list packages -3') return 'package:org.gt3revisited.gt3r';
+    if (command === 'shell dumpsys package org.gt3revisited.gt3r') return 'versionName=0.4.1';
+    if (command.startsWith('shell ls -1 ')) return files[command.slice('shell ls -1 '.length)] || '';
+    return '';
+  } };
+  assert.equal((await inspectDevice(adb, 'Q3', [game]))[game.id].dataReady, false);
+  files['/sdcard/Download'] = 'Other Game.iso\nGran Turismo 3 A-Spec.iso';
+  assert.equal((await inspectDevice(adb, 'Q3', [game]))[game.id].dataReady, true);
+  files['/sdcard/Download'] = 'VR4ALL-gt3-revisited-disc.iso';
+  assert.equal((await inspectDevice(adb, 'Q3', [game]))[game.id].dataReady, true);
+});
+
 test('CarnEvil is ready only when its APK, packed ROM and CHD are on the headset', async () => {
   const files = { '/sdcard/Download': 'carnevil.zip', '/sdcard/Download/carnevil': '' };
   const adb = { async run(args) {

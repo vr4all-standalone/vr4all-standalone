@@ -208,6 +208,20 @@ test('one card exposes both developer ports and follows the installed choice', (
   }
 });
 
+test('Virtua Cop has one card with the VR4ALL port selected by default', () => {
+  const { context } = appHarness();
+  const games = getCatalog();
+  context.virtua = games.find((entry) => entry.id === 'vcop-vr');
+  context.port0r = games.find((entry) => entry.id === 'cop-vr');
+  vm.runInContext("state.games = [virtua, port0r]; state.selectedSerial = 'QUEST'; state.deviceLibrary.QUEST = { [port0r.id]: { dataReady: true } }; state.portChoices = {}", context);
+  assert.equal(vm.runInContext('libraryGames().length', context), 1);
+  assert.equal(vm.runInContext('cardProfile(virtua).id', context), 'vcop-vr');
+  const html = vm.runInContext('portChoiceHtml(virtua)', context);
+  assert.match(html, /data-port-id="vcop-vr"/);
+  assert.match(html, /data-port-id="cop-vr"/);
+  assert.match(html, /VR4ALL standalone/);
+});
+
 test('F-Zero X exposes only the creator’s Quest installer', () => {
   const { context } = appHarness();
   const games = getCatalog();
@@ -576,14 +590,17 @@ test('settings previews material and palette, then restores both when cancelled'
 test('new games selects ten catalog cards while Most downloaded sorts the full view', () => {
   const { context, elements } = appHarness();
   const games = getCatalog();
+  const rootGames = games.filter((game) => !game.variantOf);
   context.catalogGames = games;
-  const newest = games.filter((game) => !game.variantOf).slice(-10).map((game) => game.id);
+  const newest = rootGames.slice(-10).map((game) => game.id);
+  assert.ok(newest.includes('gt3-revisited'));
   vm.runInContext("state.games = catalogGames; state.libraryScope = 'new'; renderGrid()", context);
   const ids = () => [...elements.get('#gameGrid').innerHTML.matchAll(/data-id="([^"]+)"/g)].map((match) => match[1]);
   assert.deepEqual([...ids()].sort(), [...newest].sort());
   assert.equal(elements.get('#librarySort').disabled, false);
-  vm.runInContext("state.libraryScope = 'all'; state.sortMode = 'downloads'; state.discovery = { [catalogGames[0].id]: { totalDownloads: 100 }, [catalogGames[1].id]: { totalDownloads: 300 } }; renderGrid()", context);
-  assert.deepEqual(ids().slice(0, 2), [games[1].id, games[0].id]);
+  context.rootGames = rootGames;
+  vm.runInContext("state.libraryScope = 'all'; state.sortMode = 'downloads'; state.discovery = { [rootGames[0].id]: { totalDownloads: 100 }, [rootGames[1].id]: { totalDownloads: 300 } }; renderGrid()", context);
+  assert.deepEqual(ids().slice(0, 2), [rootGames[1].id, rootGames[0].id]);
   assert.equal(ids().length, games.filter((game) => !game.variantOf).length);
   assert.match(elements.get('#gameGrid').innerHTML, /GitHub downloads/);
 });

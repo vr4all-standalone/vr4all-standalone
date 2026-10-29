@@ -4,6 +4,7 @@ const packages = {
   'teraburst-vr': 'com.vrlightgunhub.teraburst',
   'vcop2-vr': 'com.vrlightgunhub.vcop2',
   'vcop-vr': 'com.vrlightgunhub.vcop',
+  'gt3-revisited': 'org.gt3revisited.gt3r',
   'bioshock-vr': 'com.winlator.cmod',
   'carnevil-vr': 'com.vrlightgunhub.carnevil',
   'survivor2-code-veronica-vr': 'com.vrlightgunhub.survivor2',
@@ -112,6 +113,7 @@ const downloadPatterns = {
   'pokemon-gen1-recomp': /pok[eé]mon.*\b(?:red|blue|yellow)\b.*\.gbc?$/i,
   'mjolnir-vr': /halo.*\.(?:iso|xiso)$/i,
   'opencmr2-vr': /(?:colin.?mcrae|cmr2).*\.zip$/i,
+  'gt3-revisited': /(?:gran turismo 3|gt3|scus-97102|pbpx-95503).*\.iso$/i,
 };
 
 // Some upstream release tags use unrelated build numbering. Leave these neutral
@@ -132,6 +134,9 @@ async function inspectDevice(adb, serial, games, knownPackages = {}) {
     return listCache.get(directory);
   }
   async function hasData(game) {
+    if (game.id === 'gt3-revisited') {
+      return (await list('/sdcard/Download')).some((name) => downloadPatterns['gt3-revisited'].test(name));
+    }
     if (game.id === 'bioshock-vr') {
       const root = await list('/sdcard/BioshockMQ2');
       const release = await list('/sdcard/BioshockMQ2/Builds/Release');

@@ -316,7 +316,7 @@ const additions = [
     afterInstall: 'Open Teraburst VR under Unknown Sources. Initial RTC setup is automatic and Stereo 3D is the default. In Solo, A adds three credits and starts P1; X adds three credits and requests P2. Its gun waits for native acknowledgement; the default paired layout is P1 left/P2 right. P1 lasers/reticles are blue and P2 red. B/Y uses bombs; Left Menu opens settings. The FPS display is Off for normal play.',
   },
   {
-    id: 'vcop-vr', title: 'Virtua Cop VR', gameName: 'Virtua Cop', series: 'vr4all-standalone', category: 'Arcade', color: '#6d86bd',
+    id: 'vcop-vr', title: 'Virtua Cop VR', gameName: 'Virtua Cop', portLabel: 'VR4ALL standalone', defaultPortId: 'vcop-vr', preferDefaultPort: true, series: 'vr4all-standalone', category: 'Arcade', color: '#6d86bd',
     description: 'Independent VR4ALL port of the original Model 2 arcade game, in development for Quest and Windows OpenXR.',
     matchNames: ['Virtua Cop', 'Virtua Cop 1', 'vcop'],
     projectUrl: 'https://github.com/vr4all-standalone/vcop-vr',
@@ -344,9 +344,20 @@ const additions = [
     guidance: 'Download the latest signed GitHub release. No game data is included. VR4ALL grants game file access and copies the packed archives to Download/vcop2.zip and, when supplied, Download/segabill.zip. Setup requires all 31 actual ROM payloads and verifies their lengths, CRC32 and SHA1 before Play. A filename-only device rescan does not replace that validation. Surrounding 3D and the corrected sky have been confirmed on the headset; music and sustained speed testing continues.',
     afterInstall: 'Open Virtua Cop 2 VR under Unknown Sources. Before joining both players, A starts or continues P1 and X joins P2. Two-player play defaults to P1 left / P2 right; select Two players in settings to reverse the hands. Either fresh trigger can take the solo gun. Triggers fire and B/Y reloads. Menu opens settings, including How to play and Service controls.',
   },
+  {
+    id: 'gt3-revisited', title: 'GT3 Revisited', gameName: 'Gran Turismo 3: A-Spec', series: 'matt-pulsipher', category: 'PlayStation 2', color: '#6795ce',
+    description: 'Gran Turismo 3 on standalone Quest, with stereo racing from the driver’s seat and menus on a virtual screen.',
+    projectUrl: 'https://github.com/matt-pulsipher/GT3-revisited',
+    source: { repo: 'matt-pulsipher/GT3-revisited', assetPattern: '^gt3r-quest\\.apk$' },
+    verifyApkHash: true,
+    data: [{ id: 'disc', label: 'Owned Gran Turismo 3 A-Spec disc image', kind: 'file', extensions: ['.iso'], destination: `${download}VR4ALL-gt3-revisited-disc.iso`, note: 'Use an ISO made from your own PlayStation 2 disc. Other formats are not supported by this port.' }],
+    guidance: 'VR4ALL installs the creator’s Quest APK and copies your ISO to Download. The author verified Quest 3; Quest 2, 3S and Pro remain untested. This port reads the disc directly and requires selecting it once inside the headset.',
+    afterInstall: 'Open GT3 Revisited under Unknown Sources, choose Open disc image, and select VR4ALL-gt3-revisited-disc.iso from Download. The app remembers that choice.',
+  },
 ];
 
 const additionFacets = {
+  'gt3-revisited': ['PlayStation 2', 'Racing'],
   'vcop2-vr': ['Arcade', 'Rail shooter'],
   'vcop-vr': ['Arcade', 'Rail shooter'],
   'teraburst-vr': ['Arcade', 'Rail shooter'],

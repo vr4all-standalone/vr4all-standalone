@@ -27,7 +27,7 @@ test('PC ports that need original files expose the correct folder inputs', () =>
 
 test('every starter port has a console, genre, and local artwork', () => {
   const games = getCatalog();
-  assert.equal(games.length, 105);
+  assert.equal(games.length, 106);
   assert.equal(games.filter((game) => !game.variantOf).length, 99);
   assert.equal(new Set(games.filter((game) => !game.variantOf).map((game) => game.art)).size, 99);
   for (const game of games) {
@@ -72,6 +72,22 @@ test('CarnEvil installs the creator Quest APK with both owned arcade files', () 
     '/sdcard/Download/carnevil.zip', '/sdcard/Download/carnevil/carnevil.chd',
   ]);
   assert.ok(plan.some((step) => step.args.includes('MANAGE_EXTERNAL_STORAGE')));
+});
+
+test('GT3 Revisited selects the Quest APK and copies the owned ISO under a stable name', () => {
+  const game = getCatalog().find((entry) => entry.id === 'gt3-revisited');
+  assert.ok(game);
+  assert.deepEqual([game.gameName, game.console, game.genre], ['Gran Turismo 3: A-Spec', 'PlayStation 2', 'Racing']);
+  assert.equal(game.source.repo, 'matt-pulsipher/GT3-revisited');
+  const selected = require('../src/core').selectRelease([{ tag_name: 'v0.4.1', assets: [
+    { name: 'gt3r-android.apk', browser_download_url: 'https://github.com/matt-pulsipher/GT3-revisited/releases/download/v0.4.1/gt3r-android.apk' },
+    { name: 'gt3r-quest.apk', browser_download_url: 'https://github.com/matt-pulsipher/GT3-revisited/releases/download/v0.4.1/gt3r-quest.apk' },
+  ] }], game.source);
+  assert.equal(selected?.assetName, 'gt3r-quest.apk');
+  const plan = require('../src/core').buildInstallPlan(game, {
+    serial: 'Q3', apkPath: 'C:\\Downloads\\gt3r-quest.apk', files: { disc: 'C:\\Games\\game.iso' },
+  });
+  assert.equal(plan.find((step) => step.label === 'Copy disc')?.args.at(-1), '/sdcard/Download/VR4ALL-gt3-revisited-disc.iso');
 });
 
 test('18 Wheeler selects the official Quest APK and accepts either owned disc format', () => {

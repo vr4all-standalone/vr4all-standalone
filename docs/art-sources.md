@@ -117,6 +117,7 @@ The SVG files remain only as offline fallbacks.
 
 ## New standalone arcade cards — 28 October 2026
 
-- Virtua Cop: original Sega arcade flyer, https://flyers.arcade-museum.com/arcades/show/1244.
+- Virtua Cop: VR4ALL port project banner, https://github.com/vr4all-standalone/vcop-vr/blob/main/docs/github/readme-banner.png. The banner includes original Sega game artwork; reuse permission is unverified.
 - Virtua Cop 2: original Sega arcade flyer, https://flyers.arcade-museum.com/videogames/show/1245.
 - Teraburst: existing project banner, https://github.com/vr4all-standalone/teraburst-vr/blob/main/docs/github/readme-banner.png.
+- GT3 Revisited: original Gran Turismo 3 cover from https://www.gran-turismo.com/us/products/; original game artwork and reuse permission unverified.

@@ -8,7 +8,7 @@
 
 ## 🎮 Current number of supported games: 99
 
-The catalog has **99 game cards and 105 port choices**, including alternate mods for Time Crisis, Pokémon, and Halo. Each card explains its setup requirements; Quest model support varies by port.
+The catalog has **99 game cards and 106 port choices**, including alternate mods for Time Crisis, Pokémon, Halo, and Virtua Cop. Each card explains its setup requirements; Quest model support varies by port.
 
 ## What VR4ALL does
 

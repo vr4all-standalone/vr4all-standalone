@@ -1,6 +1,6 @@
 {
   "name": "vr4all",
-  "version": "0.3.47",
+  "version": "0.3.48",
   "description": "Desktop installer for standalone Quest game ports",
   "main": "desktop/main.js",
   "private": true,

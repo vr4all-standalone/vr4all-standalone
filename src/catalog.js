@@ -6,7 +6,7 @@ const { additions, additionFacets } = require('./catalog-additions');
 
 const games = [
   {
-    id: 'cop-vr', title: 'Cop VR', series: 'Port0r', category: 'Arcade', icon: '◎', color: '#ff926b',
+    id: 'cop-vr', variantOf: 'vcop-vr', portLabel: 'Port0r (Cop VR)', title: 'Cop VR', series: 'Port0r', category: 'Arcade', icon: '◎', color: '#ff926b',
     description: 'Virtua Cop in full stereoscopic VR.',
     source: { repo: 'jacquesdupontd/port0r', assetPattern: '^Port0r-CopVR-.*-quest3\\.apk$' },
     data: [
