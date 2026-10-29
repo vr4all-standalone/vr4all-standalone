@@ -113,3 +113,10 @@ The SVG files remain only as offline fallbacks.
 ## App hero
 
 `public/quest3-hero.webp` is the product image exposed by the [official Meta Quest 3 page](https://www.meta.com/quest/quest-3/) as its social preview image. The image depicts Quest 3; VR4All also supports Quest 3S. Meta retains rights to the product image, and reuse permission has not been independently verified.
+
+
+## New standalone arcade cards — 28 October 2026
+
+- Virtua Cop: original Sega arcade flyer, https://flyers.arcade-museum.com/arcades/show/1244.
+- Virtua Cop 2: original Sega arcade flyer, https://flyers.arcade-museum.com/videogames/show/1245.
+- Teraburst: existing project banner, https://github.com/vr4all-standalone/teraburst-vr/blob/main/docs/github/readme-banner.png.

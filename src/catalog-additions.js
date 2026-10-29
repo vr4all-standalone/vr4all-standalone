@@ -222,7 +222,7 @@ const additions = [
     description: 'Sega’s 2000 NAOMI light-gun game in stereo VR, with a gun in each hand and two players on one headset.',
     projectUrl: 'https://github.com/vr4all-standalone/confidential-mission-vr',
     source: { repo: 'vr4all-standalone/confidential-mission-vr', assetPattern: '^confidential-mission-vr-quest\\.apk$' },
-    fileAccessPackage: 'com.vrlightgunhub.confmiss',
+    fileAccessPackage: 'com.vrlightgunhub.confmiss', verifyApkHash: true,
     data: [
       { id: 'game', label: 'Owned MAME confmiss.zip', kind: 'file', extensions: ['.zip'], destination: `${download}confmiss.zip`, note: 'The MAME set confmiss, with its key inside; it stays packed.' },
       { id: 'chd', label: 'Owned confmiss disc (gds-0001.chd)', kind: 'file', extensions: ['.chd'], destination: `${download}confmiss/gds-0001.chd`, note: 'The GD-ROM from the same MAME set.' },
@@ -237,7 +237,7 @@ const additions = [
     matchNames: ['Lupin the Third', 'Lupin III', 'lupinshoo'],
     projectUrl: 'https://github.com/vr4all-standalone/lupin-the-third-vr',
     source: { repo: 'vr4all-standalone/lupin-the-third-vr', assetPattern: '^lupin-the-third-vr-quest\\.apk$' },
-    fileAccessPackage: 'com.vrlightgunhub.lupin',
+    fileAccessPackage: 'com.vrlightgunhub.lupin', verifyApkHash: true,
     data: [
       { id: 'game', label: 'Owned original MAME lupinshoo.zip', kind: 'file', extensions: ['.zip'], destination: `${download}lupinshoo.zip`, note: 'Original GDS-0018 set with 317-0325-jpn.pic inside. Keep it packed. Rev A (lupinsho) is not supported.' },
       { id: 'chd', label: 'Owned original Lupin disc (gds-0018.chd)', kind: 'file', extensions: ['.chd'], destination: `${download}lupinshoo/gds-0018.chd`, note: 'Original GDS-0018 disc, not GDS-0018A. The Lupin start screen checks the CHD header revision.' },
@@ -252,7 +252,7 @@ const additions = [
     matchNames: ['Ninja Assault', 'ninjaslt'],
     projectUrl: 'https://github.com/vr4all-standalone/ninja-assault-vr',
     source: { repo: 'vr4all-standalone/ninja-assault-vr', assetPattern: '^ninja-assault-vr-quest\\.apk$' },
-    fileAccessPackage: 'com.vrlightgunhub.ninjaassault',
+    fileAccessPackage: 'com.vrlightgunhub.ninjaassault', verifyApkHash: true,
     data: [
       { id: 'game', label: 'Owned World NJA2 Ver.A ninjaslt.zip', kind: 'file', extensions: ['.zip'], destination: `${download}ninjaslt.zip`, note: 'Complete World cartridge set with all 12 ROM entries. Keep it packed and lowercase. Regional ninjaslta, ninjasltj and ninjasltu clones are not supported.' },
       { id: 'naomi', label: 'Optional supported NAOMI BIOS', kind: 'file', extensions: ['.zip'], destination: `${download}naomi.zip`, optional: true, note: 'Provide naomi.zip unless a supported BIOS is inside your ninjaslt.zip.' },
@@ -266,7 +266,7 @@ const additions = [
     matchNames: ['Death Crimson OX', 'deathcoxj'],
     projectUrl: 'https://github.com/vr4all-standalone/death-crimson-ox-vr',
     source: { repo: 'vr4all-standalone/death-crimson-ox-vr', assetPattern: '^death-crimson-ox-vr-quest\\.apk$' },
-    fileAccessPackage: 'com.vrlightgunhub.deathcrimsonox',
+    fileAccessPackage: 'com.vrlightgunhub.deathcrimsonox', verifyApkHash: true,
     data: [
       { id: 'game', label: 'Owned Japan Rev A deathcoxj.zip', kind: 'file', extensions: ['.zip'], destination: `${download}deathcoxj.zip`, note: 'Complete Japan Rev A cartridge: epr-23524a.ic22 (CRC b60e113e) and ten 8 MiB MPR ROMs. Keep it packed. An older merged deathcox.zip may contain Rev A; VR4ALL copies it separately as deathcoxj.zip. Current USA deathcox and original Japan deathcoxo are unsupported.' },
       { id: 'naomi', label: 'Optional supported NAOMI BIOS', kind: 'file', extensions: ['.zip'], destination: `${download}naomi.zip`, optional: true, note: 'Provide naomi.zip unless a supported BIOS is inside your game ZIP.' },
@@ -280,7 +280,7 @@ const additions = [
     matchNames: ['Resident Evil Survivor 2', 'Gun Survivor 2', 'Survivor 2 Code Veronica', 'gunsur2'],
     projectUrl: 'https://github.com/vr4all-standalone/survivor2-code-veronica-vr',
     source: { repo: 'vr4all-standalone/survivor2-code-veronica-vr', assetPattern: '^survivor2-code-veronica-vr-quest\\.apk$' },
-    fileAccessPackage: 'com.vrlightgunhub.survivor2',
+    fileAccessPackage: 'com.vrlightgunhub.survivor2', verifyApkHash: true,
     data: [
       { id: 'game', label: 'Owned World BHF2 Ver. E gunsur2.zip', kind: 'file', extensions: ['.zip'], destination: `${download}gunsur2.zip`, note: 'Complete NAOMI World BHF2 Ver. E cartridge with all 15 ROMs. Keep it packed and lowercase. Japanese gunsur2j revisions are unsupported; renaming them does not convert the game.' },
       { id: 'naomi', label: 'Optional supported NAOMI BIOS', kind: 'file', extensions: ['.zip'], destination: `${download}naomi.zip`, optional: true, note: 'Provide naomi.zip unless a supported BIOS is inside your gunsur2.zip.' },
@@ -302,9 +302,54 @@ const additions = [
     guidance: 'VR4ALL downloads the official Quest APK, enables All files access and copies your owned ROM ZIP and CHD to the locations the game expects. No game data or BIOS is included. The creator has confirmed core gameplay on Quest 3S; complete route coverage remains untested.',
     afterInstall: 'Open CarnEvil VR under Unknown Sources. Its setup screen checks the ROM and CHD before starting. A starts player one, X starts player two, and B/Y pumps.',
   },
+  {
+    id: 'teraburst-vr', title: 'Teraburst VR', gameName: 'Teraburst', series: 'vr4all-standalone', category: 'Arcade', color: '#dd9260',
+    description: 'Konami Hornet arcade action in stereo VR, with tracked guns, scenery-aware native reticles, automatic fire and explicit two-player joining.',
+    matchNames: ['Teraburst', 'terabrst'],
+    projectUrl: 'https://github.com/vr4all-standalone/teraburst-vr',
+    source: { repo: 'vr4all-standalone/teraburst-vr', assetPattern: '^teraburst-vr-quest\\.apk$' },
+    fileAccessPackage: 'com.vrlightgunhub.teraburst', verifyApkHash: true,
+    data: [
+      { id: 'game', label: 'Prepared US UEL terabrst.zip', kind: 'file', extensions: ['.zip'], destination: `${download}terabrst.zip`, note: 'July 17, 1998 US UEL: all eleven ROM payloads. Use the preparation tool to normalize an owned archive; renaming a 7z file is insufficient. No CHD or separate BIOS is needed.' },
+    ],
+    guidance: 'VR4ALL downloads the published Quest APK and copies your canonical ROM ZIP. Setup verifies actual lengths, CRC32 and SHA1; no CHD or separate BIOS is needed. Quest 3S gameplay is accepted. Stereo 3D uses the original camera geometry, so leaning outside it can expose gaps; upstream emulation faults remain possible.',
+    afterInstall: 'Open Teraburst VR under Unknown Sources. Initial RTC setup is automatic and Stereo 3D is the default. In Solo, A adds three credits and starts P1; X adds three credits and requests P2. Its gun waits for native acknowledgement; the default paired layout is P1 left/P2 right. P1 lasers/reticles are blue and P2 red. B/Y uses bombs; Left Menu opens settings. The FPS display is Off for normal play.',
+  },
+  {
+    id: 'vcop-vr', title: 'Virtua Cop VR', gameName: 'Virtua Cop', series: 'vr4all-standalone', category: 'Arcade', color: '#6d86bd',
+    description: 'Independent VR4ALL port of the original Model 2 arcade game, in development for Quest and Windows OpenXR.',
+    matchNames: ['Virtua Cop', 'Virtua Cop 1', 'vcop'],
+    projectUrl: 'https://github.com/vr4all-standalone/vcop-vr',
+    source: { repo: 'vr4all-standalone/vcop-vr', assetPattern: '^vcop-vr-quest\\.apk$' },
+    fileAccessPackage: 'com.vrlightgunhub.vcop', verifyApkHash: true,
+    data: [
+      { id: 'game', label: 'Owned original Virtua Cop Revision B vcop.zip', kind: 'file', extensions: ['.zip'], destination: `${download}vcop-vr/vcop.zip`, note: 'Keep the original arcade set packed. A complete combined ZIP with the 26 game/board ROMs and both I/O/LCD firmware payloads is supported. This port uses its own Download/vcop-vr folder, preserving the existing Cop VR game files.' },
+      { id: 'model1io2', label: 'Optional separate model1io2.zip I/O and LCD firmware', kind: 'file', extensions: ['.zip'], destination: `${download}vcop-vr/model1io2.zip`, optional: true, note: 'Provide epr-17181.6 here unless it is already in vcop.zip. The LCD firmware can be in vcop.zip, model1io2.zip or the separate optional hd44780.zip.' },
+      { id: 'hd44780', label: 'Optional separate hd44780.zip LCD firmware', kind: 'file', extensions: ['.zip'], destination: `${download}vcop-vr/hd44780.zip`, optional: true, note: 'Supply hd44780_a00.bin here when it is absent from vcop.zip and model1io2.zip. Keep the firmware archive packed.' },
+    ],
+    guidance: 'Signed Quest and PCVR releases are available on the GitHub project page. No game data is included. Setup validates all 28 actual ROM payloads using length, CRC32 and SHA1 across vcop.zip and optional model1io2.zip inside Download/vcop-vr. The older Revision A used by another port is unsupported; renaming it does not convert it. A filename-only device rescan does not replace setup validation. Sampled native scenery can have finite coverage below and behind the player.',
+    afterInstall: 'Open Virtua Cop VR under Unknown Sources, allow file access in setup and complete its game-file checks. A starts or continues P1; X joins P2 after P1 is active. Triggers fire, B/Y reloads and Menu opens settings, How to play and Service. This build has its own settings, saved data and game-file folder, separate from Virtua Cop 2 VR and the existing Cop VR port.',
+  },
+  {
+    id: 'vcop2-vr', title: 'Virtua Cop 2 VR', gameName: 'Virtua Cop 2', series: 'vr4all-standalone', category: 'Arcade', color: '#8b6bc1',
+    description: 'Development Model 2A port with surrounding stereo scenery, tracked guns, native two-player play, the original ammo HUD and automatic original gun models. Headset performance testing is ongoing.',
+    matchNames: ['Virtua Cop 2', 'Virtua Cop II', 'vcop2'],
+    projectUrl: 'https://github.com/vr4all-standalone/vcop2-vr',
+    source: { repo: 'vr4all-standalone/vcop2-vr', assetPattern: '^vcop2-vr-quest\\.apk$' },
+    fileAccessPackage: 'com.vrlightgunhub.vcop2', verifyApkHash: true,
+    data: [
+      { id: 'game', label: 'Owned original Virtua Cop 2 vcop2.zip', kind: 'file', extensions: ['.zip'], destination: `${download}vcop2.zip`, note: 'Original arcade Model 2A set with all 30 game, CPU-board and video-board ROMs. Keep it packed. A combined ZIP containing these and the billboard firmware is also supported.' },
+      { id: 'segabill', label: 'Optional separate segabill.zip billboard firmware', kind: 'file', extensions: ['.zip'], destination: `${download}segabill.zip`, optional: true, note: 'Provide epr-18022.ic2 in segabill.zip unless it is already inside vcop2.zip. Setup requires all 31 actual ROM payloads across the supplied archives; optional means a separate ZIP is unnecessary for a complete combined set.' },
+    ],
+    guidance: 'Download the latest signed GitHub release. No game data is included. VR4ALL grants game file access and copies the packed archives to Download/vcop2.zip and, when supplied, Download/segabill.zip. Setup requires all 31 actual ROM payloads and verifies their lengths, CRC32 and SHA1 before Play. A filename-only device rescan does not replace that validation. Surrounding 3D and the corrected sky have been confirmed on the headset; music and sustained speed testing continues.',
+    afterInstall: 'Open Virtua Cop 2 VR under Unknown Sources. Before joining both players, A starts or continues P1 and X joins P2. Two-player play defaults to P1 left / P2 right; select Two players in settings to reverse the hands. Either fresh trigger can take the solo gun. Triggers fire and B/Y reloads. Menu opens settings, including How to play and Service controls.',
+  },
 ];
 
 const additionFacets = {
+  'vcop2-vr': ['Arcade', 'Rail shooter'],
+  'vcop-vr': ['Arcade', 'Rail shooter'],
+  'teraburst-vr': ['Arcade', 'Rail shooter'],
   'bioshock-vr': ['PC', 'Shooter'],
   'carnevil-vr': ['Arcade', 'Rail shooter'],
   'survivor2-code-veronica-vr': ['Arcade', 'Shooter'],

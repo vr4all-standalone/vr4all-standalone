@@ -1,5 +1,9 @@
 // Read-only probes for catalogued ports on the selected Android headset.
 const packages = {
+  'confidential-mission-vr': 'com.vrlightgunhub.confmiss',
+  'teraburst-vr': 'com.vrlightgunhub.teraburst',
+  'vcop2-vr': 'com.vrlightgunhub.vcop2',
+  'vcop-vr': 'com.vrlightgunhub.vcop',
   'bioshock-vr': 'com.winlator.cmod',
   'carnevil-vr': 'com.vrlightgunhub.carnevil',
   'survivor2-code-veronica-vr': 'com.vrlightgunhub.survivor2',

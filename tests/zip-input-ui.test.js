@@ -45,6 +45,28 @@ function appHarness() {
   return { context, game, elements, listeners, requests };
 }
 
+for (const id of ['confidential-mission-vr','hotd2-vr','lupin-the-third-vr','ninja-assault-vr','death-crimson-ox-vr','mok-vr','survivor2-code-veronica-vr','carnevil-vr','teraburst-vr','vcop-vr','vcop2-vr']) {
+  test(`${id}: older APK offers update and matching installed bytes show current`, () => {
+    const { context } = appHarness();
+    context.port = getCatalog().find(g => g.id === id);
+    assert.ok(context.port);
+    vm.runInContext("state.selectedSerial='QUEST'; state.deviceLibrary.QUEST={ [port.id]: {packageId:port.fileAccessPackage, dataReady:true,versionComparable:true,versionName:'0.0.1'} }; state.releases[port.id]={ tag:'v9.0.0', verifiedSerial:'QUEST', installedApkMatchesRelease:false }",context);
+    assert.equal(vm.runInContext('versionStatus(port)',context),'status-update');
+    vm.runInContext('state.releases[port.id].installedApkMatchesRelease=true',context);
+    assert.equal(vm.runInContext('versionStatus(port)',context),'status-current');
+    vm.runInContext('state.releases[port.id].stale=true',context);
+    assert.equal(vm.runInContext('versionStatus(port)',context),'status-installed');
+  });
+}
+
+for (const [id, version] of Object.entries({'confidential-mission-vr':'1.2.7','hotd2-vr':'1.0.6','lupin-the-third-vr':'1.0.6','ninja-assault-vr':'1.0.6','death-crimson-ox-vr':'1.0.5','mok-vr':'1.0.6','survivor2-code-veronica-vr':'1.0.6'})) {
+  test(`${id}: same-version rebuilt APK is offered when installed bytes differ`, () => {
+    const { context } = appHarness();context.port=getCatalog().find(g=>g.id===id);context.version=version;
+    vm.runInContext("state.selectedSerial='QUEST'; state.deviceLibrary.QUEST={ [port.id]: {dataReady:true,versionComparable:true,versionName:version+'-golderbuild'} }; state.releases[port.id]={ tag:'v'+version, verifiedSerial:'QUEST', installedApkMatchesRelease:false }",context);
+    assert.equal(vm.runInContext('versionStatus(port)',context),'status-update');
+  });
+}
+
 test('ZIP field exposes Browse folder and preserves the chosen local folder path', async () => {
   const { context, elements, requests } = appHarness();
   const html = vm.runInContext('detailHtml(game)', context);
