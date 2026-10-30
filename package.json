@@ -1,6 +1,6 @@
 {
   "name": "vr4all",
-  "version": "0.3.51",
+  "version": "0.3.52",
   "description": "Desktop installer for standalone Quest game ports",
   "main": "desktop/main.js",
   "private": true,
@@ -23,6 +23,7 @@
       "desktop/preload.js",
       "desktop/profile-paths.js",
       "desktop/app-updater.js",
+      "desktop/update-launcher.ps1",
       "desktop/update-helper.ps1",
       "desktop/icon.ico",
       "public/**/*",
@@ -58,7 +59,7 @@
           ]
         }
       ],
-      "artifactName": "VR4ALL-${version}-win-${arch}.${ext}"
+      "artifactName": "VR4ALL-win-${arch}.${ext}"
     }
   }
 }

@@ -5,7 +5,7 @@ const { spawn } = require('node:child_process');
 
 const APP_SOURCE = Object.freeze({
   repo: 'vr4all-standalone/vr4all-standalone',
-  assetPattern: '^VR4ALL-\\d+\\.\\d+\\.\\d+-win-x64\\.exe$',
+  assetPattern: '^VR4ALL(?:-\\d+\\.\\d+\\.\\d+)?-win-x64\\.exe$',
   releasePattern: '^VR4ALL v\\d+\\.\\d+\\.\\d+|^v\\d+\\.\\d+\\.\\d+',
 });
 
@@ -30,20 +30,21 @@ function availableUpdate(currentVersion, release) {
   const match = tag.match(/^v(\d+\.\d+\.\d+)(?:-beta)?$/i);
   if (!match || !newerVersion(currentVersion, match[1])) return null;
   const version = match[1];
-  const assetName = `VR4ALL-${version}-win-x64.exe`;
-  if (release.assetName !== assetName || !/^sha256:[a-f0-9]{64}$/i.test(release.digest || '')
+  const assetName = release.assetName;
+  if (!['VR4ALL-win-x64.exe', `VR4ALL-${version}-win-x64.exe`].includes(assetName)
+    || !/^sha256:[a-f0-9]{64}$/i.test(release.digest || '')
     || release.size != null && (!Number.isSafeInteger(release.size) || release.size < 1024 * 1024 || release.size > 2 * 1024 ** 3)) return null;
   const expected = `https://github.com/vr4all-standalone/vr4all-standalone/releases/download/${tag}/${assetName}`;
   if (release.downloadUrl !== expected) return null;
   return { version, release };
 }
 
-function replacementArgs({ scriptPath, targetPath, candidatePath, appPid, launcherPid, digest, reportPath }) {
+function replacementArgs({ scriptPath, targetPath, candidatePath, appPid, digest, reportPath }) {
   if (!/^sha256:[a-f0-9]{64}$/i.test(digest || '')) throw new Error('App update checksum is missing');
   if (![scriptPath, targetPath, candidatePath, reportPath].every((value) => path.win32.isAbsolute(value || ''))) throw new Error('App update paths must be absolute');
-  if (!Number.isSafeInteger(appPid) || appPid <= 0 || !Number.isSafeInteger(launcherPid) || launcherPid <= 0) throw new Error('App update process IDs are invalid');
-  return ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', scriptPath,
-    '-Target', targetPath, '-Candidate', candidatePath, '-AppPid', String(appPid), '-LauncherPid', String(launcherPid),
+  if (!Number.isSafeInteger(appPid) || appPid <= 0) throw new Error('App update process ID is invalid');
+  return ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-File', scriptPath,
+    '-Target', targetPath, '-Candidate', candidatePath, '-AppPid', String(appPid),
     '-ExpectedSha256', digest.slice(7).toLowerCase(), '-ReportPath', reportPath];
 }
 
@@ -95,7 +96,7 @@ async function installApprovedUpdate({ updater, getActiveJobs, confirm, onProgre
   return { started: true };
 }
 
-async function startReplacement({ targetPath, candidatePath, digest, dataDir, appPid = process.pid, launcherPid = process.ppid, spawnProcess = spawn }) {
+async function startReplacement({ targetPath, candidatePath, digest, dataDir, appPid = process.pid, spawnProcess = spawn }) {
   if (process.platform !== 'win32') throw new Error('VR4ALL self-update requires Windows');
   if (!path.win32.isAbsolute(targetPath || '') || !path.win32.isAbsolute(candidatePath || '')) throw new Error('Invalid portable update path');
   const updateDir = path.join(dataDir, 'updates');
@@ -105,13 +106,23 @@ async function startReplacement({ targetPath, candidatePath, digest, dataDir, ap
   await handle.close();
   await fs.unlink(probe);
   const scriptPath = path.join(updateDir, `update-helper-${appPid}.ps1`);
+  const launcherPath = path.join(updateDir, `update-launcher-${appPid}.ps1`);
   const reportPath = path.join(updateDir, 'last-update.txt');
   await fs.writeFile(scriptPath, await fs.readFile(path.join(__dirname, 'update-helper.ps1')));
-  const args = replacementArgs({ scriptPath, targetPath, candidatePath, appPid, launcherPid, digest, reportPath });
+  await fs.writeFile(launcherPath, await fs.readFile(path.join(__dirname, 'update-launcher.ps1')));
+  const args = replacementArgs({ scriptPath, targetPath, candidatePath, appPid, digest, reportPath });
   const powershellPath = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
-  const child = spawnProcess(powershellPath, args, { windowsHide: true, detached: true, stdio: 'ignore' });
-  await new Promise((resolve, reject) => { child.once('spawn', resolve); child.once('error', reject); });
-  child.unref();
+  const helperCommand = [`"${powershellPath}"`, ...args.map((arg) => `"${arg}"`)].join(' ');
+  const child = spawnProcess(powershellPath, ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-File', launcherPath, '-CommandLine', helperCommand],
+    { windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
+  let stdout = '';
+  let stderr = '';
+  child.stdout?.on('data', (chunk) => { stdout += chunk; });
+  child.stderr?.on('data', (chunk) => { stderr += chunk; });
+  const exitCode = await new Promise((resolve, reject) => { child.once('close', resolve); child.once('error', reject); });
+  if (exitCode !== 0 || !/^started:\d+$/m.test(stdout.trim())) {
+    throw new Error(`Windows could not start the updater: ${(stderr || stdout || `exit ${exitCode}`).trim().slice(0, 500)}`);
+  }
   return reportPath;
 }
 

@@ -704,7 +704,16 @@ async function checkAllReleases() {
   }
 }
 
+let appUpdateCheckTask = null;
 async function checkVr4allUpdate() {
+  if (appUpdateCheckTask) return appUpdateCheckTask;
+  const task = checkVr4allUpdateNow();
+  appUpdateCheckTask = task;
+  try { return await task; }
+  finally { if (appUpdateCheckTask === task) appUpdateCheckTask = null; }
+}
+
+async function checkVr4allUpdateNow() {
   const desktop = window.vr4allDesktop;
   if (!desktop?.checkAppUpdate) return;
   setActivity('app-update', 'Checking VR4ALL for an app update…');
@@ -1888,6 +1897,7 @@ $('#saveSettingsButton').addEventListener('click', saveSettings);
 
 async function boot() {
   try {
+    void checkVr4allUpdate();
     const savedLayout = localStorage.getItem('vr4all-detail-layout');
     if (['docked', 'overlay', 'focus'].includes(savedLayout)) state.detailLayout = savedLayout;
     const savedSort = localStorage.getItem('vr4all-library-sort');

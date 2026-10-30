@@ -30,6 +30,14 @@ test('app update accepts only a newer matching VR4ALL portable release', () => {
   assert.equal(availableUpdate('0.3.45', asset('0.3.46', { size: null }))?.version, '0.3.46', 'GitHub public-page fallback omits size but retains the digest');
 });
 
+test('a newer release can use a stable VR4ALL executable name', () => {
+  const release = asset('0.3.52', {
+    assetName: 'VR4ALL-win-x64.exe',
+    downloadUrl: 'https://github.com/vr4all-standalone/vr4all-standalone/releases/download/v0.3.52-beta/VR4ALL-win-x64.exe',
+  });
+  assert.equal(availableUpdate('0.3.51', release)?.version, '0.3.52');
+});
+
 test('desktop update check uses the fixed official repository and verified EXE downloader', async () => {
   const calls = [];
   const releases = {
@@ -40,7 +48,7 @@ test('desktop update check uses the fixed official repository and verified EXE d
   const update = await updater.check();
   assert.deepEqual(update, { available: true, version: '0.3.46', currentVersion: '0.3.45', url: asset().url, size: asset().size });
   assert.equal(calls[0].source.repo, 'vr4all-standalone/vr4all-standalone');
-  assert.match(calls[0].source.assetPattern, /win-x64/);
+  assert.match(calls[0].source.assetPattern, /VR4ALL/);
   const progress = [];
   assert.equal(await updater.download((done, total) => progress.push([done, total])), 'C:\\Updates\\verified.exe');
   assert.deepEqual(progress, [[50, 100]]);
@@ -66,12 +74,13 @@ test('missing GitHub release metadata is an error rather than an up-to-date resu
 });
 
 test('replacement helper arguments preserve a renamed portable path and exact digest', () => {
-  const args = replacementArgs({ scriptPath: 'C:\\Data\\update-helper.ps1', targetPath: 'D:\\Apps\\My VR4ALL.exe', candidatePath: 'C:\\Data\\verified.exe', appPid: 312, launcherPid: 311, digest: asset().digest, reportPath: 'C:\\Data\\update-status.txt' });
-  assert.deepEqual(args.slice(0, 5), ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File']);
-  assert.equal(args[5], 'C:\\Data\\update-helper.ps1');
+  const args = replacementArgs({ scriptPath: 'C:\\Data\\update-helper.ps1', targetPath: 'D:\\Apps\\My VR4ALL.exe', candidatePath: 'C:\\Data\\verified.exe', appPid: 312, digest: asset().digest, reportPath: 'C:\\Data\\update-status.txt' });
+  assert.deepEqual(args.slice(0, 7), ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-File']);
+  assert.equal(args[7], 'C:\\Data\\update-helper.ps1');
   assert.equal(args[args.indexOf('-Target') + 1], 'D:\\Apps\\My VR4ALL.exe');
   assert.equal(args[args.indexOf('-ExpectedSha256') + 1], 'a'.repeat(64));
   assert.equal(path.win32.basename(args[args.indexOf('-Candidate') + 1]), 'verified.exe');
+  assert.equal(args.includes('-LauncherPid'), false);
 });
 
 test('Windows handoff replaces the portable file and records success', (t) => {
@@ -86,7 +95,7 @@ test('Windows handoff replaces the portable file and records success', (t) => {
   const digest = crypto.createHash('sha256').update('new executable').digest('hex');
   const script = path.join(__dirname, '..', 'desktop', 'update-helper.ps1');
   const result = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', script,
-    '-Target', target, '-Candidate', candidate, '-AppPid', '999998', '-LauncherPid', '999997', '-ExpectedSha256', digest,
+    '-Target', target, '-Candidate', candidate, '-AppPid', '999998', '-ExpectedSha256', digest,
     '-ReportPath', report, '-SkipLaunch'], { encoding: 'utf8', timeout: 20000 });
   assert.equal(result.status, 0, [result.stderr, result.stdout, fs.existsSync(report) ? fs.readFileSync(report, 'utf8') : 'no report'].filter(Boolean).join('\n'));
   assert.equal(fs.readFileSync(target, 'utf8'), 'new executable');
@@ -104,7 +113,7 @@ test('Windows handoff leaves the old portable file intact on checksum failure', 
   fs.writeFileSync(candidate, 'untrusted executable');
   const script = path.join(__dirname, '..', 'desktop', 'update-helper.ps1');
   const result = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', script,
-    '-Target', target, '-Candidate', candidate, '-AppPid', '999998', '-LauncherPid', '999997', '-ExpectedSha256', '0'.repeat(64),
+    '-Target', target, '-Candidate', candidate, '-AppPid', '999998', '-ExpectedSha256', '0'.repeat(64),
     '-ReportPath', report, '-SkipLaunch'], { encoding: 'utf8', timeout: 20000 });
   assert.notEqual(result.status, 0);
   assert.equal(fs.readFileSync(target, 'utf8'), 'old executable');
@@ -161,15 +170,42 @@ test('handoff stages its bundled helper and launches hidden PowerShell before qu
   const spawnProcess = (file, args, options) => {
     launch = { file, args, options };
     const child = new EventEmitter();
-    child.unref = () => {};
-    queueMicrotask(() => child.emit('spawn'));
+    child.stdout = new EventEmitter();
+    child.stderr = new EventEmitter();
+    queueMicrotask(() => { child.stdout.emit('data', Buffer.from('started:12345\n')); child.emit('close', 0); });
     return child;
   };
   const report = await startReplacement({ targetPath, candidatePath, digest: asset().digest, dataDir: path.join(dir, 'data'),
-    appPid: 222, launcherPid: 111, spawnProcess });
+    appPid: 222, spawnProcess });
   assert.match(launch.file, /powershell\.exe$/i);
   assert.equal(launch.options.windowsHide, true);
-  assert.equal(launch.args[launch.args.indexOf('-Target') + 1], targetPath);
-  assert.match(fs.readFileSync(launch.args[5], 'utf8'), /Move-Item/);
+  assert.match(launch.args[launch.args.indexOf('-CommandLine') + 1], /Renamed VR4ALL\.exe/);
+  assert.match(fs.readFileSync(path.join(dir, 'data', 'updates', 'update-helper-222.ps1'), 'utf8'), /Move-Item/);
   assert.equal(path.basename(report), 'last-update.txt');
+});
+
+test('handoff reports bootstrap failure instead of closing the app', async (t) => {
+  if (process.platform !== 'win32') return t.skip('Windows handoff');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vr4all-handoff-fail-'));
+  t.after(() => { if (dir.startsWith(os.tmpdir())) fs.rmSync(dir, { recursive: true, force: true }); });
+  const targetPath = path.join(dir, 'VR4ALL.exe');
+  const candidatePath = path.join(dir, 'downloaded.exe');
+  fs.writeFileSync(targetPath, 'previous release');
+  fs.writeFileSync(candidatePath, 'new release');
+  const spawnProcess = () => {
+    const child = new EventEmitter();
+    child.stdout = new EventEmitter();
+    child.stderr = new EventEmitter();
+    child.unref = () => {};
+    queueMicrotask(() => {
+      child.emit('spawn');
+      child.stderr.emit('data', Buffer.from('Windows could not start the updater'));
+      child.emit('close', 1);
+    });
+    return child;
+  };
+  await assert.rejects(startReplacement({ targetPath, candidatePath, digest: asset().digest,
+    dataDir: path.join(dir, 'data'), appPid: 222, spawnProcess }),
+  /could not start the updater/i);
+  assert.equal(fs.readFileSync(targetPath, 'utf8'), 'previous release');
 });

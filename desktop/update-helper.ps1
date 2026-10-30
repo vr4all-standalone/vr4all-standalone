@@ -2,7 +2,6 @@ param(
     [Parameter(Mandatory = $true)][string]$Target,
     [Parameter(Mandatory = $true)][string]$Candidate,
     [Parameter(Mandatory = $true)][int]$AppPid,
-    [Parameter(Mandatory = $true)][int]$LauncherPid,
     [Parameter(Mandatory = $true)][string]$ExpectedSha256,
     [Parameter(Mandatory = $true)][string]$ReportPath,
     [switch]$SkipLaunch
@@ -35,7 +34,7 @@ try {
     $actual = Get-UpdateSha256 $Candidate
     if ($actual -ne $ExpectedSha256) { throw 'Downloaded VR4ALL checksum does not match GitHub.' }
 
-    foreach ($processId in @($AppPid, $LauncherPid) | Select-Object -Unique) {
+    foreach ($processId in @($AppPid)) {
         if ($processId -le 0 -or $processId -eq $PID) { continue }
         if (Get-Process -Id $processId -ErrorAction SilentlyContinue) {
             Wait-Process -Id $processId -Timeout 120 -ErrorAction Stop

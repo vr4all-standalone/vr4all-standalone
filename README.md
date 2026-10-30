@@ -17,7 +17,7 @@ Project Honeydew can be installed from its checksum-verified creator APK with yo
 - 🧭 **One hub for ALL standalone Quest VR ports.** Browse 116 game projects in VR4ALL, search by game, console, or genre, and find each mod creator's project in one place.
 - ⚡ **Simple, one-click installation.** Bring the game files or creator APK requested on the card, then click **Install**. VR4ALL handles the build, patch, and headset transfer steps in the app, so players do not need to follow a separate build guide.
 - 🔄 **Auto update installed mods.** Scan your connected Quest to find new creator releases, then approve the updates you want VR4ALL to install on the headset.
-- 🖥️ **Update VR4ALL itself.** Check updates also looks for a newer VR4ALL Windows release. Approve it to download, restart, and reopen the portable app with your settings intact.
+- 🖥️ **Update VR4ALL itself.** The desktop app checks for its own release when it opens and after **Check updates**. Approve a newer release to download, restart, and reopen the portable app with your settings intact.
 - 📦 **Bulk install and bulk update.** Choose or drop game files on their individual cards; VR4ALL remembers the original paths. Select saved, ready games in Bulk install, or update eligible installed mods together without supplying files already on the headset.
 
 ### Updates on a connected Quest
@@ -32,7 +32,7 @@ Installed standalone ports run on your Quest without PC streaming. VR4ALL does n
 
 ## Get started
 
-1. Download the Windows portable EXE from [Releases](https://github.com/vr4all-standalone/vr4all-standalone/releases).
+1. Download `VR4ALL-win-x64.exe` from [Releases](https://github.com/vr4all-standalone/vr4all-standalone/releases). Versions through 0.3.51 need this one manual download to repair their self-updater.
 2. Enable Developer Mode on your Quest, connect it with a USB data cable, and approve **USB debugging** inside the headset.
 3. Open VR4ALL and select your headset above the library.
 4. Choose a game and add the files requested on its card from a copy you own. VR4ALL shows whether it accepts the input and any extra preparation needed.

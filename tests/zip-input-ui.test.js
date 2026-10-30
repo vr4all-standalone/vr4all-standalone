@@ -703,6 +703,19 @@ test('Check updates checks VR4ALL after the game sources and offers the app upda
   assert.match(elements.get('#updateStatus').textContent, /VR4ALL 0\.3\.46/);
 });
 
+test('opening the desktop app checks its own release before catalog loading finishes', async () => {
+  const { context } = appHarness();
+  let checks = 0;
+  context.localStorage = { getItem: () => null, setItem() {} };
+  context.window.vr4allDesktop = {
+    async checkAppUpdate() { checks++; return { available: false, supported: true }; },
+  };
+  context.stalledCatalog = () => new Promise(() => {});
+  vm.runInContext('api = stalledCatalog; boot()', context);
+  await Promise.resolve();
+  assert.equal(checks, 1);
+});
+
 test('an app update check failure leaves game release results intact', async () => {
   const { context, game } = appHarness();
   let checked = 0;
