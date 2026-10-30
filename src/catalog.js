@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { originalNames } = require('./original-names');
 const { additions, additionFacets } = require('./catalog-additions');
+const { newPorts, newPortFacets } = require('./catalog-new-ports');
 
 const games = [
   {
@@ -701,11 +702,11 @@ function sharedInputSignature(item) {
   return JSON.stringify([item.id, item.destination.toLowerCase(), [...(item.extensions || [])].map((extension) => extension.toLowerCase()).sort(), item.archiveMember || '']);
 }
 const sharedInputCounts = new Map();
-for (const game of [...games, ...additions]) for (const item of game.data) {
+for (const game of [...games, ...additions, ...newPorts]) for (const item of game.data) {
   const signature = sharedInputSignature(item);
   if (signature) sharedInputCounts.set(signature, (sharedInputCounts.get(signature) || 0) + 1);
 }
-function getCatalog() { return [...games, ...additions].map((game) => ({ ...game, gameName: originalNames[game.id] || game.gameName || game.title, console: (facets[game.id] || additionFacets[game.id])[0], genre: (facets[game.id] || additionFacets[game.id])[1], art: artFor(game.id === 'fzero-x-virtuavr' ? 'fzero-x-vr' : game.id), data: game.data.map((item) => {
+function getCatalog() { return [...games, ...additions, ...newPorts].map((game) => ({ ...game, gameName: originalNames[game.id] || game.gameName || game.title, console: (facets[game.id] || additionFacets[game.id] || newPortFacets[game.id])[0], genre: (facets[game.id] || additionFacets[game.id] || newPortFacets[game.id])[1], art: artFor(game.id === 'fzero-x-virtuavr' ? 'fzero-x-vr' : game.id), data: game.data.map((item) => {
   const signature = sharedInputSignature(item);
   return { ...item, ...(signature && sharedInputCounts.get(signature) > 1 ? { sharedInput: signature } : {}) };
 }) })); }

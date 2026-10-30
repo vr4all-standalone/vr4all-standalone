@@ -72,8 +72,17 @@ async function verifyGameFile(game, item, file) {
     if (!pokemonGen1Hashes.has(hash.digest('hex'))) throw new Error('ROM does not match the supported US Pokémon Red or Blue revision');
     return { level: 'hash', message: 'Pokémon Red or Blue US ROM SHA-1 matches the supported release' };
   }
-  if (['.iso', '.gcm'].includes(extension) && ['xelee', 'twilight-vr', 'wii-compiled'].includes(game.id)) {
+  if (['.iso', '.gcm'].includes(extension) && ['xelee', 'twilight-vr', 'wii-compiled', 'wakerquest', 'mario-party-4-vr'].includes(game.id)) {
     const code = bytes.toString('ascii', 0, 6);
+    if (game.id === 'wakerquest') {
+      if (code !== 'GZLP01') throw new Error('WakerQuest requires a PAL Wind Waker disc (GZLP01)');
+      if (bytes[7] !== 0) throw new Error('WakerQuest requires PAL Wind Waker Rev 0');
+      return { level: 'title', message: 'Wind Waker PAL GZLP01 Rev 0 disc header matches; full ISO identity is not independently verified' };
+    }
+    if (game.id === 'mario-party-4-vr') {
+      if (!['GMPE01', 'GMPP01'].includes(code)) throw new Error('Mario Party 4 requires a supported USA or Europe disc');
+      return { level: 'title', message: 'Mario Party 4 disc header matches; exact revision is not independently verified' };
+    }
     if (game.id === 'xelee') {
       if (code !== 'GALE01' || bytes[7] !== 2) throw new Error('Xelee requires the NTSC-U Melee 1.02 disc (revision 2)');
       return { level: 'title', message: 'Melee NTSC-U 1.02 disc header matches' };

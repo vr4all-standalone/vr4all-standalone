@@ -121,3 +121,17 @@ The SVG files remain only as offline fallbacks.
 - Virtua Cop 2: original Sega arcade flyer, https://flyers.arcade-museum.com/videogames/show/1245.
 - Teraburst: existing project banner, https://github.com/vr4all-standalone/teraburst-vr/blob/main/docs/github/readme-banner.png.
 - GT3 Revisited: original Gran Turismo 3 cover from https://www.gran-turismo.com/us/products/; original game artwork and reuse permission unverified.
+
+## New Quest ports — 29 October 2026
+
+- Ghost Squad Evolution and The House of the Dead 4: creator screenshots in the [Lindbergh recomp repository](https://github.com/lialan/lindbergh-recomp-ports/tree/main/docs).
+- Daytona USA: [Port0r's itch.io project cover](https://port0r.itch.io/daytona-usa-vr).
+- Mario Party 4: [SteamGridDB game cover](https://cdn2.steamgriddb.com/grid/34ee49ced5744eeb86d6e8e9661634aa.png).
+- Crash Team Racing Turbocharged: [port screenshot](https://portroyale.online/images/ctr-turbocharged/1-lava-race.jpg).
+- Iron Lung VR: [creator's itch.io cover](https://jackaapacka.itch.io/iron-lung-vr).
+- Victory Heat Rally and Arx Fatalis: Steam store header art for [Victory Heat Rally](https://store.steampowered.com/app/1594060/) and [Arx Fatalis](https://store.steampowered.com/app/1700/).
+- Mystical Ninja, WWF No Mercy, Sin and Punishment, NFL Blitz 2000, and Bomberman Hero: creator banners in their [VistaLargaGames repositories](https://github.com/VistaLargaGames).
+- Jurassic Park Arcade Quest: [creator's Quest gameplay screenshot](https://github.com/Lovecore/jurassic-park-arcade-quest/blob/main/ai_docs/quest-recomp/quest3-gameplay-2026-10-21.jpg).
+- WakerQuest: [Wind Waker GameCube cover scan](https://gamesdb.launchbox-app.com/games/images/166-the-legend-of-zelda-the-wind-waker).
+
+These images identify the underlying games or community ports. Rights remain with their respective owners; reuse permission has not been independently verified.

@@ -20,6 +20,18 @@ test('GT3 Revisited scan requires its Quest app and a GT3 disc image', async () 
   assert.equal((await inspectDevice(adb, 'Q3', [game]))[game.id].dataReady, true);
 });
 
+test('WakerQuest rescan finds its copied ISO even when the original filename was generic', async () => {
+  const game = getCatalog().find((entry) => entry.id === 'wakerquest');
+  const adb = { async run(args) {
+    const command = args.slice(2).join(' ');
+    if (command === 'shell pm list packages -3') return 'package:io.github.wakerquest';
+    if (command === 'shell dumpsys package io.github.wakerquest') return 'versionName=1.0.7';
+    if (command === 'shell ls -1 /sdcard/Download/') return 'VR4ALL-wakerquest-disc.iso';
+    return '';
+  } };
+  assert.equal((await inspectDevice(adb, 'Q3', [game]))[game.id].dataReady, true);
+});
+
 test('CarnEvil is ready only when its APK, packed ROM and CHD are on the headset', async () => {
   const files = { '/sdcard/Download': 'carnevil.zip', '/sdcard/Download/carnevil': '' };
   const adb = { async run(args) {

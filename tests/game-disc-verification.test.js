@@ -42,3 +42,22 @@ test('WiiCompiled rejects a USA WBFS and accepts a PAL RMCP01 WBFS', async () =>
     assert.match((await verifyGameFile(game, game.data[0], await disc(root, 'RMCP01.wbfs', 'RMCP01', 0, true))).message, /PAL|RMCP01/i);
   } finally { await fs.rm(root, { recursive: true, force: true }); }
 });
+
+test('WakerQuest accepts only the current PAL Rev 0 disc', async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-disc-'));
+  const game = getCatalog().find((entry) => entry.id === 'wakerquest');
+  try {
+    await assert.rejects(verifyGameFile(game, game.data[0], await disc(root, 'wind.iso', 'GZLE01')), /PAL|GZLP01/i);
+    await assert.rejects(verifyGameFile(game, game.data[0], await disc(root, 'wind.iso', 'GZLP01', 1)), /Rev 0/i);
+    assert.match((await verifyGameFile(game, game.data[0], await disc(root, 'wind.iso', 'GZLP01'))).message, /Wind Waker/i);
+  } finally { await fs.rm(root, { recursive: true, force: true }); }
+});
+
+test('Mario Party 4 rejects unrelated GameCube discs', async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-disc-'));
+  const game = getCatalog().find((entry) => entry.id === 'mario-party-4-vr');
+  try {
+    await assert.rejects(verifyGameFile(game, game.data[0], await disc(root, 'party.iso', 'GALE01')), /Mario Party 4/i);
+    assert.match((await verifyGameFile(game, game.data[0], await disc(root, 'party.iso', 'GMPE01'))).message, /Mario Party 4/i);
+  } finally { await fs.rm(root, { recursive: true, force: true }); }
+});

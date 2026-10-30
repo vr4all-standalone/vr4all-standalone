@@ -1,5 +1,18 @@
 // Read-only probes for catalogued ports on the selected Android headset.
 const packages = {
+  'ghost-squad-evolution-vr': 'org.lindbergh.gse.vr',
+  'hotd4-vr': 'org.lindbergh.hotd4.vr',
+  'daytona-usa-vr': 'io.port0r.daytona',
+  'mario-party-4-vr': 'com.mariopartyrd.partyboard',
+  'ctr-turbocharged-vr': 'com.bilko.ctrvr',
+  'mystical-ninja-vr': 'com.goemon64.recompiled',
+  'wwf-no-mercy-vr': 'com.nomercyrecomp.questvr',
+  'sin-and-punishment-vr': 'com.sinandpunishment.recompiled',
+  'nfl-blitz-2000-vr': 'com.blitz2000.recompiled',
+  'bomberman-hero-vr': 'com.bmhero.recompiled',
+  'arx-libertatis-vr': 'org.arxlibertatis.vr',
+  wakerquest: 'io.github.wakerquest',
+  'victory-heat-rally-vr': 'com.segadreamcat.vhrquest',
   'confidential-mission-vr': 'com.vrlightgunhub.confmiss',
   'teraburst-vr': 'com.vrlightgunhub.teraburst',
   'vcop2-vr': 'com.vrlightgunhub.vcop2',
@@ -93,6 +106,13 @@ const packages = {
 const packageAliases = { 'rdr1-vr': ['com.rockstargames.rdr', 'com.netflix.NGP.Kamo'] };
 
 const downloadPatterns = {
+  'mario-party-4-vr': /(?:mario.party.4|gmpe01|gmpp01).*\.(?:iso|rvz|wia|gcz)$/i,
+  'mystical-ninja-vr': /(?:mystical.ninja|goemon).*\.(?:z64|n64|v64)$/i,
+  'wwf-no-mercy-vr': /(?:wwf.no.mercy|no.mercy).*\.(?:z64|n64|v64)$/i,
+  'sin-and-punishment-vr': /sin.and.punishment.*\.(?:z64|n64|v64)$/i,
+  'nfl-blitz-2000-vr': /nfl.blitz.2000.*\.(?:z64|n64|v64)$/i,
+  'bomberman-hero-vr': /bomberman.hero.*\.(?:z64|n64|v64)$/i,
+  wakerquest: /(?:wind.waker|gzlp01).*\.iso$/i,
   'sm64-vr': /super mario 64.*\.(z64|n64|v64)$/i,
   'oot-vr': /ocarina of time.*\.(z64|n64|v64)$/i,
   'mm-vr': /majora.?s mask.*\.(z64|n64|v64)$/i,

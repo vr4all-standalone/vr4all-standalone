@@ -23,6 +23,7 @@ const { ManagedLibrary } = require('./src/managed-library');
 const { GitHubReleases, validateSource } = require('./src/releases');
 const { matchesInstalledApk, matchesInstalledDigest } = require('./src/apk-match');
 const { validatePersonalBuildInput, runPersonalBuild } = require('./src/personal-build');
+const { validateVictoryHeatInput, runVictoryHeatBuild } = require('./src/victory-heat-runner');
 const { checkRdrInternet } = require('./src/rdr-connectivity');
 const { validateViceCityInput, runViceCityBuild } = require('./src/vice-city-runner');
 const { setupBuildTools } = require('./src/android-sdk-setup');
@@ -123,6 +124,7 @@ function createApp(options = {}) {
   const picker = options.picker || pickPath;
   const inspectApk = options.inspectApkPackage || inspectApkPackage;
   const personalBuilder = options.personalBuilder || runPersonalBuild;
+  const victoryHeatBuilder = options.victoryHeatBuilder || runVictoryHeatBuild;
   const bioshockInstaller = options.bioshockInstaller || installBioShock;
   const viceCityBuilder = options.viceCityBuilder || runViceCityBuild;
   const sdkSetup = options.sdkSetup || setupBuildTools;
@@ -195,7 +197,7 @@ function createApp(options = {}) {
 
   function catalog() { return [...getCatalog(), ...(settings.customGames || [])]; }
   function gameById(id) { return catalog().find((game) => game.id === id); }
-  function sourceFor(game) { return settings.sources?.[game.id] || game.source; }
+  function sourceFor(game) { return game.id === 'victory-heat-rally-vr' ? game.source : settings.sources?.[game.id] || game.source; }
   function saveSettings() {
     if (!settingsPath) return Promise.resolve();
     const contents = JSON.stringify(settings, null, 2);
@@ -639,13 +641,15 @@ function createApp(options = {}) {
       }
       const kit = game.id === 'vice-city-vr'
         ? await viceCityBuilder({ ...input, gamePackage: convertedGame?.path || input.gamePackage }, viceCityRoots(input.downloadLocation), log)
+        : game.id === 'victory-heat-rally-vr'
+        ? await victoryHeatBuilder({ ...input, releases, source: sourceFor(game), adb, workspaceRoot: buildWorkRoot(), inspectApk, onLog: log })
         : await personalBuilder(game.id, input, input.downloadLocation ? viceCityRoots(input.downloadLocation) : personalRoots(), log);
       job.sourceCommit = kit.sha;
       job.status = 'success';
       log('Author build and Quest installation completed. Start the game on the headset to confirm it plays.');
       if (game.afterInstall) { job.afterInstall = game.afterInstall; log(game.afterInstall); }
       settings.installed[input.serial] ||= {};
-      settings.installed[input.serial][game.id] = { at: new Date().toISOString(), sourceCommit: kit.sha };
+      settings.installed[input.serial][game.id] = { at: new Date().toISOString(), sourceCommit: kit.sha, ...(kit.packageId ? { packageId: kit.packageId } : {}) };
       await saveSettings();
     } catch (error) { job.status = 'error'; job.error = error.message; log(`Error: ${error.message}`); }
     finally { if (convertedGame) await removeConversionDirectory(convertedGame.directory, path.dirname(convertedGame.directory));  busyBuildGames.delete(game.id); await rememberFinishedJob(job); }
@@ -1677,7 +1681,7 @@ function createApp(options = {}) {
       if (url.pathname === '/api/personal-build' && req.method === 'POST') {
         const requestInput = await body(req);
         const game = gameById(requestInput.gameId);
-        if (!game || !['gta-sa-vr', 'rdr1-vr', 'vice-city-vr', 'crazy-taxi-vr', 'fzero-x-virtuavr', 'bioshock-vr'].includes(game.id)) throw new Error('Choose a supported personal build');
+        if (!game || !['gta-sa-vr', 'rdr1-vr', 'vice-city-vr', 'crazy-taxi-vr', 'fzero-x-virtuavr', 'bioshock-vr', 'victory-heat-rally-vr'].includes(game.id)) throw new Error('Choose a supported personal build');
         if (buildToolGames.has(game.id) && busyBuildGames.has(game.id)) return json(res, 409, { error: 'Game tool setup or build is already running' });
         const downloadLocation = buildToolGames.has(game.id) && (game.id === 'vice-city-vr' || buildToolsLocation(game.id))
           ? await validateBuildToolsLocation(buildToolsLocation(game.id)) : null;
@@ -1697,6 +1701,8 @@ function createApp(options = {}) {
           ? await validateFzeroRequest(requestInput)
           : game.id === 'vice-city-vr'
           ? await validateViceCityRequest(requestInput, downloadLocation)
+          : game.id === 'victory-heat-rally-vr'
+          ? await validateVictoryHeatInput(requestInput)
           : await validatePersonalBuildInput(game.id, requestInput);
         if (downloadLocation) input.downloadLocation = downloadLocation;
         if (!canQueueInstall(input.serial)) return json(res, 409, { error: 'Another operation is already running on this device' });

@@ -444,6 +444,25 @@ test('personal build accepts a complete RDR export and passes the selected seria
   } finally { app.server.close(); await fs.rm(root, { recursive: true, force: true }); }
 });
 
+test('Victory Heat Rally build button reaches its builder with the selected game and Quest', async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-vhr-api-'));
+  await fs.writeFile(path.join(root, 'data.win'), 'owned fixture');
+  const calls = [];
+  const app = createApp({
+    adb: { listDevices: async () => [{ serial: 'Q3S', state: 'device' }] },
+    victoryHeatBuilder: async (input) => { calls.push(input); return { sha: 'v1.1', packageId: 'com.segadreamcat.vhrquest' }; },
+  });
+  try {
+    const started = await request(app, 'POST', '/api/personal-build', { gameId: 'victory-heat-rally-vr', serial: 'Q3S', gamePackage: root });
+    assert.equal(started.status, 202, JSON.stringify(started.body));
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    const result = await request(app, 'GET', `/api/jobs/${started.body.job.id}`);
+    assert.equal(result.body.job.status, 'success', result.body.job.error);
+    assert.equal(calls[0].gamePackage, root);
+    assert.equal(calls[0].serial, 'Q3S');
+  } finally { app.server.close(); await fs.rm(root, { recursive: true, force: true }); }
+});
+
 test('F-Zero X VirtuaVRPort personal install uses its own ROM preparation flow and selected Quest', async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-fzero-api-'));
   const rom = path.join(root, 'F-Zero X (USA).z64');

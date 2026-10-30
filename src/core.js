@@ -58,7 +58,7 @@ function safeDestination(destination) {
 
 function remoteFileName(game, item, source) {
   const original = path.win32.basename(source);
-  if (item.destination !== '/sdcard/Download/' || !/^(?:game|disc|rom|dump|image)(?:[ ._-]?\d+)?\.[^.]+$/i.test(original)) return original;
+  if (item.destination !== '/sdcard/Download/' || !item.renameOnHeadset && !/^(?:game|disc|rom|dump|image)(?:[ ._-]?\d+)?\.[^.]+$/i.test(original)) return original;
   if (!/^[a-z0-9-]+$/i.test(game.id || '') || !/^[a-z0-9-]+$/i.test(item.id || '')) throw new Error('Invalid game file name');
   return `VR4ALL-${game.id}-${item.id}${path.win32.extname(original).toLowerCase()}`;
 }

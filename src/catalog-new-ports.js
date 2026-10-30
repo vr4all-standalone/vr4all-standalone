@@ -1,0 +1,143 @@
+// Creator releases and their owned-data requirements, checked 29 October 2026.
+// A source is set only when its release contains a directly installable Quest APK.
+const download = '/sdcard/Download/';
+const n64 = ['.z64', '.n64', '.v64'];
+
+const newPorts = [
+  {
+    id: 'ghost-squad-evolution-vr', title: 'Ghost Squad Evolution VR', gameName: 'Ghost Squad Evolution', series: 'lialan', category: 'Arcade', color: '#6fae9e',
+    description: 'The Sega Lindbergh arcade shooter on Quest with tracked aiming.',
+    projectUrl: 'https://github.com/lialan/lindbergh-recomp-ports/blob/main/docs/ghostsquadevolution/QUEST.md',
+    source: { repo: 'lialan/lindbergh-recomp-ports', assetPattern: '^GhostSquadEvolutionVR-v[0-9.]+-quest3\\.apk$' },
+    data: [{ id: 'game', label: 'Owned Ghost Squad Evolution vsg_l folder', kind: 'directory', destination: '/sdcard/GhostSquadEvolution/vsg_l/', requiredEntries: ['vsg'], note: 'Choose the complete vsg_l arcade game folder; the author requires its original vsg executable. Do not use the macOS build.' }],
+    guidance: 'VR4ALL installs the Quest APK from the creator’s v0.2.0 release and transfers your own complete vsg_l folder. The creator specifies an exact original executable SHA-256; an incorrect dump may fail inside the game.',
+    afterInstall: 'Launch under Unknown Sources. The creator reports Quest 3, 3S and Pro support; some scenes and scopes use a virtual screen.',
+  },
+  {
+    id: 'hotd4-vr', title: 'The House of the Dead 4 VR', gameName: 'The House of the Dead 4', series: 'lialan', category: 'Arcade', color: '#b27575',
+    description: 'The original Lindbergh arcade game on standalone Quest.',
+    projectUrl: 'https://github.com/lialan/lindbergh-recomp-ports/blob/main/docs/hotd4/QUEST.md',
+    source: { repo: 'lialan/lindbergh-recomp-ports', assetPattern: '^HouseOfTheDead4VR-v[0-9.]+-quest3\\.apk$' },
+    data: [{ id: 'game', label: 'Owned House of the Dead 4 game folder', kind: 'directory', destination: '/sdcard/HouseOfTheDead4/', requiredDirectories: ['elf', 'fs', 'drv'], note: 'Choose the folder containing elf, fs and drv. The author requires the original hod4M.elf revision.' }],
+    guidance: 'VR4ALL installs the Quest APK from the creator’s v0.2.0 release and transfers the three original arcade data folders. An incorrect executable revision may fail the creator’s validation.',
+    afterInstall: 'Launch under Unknown Sources after transfer. The creator lists Quest 3, 3S and Pro.',
+  },
+  {
+    id: 'daytona-usa-vr', title: 'Daytona USA VR', gameName: 'Daytona USA', series: 'Port0r', category: 'Arcade', color: '#e8a75f',
+    description: 'Sega Model 2 racing on Quest using your arcade game set.',
+    projectUrl: 'https://github.com/jacquesdupontd/port0r/releases/tag/daytona-v0.1.11',
+    source: { repo: 'jacquesdupontd/port0r', releasePattern: 'daytona-v', assetPattern: '^Port0r-DaytonaUSAVR-v[0-9.]+-quest3\\.apk$' },
+    data: [
+      { id: 'game', label: 'Owned Daytona USA arcade set', kind: 'file', extensions: ['.zip'], destination: `${download}daytona.zip`, note: 'MAME 0.289 daytona.zip. The app can package loose files or convert a 7z/RAR archive.' },
+      { id: 'io', label: 'Model 1 I/O board set', kind: 'file', extensions: ['.zip'], destination: `${download}model1io.zip`, note: 'MAME 0.289 model1io.zip.' },
+    ],
+    guidance: 'Use the Daytona Quest APK, not another game from the shared Port0r repository. Both arcade ZIPs are required.',
+  },
+  {
+    id: 'mario-party-4-vr', title: 'Mario Party 4 VR', gameName: 'Mario Party 4', series: 'zeranemesis', category: 'GameCube', color: '#e2b959',
+    description: 'Mario Party 4 on Quest with experimental mixed reality board play.',
+    projectUrl: 'https://github.com/zeranemesis/Marioparty4',
+    source: { repo: 'zeranemesis/Marioparty4', assetPattern: '^PartyBoard-v[0-9.]+-quest-arm64-v8a\\.apk$' },
+    data: [{ id: 'disc', label: 'Owned Mario Party 4 GameCube disc', kind: 'file', extensions: ['.iso', '.rvz', '.wia', '.gcz'], destination: download, renameOnHeadset: true, note: 'USA GMPE01 or Europe GMPP01. Choose the disc inside the game on first launch; Japanese editions are unsupported.' }],
+    guidance: 'The creator’s release history includes PC and development assets; VR4ALL selects only a Quest ARM64 APK. The Quest game asks you to choose your disc on first launch.',
+  },
+  {
+    id: 'ctr-turbocharged-vr', title: 'Crash Team Racing: Turbocharged VR', gameName: 'Crash Team Racing', series: 'SgtBilko76', category: 'PlayStation', color: '#f1a35d',
+    description: 'Stereo Quest racing in the original Crash Team Racing.',
+    projectUrl: 'https://github.com/SgtBilko76/CTR-Turbocharged-VR',
+    source: { repo: 'SgtBilko76/CTR-Turbocharged-VR', assetPattern: '^CTR-Turbocharged-VR-v[0-9.]+\\.apk$' },
+    data: [{ id: 'disc', label: 'Owned NTSC-U Crash Team Racing BIN', kind: 'file', extensions: ['.bin'], destination: '/sdcard/CTR/assets/ctr-u.bin', note: 'Original PlayStation NTSC-U SCUS-94426 raw BIN. A CUE, CHD or PAL disc is not accepted by the creator’s current build.' }],
+    guidance: 'VR4ALL copies the exact BIN filename expected by the Quest port. The creator tested Quest 3; menus and split-screen scenes remain flat.',
+    afterInstall: 'Allow file access and restart the game after the first launch if the port requests it.',
+  },
+  {
+    id: 'iron-lung-vr', title: 'Iron Lung VR', gameName: 'Iron Lung', series: 'Jackaapacka', category: 'PC', color: '#a64c4d',
+    description: 'A standalone Quest recreation of Iron Lung.', projectUrl: 'https://jackaapacka.itch.io/iron-lung-vr',
+    data: [], guidance: 'The creator distributes the Quest APK on itch.io rather than a verified direct GitHub release. Download it there once and drop the APK here; VR4ALL remembers its original location. No separate game files are required.',
+  },
+  {
+    id: 'victory-heat-rally-vr', title: 'Victory Heat Rally VR', gameName: 'Victory Heat Rally', series: 'segadreamcat', category: 'PC', color: '#f0bd64',
+    description: 'Standalone Quest racing built from your own PC copy.',
+    projectUrl: 'https://github.com/segadreamcat/VictoryHeatRallyVR-Quest/releases',
+    source: { repo: 'segadreamcat/VictoryHeatRallyVR-Quest', assetPattern: '^VictoryHeatRallyVR-Quest-v[0-9.]+\\.zip$' }, releaseKind: 'installer',
+    personalBuild: { gameLabel: 'Owned Victory Heat Rally folder or data.win',
+      gameHint: 'Drop the original Steam game folder or its data.win. The creator’s builder verifies the exact supported game revision.',
+      actionLabel: 'Build and install', processDescription: 'VR4ALL downloads the creator’s builder ZIP, runs its BuildOnly mode with your own game files, checks the resulting Quest APK package and installs it on your selected headset. First build downloads the builder’s tool dependencies.' },
+    data: [], guidance: 'The official release contains a Windows builder rather than a ready-made APK. VR4ALL runs its BuildOnly mode and installs your personal result; no commercial game data is redistributed.',
+  },
+  {
+    id: 'mystical-ninja-vr', title: 'Mystical Ninja VR', gameName: 'Mystical Ninja Starring Goemon', series: 'VistaLargaGames', category: 'Nintendo 64', color: '#d18c63',
+    description: 'Goemon’s Nintendo 64 adventure on standalone Quest.',
+    projectUrl: 'https://github.com/VistaLargaGames/Mystical-Ninja-VR',
+    source: { repo: 'VistaLargaGames/Mystical-Ninja-VR', assetPattern: '^MysticalNinjaVR-Quest-[0-9.]+\\.apk$' },
+    data: [{ id: 'rom', label: 'Owned US Mystical Ninja N64 ROM', kind: 'file', extensions: n64, destination: download, renameOnHeadset: true, note: 'US game ROM. Select the copied file from Download in the port’s first-run picker.' }],
+    guidance: 'VR4ALL installs the Quest APK and copies your ROM to Download. Choose it inside the game on first launch.',
+  },
+  {
+    id: 'wwf-no-mercy-vr', title: 'WWF No Mercy VR', gameName: 'WWF No Mercy', series: 'VistaLargaGames', category: 'Nintendo 64', color: '#b88970',
+    description: 'The Nintendo 64 wrestling game on Quest.',
+    projectUrl: 'https://github.com/VistaLargaGames/WWF-No-Mercy-Quest-3-Standalone-',
+    source: { repo: 'VistaLargaGames/WWF-No-Mercy-Quest-3-Standalone-', assetPattern: '^WWFNoMercyVR-Quest\\.apk$' },
+    data: [{ id: 'rom', label: 'Owned US Rev 1 WWF No Mercy ROM', kind: 'file', extensions: n64, destination: download, renameOnHeadset: true, note: 'US Rev 1 / Rev A Nintendo 64 ROM; choose it in the game’s first-run picker.' }],
+    guidance: 'This is an early Quest 3 build. The creator notes occasional camera snap and stretching.',
+  },
+  {
+    id: 'sin-and-punishment-vr', title: 'Sin and Punishment VR', gameName: 'Sin and Punishment', series: 'VistaLargaGames', category: 'Nintendo 64', color: '#a783ac',
+    description: 'Nintendo 64 rail shooter on standalone Quest.',
+    projectUrl: 'https://github.com/VistaLargaGames/Sin-and-Punishment-Quest-VR',
+    source: { repo: 'VistaLargaGames/Sin-and-Punishment-Quest-VR', assetPattern: '^Sin-and-Punishment-VR-[0-9.]+\\.apk$' },
+    data: [{ id: 'rom', label: 'Owned Sin and Punishment N64 ROM', kind: 'file', extensions: n64, destination: download, renameOnHeadset: true, note: 'Original Japanese ROM or the creator-supported English translation; choose it in the game on first launch.' }],
+    guidance: 'VR4ALL selects the Quest APK and leaves the separate PCVR ZIP untouched. This is an early beta.',
+  },
+  {
+    id: 'nfl-blitz-2000-vr', title: 'NFL Blitz 2000 VR', gameName: 'NFL Blitz 2000', series: 'VistaLargaGames', category: 'Nintendo 64', color: '#92a9d5',
+    description: 'Nintendo 64 football on standalone Quest.',
+    projectUrl: 'https://github.com/VistaLargaGames/NFL-Blitz-2000-Quest-VR',
+    source: { repo: 'VistaLargaGames/NFL-Blitz-2000-Quest-VR', assetPattern: '^NFL-Blitz-VR-[0-9.]+\\.apk$' },
+    data: [{ id: 'rom', label: 'Owned US Rev 1 NFL Blitz 2000 ROM', kind: 'file', extensions: n64, destination: download, renameOnHeadset: true, note: 'US Rev 1 Nintendo 64 ROM, selected in the game on first launch.' }],
+    guidance: 'VR4ALL installs the creator Quest APK and transfers your ROM to Download.',
+  },
+  {
+    id: 'bomberman-hero-vr', title: 'Bomberman Hero VR', gameName: 'Bomberman Hero', series: 'VistaLargaGames', category: 'Nintendo 64', color: '#aeb5d9',
+    description: 'Bomberman Hero in standalone Quest VR.',
+    projectUrl: 'https://github.com/VistaLargaGames/Bomberman-Hero-Quest-3-VR-Standalone',
+    source: { repo: 'VistaLargaGames/Bomberman-Hero-Quest-3-VR-Standalone', assetPattern: '^BombermanHeroQuest3\\.apk$' },
+    data: [{ id: 'rom', label: 'Owned US Bomberman Hero ROM', kind: 'file', extensions: n64, destination: download, renameOnHeadset: true, note: 'US 1.0 Nintendo 64 ROM; choose it in the game’s first-run picker.' }],
+    guidance: 'Quest 3 experimental build. The creator notes a bomb-explosion visual issue.',
+  },
+  {
+    id: 'arx-libertatis-vr', title: 'Arx Libertatis VR', gameName: 'Arx Fatalis', series: 'cmpayc', category: 'PC', color: '#8ba8b4',
+    description: 'Experimental standalone Quest build of the Arx Fatalis engine.',
+    projectUrl: 'https://github.com/cmpayc/ArxLibertatisVR',
+    source: { repo: 'cmpayc/ArxLibertatisVR', assetPattern: '^ArxLibertatisVR-[0-9.]+-android-arm64\\.apk$' },
+    data: [{ id: 'game', label: 'Owned Arx Fatalis data folder', kind: 'directory', destination: '/sdcard/ArxLibertatis/', requiredEntries: ['data.pak'], note: 'Choose the game folder with data*.pak, sfx.pak, speech*.pak, loc*.pak and its asset folders. Steam, GOG, CD or supported demo data may work.' }],
+    guidance: 'VR4ALL transfers your game data to ArxLibertatis. The creator’s Quest build is experimental and can slow down in heavy scenes.',
+    afterInstall: 'Grant all files access and restart Arx Libertatis VR if the first launch asks for storage permission.',
+  },
+  {
+    id: 'jurassic-park-arcade-vr', title: 'Jurassic Park Arcade Quest', gameName: 'Jurassic Park Arcade (2015)', series: 'Lovecore', category: 'Arcade', color: '#849d68',
+    description: 'Quest 3 recompilation of the 2015 arcade lightgun game.',
+    projectUrl: 'https://github.com/Lovecore/jurassic-park-arcade-quest/blob/main/docs/BUILD-IT-YOURSELF.md', externalInstaller: true,
+    data: [], guidance: 'There is no creator APK release. This port must be compiled from source using your own Linux PC v1.08 game dump, PhysX i386 libraries, Android SDK and NDK. The creator asks builders not to distribute APKs containing proprietary game code. VR4ALL links the official source-build guide and cannot currently produce this APK from a simple ROM drop.',
+  },
+  {
+    id: 'wakerquest', title: 'WakerQuest', gameName: 'The Legend of Zelda: The Wind Waker', series: 'Trastorillo', category: 'GameCube', color: '#85bacb',
+    description: 'The Wind Waker on standalone Quest 3.', projectUrl: 'https://github.com/Trastorillo/wakerquest',
+    source: { repo: 'Trastorillo/wakerquest', assetPattern: '^WakerQuest-[0-9.]+\\.apk$' },
+    data: [{ id: 'disc', label: 'Owned PAL Wind Waker GameCube ISO', kind: 'file', extensions: ['.iso'], destination: download, renameOnHeadset: true, note: 'Current Quest release requires an uncompressed PAL Europe GZLP01 Rev 0 ISO. Choose it in the port on first launch.' }],
+    guidance: 'VR4ALL copies the PAL ISO to Download and installs the Quest APK. The current creator guide specifies the PAL Rev 0 game disc, despite older Android development notes referencing a US build.',
+  },
+];
+
+const newPortFacets = {
+  'ghost-squad-evolution-vr': ['Arcade', 'Rail shooter'], 'hotd4-vr': ['Arcade', 'Rail shooter'],
+  'daytona-usa-vr': ['Arcade', 'Racing'], 'mario-party-4-vr': ['GameCube', 'Party'],
+  'ctr-turbocharged-vr': ['PlayStation', 'Racing'], 'iron-lung-vr': ['PC', 'Horror'],
+  'victory-heat-rally-vr': ['PC', 'Racing'], 'mystical-ninja-vr': ['Nintendo 64', 'Adventure'],
+  'wwf-no-mercy-vr': ['Nintendo 64', 'Fighting'], 'sin-and-punishment-vr': ['Nintendo 64', 'Rail shooter'],
+  'nfl-blitz-2000-vr': ['Nintendo 64', 'Sports'], 'bomberman-hero-vr': ['Nintendo 64', 'Platformer'],
+  'arx-libertatis-vr': ['PC', 'RPG'], 'jurassic-park-arcade-vr': ['Arcade', 'Rail shooter'],
+  wakerquest: ['GameCube', 'Adventure'],
+};
+
+module.exports = { newPorts, newPortFacets };

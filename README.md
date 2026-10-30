@@ -6,13 +6,13 @@
 
 ![VR4ALL showing its standalone Quest mod library and a game setup panel](docs/images/vr4all-library.png)
 
-## 🎮 Current number of supported games: 99
+## 🎮 Current number of supported games: 114
 
-The catalog has **99 game cards and 106 port choices**, including alternate mods for Time Crisis, Pokémon, Halo, and Virtua Cop. Each card explains its setup requirements; Quest model support varies by port.
+The catalog has **114 game cards and 121 port choices**, including alternate mods for Time Crisis, Pokémon, Halo, and Virtua Cop. Each card explains its setup requirements; Quest model support varies by port.
 
 ## What VR4ALL does
 
-- 🧭 **One hub for ALL standalone Quest VR ports.** Browse 99 games in VR4ALL, search by game, console, or genre, and find each mod creator's project in one place.
+- 🧭 **One hub for ALL standalone Quest VR ports.** Browse 114 games in VR4ALL, search by game, console, or genre, and find each mod creator's project in one place.
 - ⚡ **Simple, one-click installation.** Bring the game files or creator APK requested on the card, then click **Install**. VR4ALL handles the build, patch, and headset transfer steps in the app, so players do not need to follow a separate build guide.
 - 🔄 **Auto update installed mods.** Scan your connected Quest to find new creator releases, then approve the updates you want VR4ALL to install on the headset.
 - 🖥️ **Update VR4ALL itself.** Check updates also looks for a newer VR4ALL Windows release. Approve it to download, restart, and reopen the portable app with your settings intact.

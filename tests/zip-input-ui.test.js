@@ -593,7 +593,7 @@ test('new games selects ten catalog cards while Most downloaded sorts the full v
   const rootGames = games.filter((game) => !game.variantOf);
   context.catalogGames = games;
   const newest = rootGames.slice(-10).map((game) => game.id);
-  assert.ok(newest.includes('gt3-revisited'));
+  assert.ok(newest.includes('wakerquest'));
   vm.runInContext("state.games = catalogGames; state.libraryScope = 'new'; renderGrid()", context);
   const ids = () => [...elements.get('#gameGrid').innerHTML.matchAll(/data-id="([^"]+)"/g)].map((match) => match[1]);
   assert.deepEqual([...ids()].sort(), [...newest].sort());
@@ -603,6 +603,19 @@ test('new games selects ten catalog cards while Most downloaded sorts the full v
   assert.deepEqual(ids().slice(0, 2), [rootGames[1].id, rootGames[0].id]);
   assert.equal(ids().length, games.filter((game) => !game.variantOf).length);
   assert.match(elements.get('#gameGrid').innerHTML, /GitHub downloads/);
+});
+
+test('Victory Heat Rally build is ready after install and joins bulk updates for a newer builder', () => {
+  const { context } = appHarness();
+  context.vhrGame = getCatalog().find((game) => game.id === 'victory-heat-rally-vr');
+  vm.runInContext(`state.games = [vhrGame]; state.selectedSerial = 'Q3';
+    state.deviceLibrary.Q3 = { [vhrGame.id]: { packageId: 'com.segadreamcat.vhrquest', dataReady: true, versionName: '1.0' } };
+    state.installed = { Q3: { [vhrGame.id]: { packageId: 'com.segadreamcat.vhrquest', sourceCommit: 'v1.1' } } };
+    state.releases[vhrGame.id] = { tag: 'v1.1', stale: false };`, context);
+  assert.equal(vm.runInContext('versionStatus(vhrGame)', context), 'status-current');
+  vm.runInContext("state.releases[vhrGame.id].tag = 'v1.2'", context);
+  assert.equal(vm.runInContext('versionStatus(vhrGame)', context), 'status-update');
+  assert.deepEqual(Array.from(vm.runInContext('confirmedBulkUpdates()', context), (game) => game.id), ['victory-heat-rally-vr']);
 });
 
 test('bulk update is visible in every library view while any installed game has a confirmed update', () => {

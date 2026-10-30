@@ -63,7 +63,7 @@ if (window.vr4allDesktop?.onAppUpdateProgress) {
   });
 }
 
-function sourceFor(game) { return state.sources[game.id] || game.source; }
+function sourceFor(game) { return game.id === 'victory-heat-rally-vr' ? game.source : state.sources[game.id] || game.source; }
 function acceptedGameExtensions(item) {
   const extensions = item.extensions || [];
   return item.kind === 'file' && extensions.length
@@ -209,6 +209,11 @@ function versionStatus(game) {
   if (game.localPlayerInstall === 'sclerosis') return 'status-current';
   if (game.id === 'fzero-x-virtuavr' && device.packageId === 'dev.gdiffuser.quest') return 'status-current';
   const completed = state.installed?.[state.selectedSerial]?.[game.id];
+  if (game.id === 'victory-heat-rally-vr' && completed?.packageId === device.packageId
+    && release && !release.stale && completed.sourceCommit) {
+    return completed.sourceCommit === release.tag ? 'status-current' : 'status-update';
+  }
+  if (game.id === 'victory-heat-rally-vr') return 'status-installed';
   if (game.id === 'bioshock-vr' && release && !release.stale && completed?.packageId === device.packageId) {
     return completed.tag === release.tag ? 'status-current' : 'status-update';
   }
@@ -236,8 +241,8 @@ function statusExplanation(game) {
   const status = versionStatus(game);
   if (game.localPlayerInstall === 'sclerosis' && status === 'status-current') return 'Sclerosis APK and required Amnesia game folders found on this Quest. Creator APK updates require a manual download.';
   if (game.id === 'fzero-x-virtuavr' && status === 'status-current') return 'Quest APK and all three prepared F-Zero files found. Ready to play; creator releases are downloaded manually.';
-  if (status === 'status-current') return game.id === 'bioshock-vr' ? 'BioShock APK and game files found; VR4ALL installed the latest checked creator build.' : 'Port APK and game files found; the installed build matches the latest checked GitHub release.';
-  if (status === 'status-update') return game.id === 'bioshock-vr' ? 'BioShock is installed; a newer creator installer is available.' : 'Port APK and game files found; a newer checked Quest APK is available.';
+  if (status === 'status-current') return game.id === 'bioshock-vr' ? 'BioShock APK and game files found; VR4ALL installed the latest checked creator build.' : game.id === 'victory-heat-rally-vr' ? 'Your personal Victory Heat Rally build is installed and matches the latest checked creator builder release.' : 'Port APK and game files found; the installed build matches the latest checked GitHub release.';
+  if (status === 'status-update') return game.id === 'bioshock-vr' ? 'BioShock is installed; a newer creator installer is available.' : game.id === 'victory-heat-rally-vr' ? 'A newer Victory Heat Rally builder is available. VR4ALL can rebuild your personal APK from the saved game folder.' : 'Port APK and game files found; a newer checked Quest APK is available.';
   if (game.personalBuild) return 'Quest package found and required data checks passed. Ready to play; VR4ALL cannot confirm this build against the author’s latest source.';
   const release = state.releases[game.id];
   if (!sourceFor(game)) return 'Port APK and game files found. No release source is configured, so VR4ALL cannot confirm the version.';
@@ -388,7 +393,7 @@ function renderGrid() {
 function confirmedBulkUpdates() {
   if (!state.selectedSerial || !(state.selectedSerial in state.deviceLibrary)) return [];
   return state.games.filter((game) => state.deviceLibrary[state.selectedSerial]?.[game.id]
-    && sourceFor(game) && !state.releaseErrors[game.id] && !game.manualRelease && !game.personalBuild && !game.playerInstall && !game.externalInstaller
+    && sourceFor(game) && !state.releaseErrors[game.id] && (!game.personalBuild || game.id === 'victory-heat-rally-vr') && !game.manualRelease && !game.playerInstall && !game.externalInstaller
     && versionStatus(game) === 'status-update');
 }
 function updateBulkUpdateButton() {
