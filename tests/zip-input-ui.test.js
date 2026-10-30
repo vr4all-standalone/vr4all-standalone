@@ -946,11 +946,11 @@ test('bulk install lists only absent games while bulk update lists only installe
   assert.doesNotMatch(elements.get('#bulkMatches').innerHTML, /Wave Race/);
 });
 
-test('bulk install offers all five self-contained Quest APKs without a local file match', () => {
+test('bulk install offers all six self-contained Quest APKs without a local file match', () => {
   const { context, elements } = appHarness();
   const catalog = getCatalog();
   const included = catalog.filter((game) => !game.data.length && game.source && !game.manualDataSetup && !game.personalBuild && !game.playerInstall);
-  assert.equal(included.length, 5);
+  assert.equal(included.length, 6);
   context.bulkGames = [...included, catalog.find((game) => game.id === 'mgs-vr'), catalog.find((game) => game.id === 'time-crisis-vr')];
   vm.runInContext("state.games = bulkGames; state.selectedSerial = 'QUEST'; state.deviceLibrary.QUEST = {}; state.bulkMatches = []; state.bulkMode = 'new'; renderBulkMatches()", context);
   const html = elements.get('#bulkMatches').innerHTML;
@@ -958,12 +958,12 @@ test('bulk install offers all five self-contained Quest APKs without a local fil
     assert.ok(html.includes(`value="${game.id}"`), game.title);
     assert.ok(html.includes(game.title), game.title);
   }
-  assert.equal((html.match(/class="bulk-select"/g) || []).length, 5);
+  assert.equal((html.match(/class="bulk-select"/g) || []).length, 6);
   assert.doesNotMatch(html, /Metal Gear Solid VR|Time Crisis VR<\/strong>/);
   vm.runInContext("state.deviceLibrary.QUEST['time-crisis-vr'] = { dataReady: true }; renderBulkMatches()", context);
   assert.ok(elements.get('#bulkMatches').innerHTML.includes('value="dr89-time-crisis"'), 'the separate DR-89 port remains installable');
   vm.runInContext(`state.deviceLibrary.QUEST['${included[0].id}'] = { dataReady: true }; renderBulkMatches()`, context);
-  assert.equal((elements.get('#bulkMatches').innerHTML.match(/class="bulk-select"/g) || []).length, 4);
+  assert.equal((elements.get('#bulkMatches').innerHTML.match(/class="bulk-select"/g) || []).length, 5);
 });
 
 test('bulk install includes every available game with remembered paths even when the saved-file scan omits matches', () => {

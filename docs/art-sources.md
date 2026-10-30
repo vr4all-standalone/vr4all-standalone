@@ -137,3 +137,10 @@ The SVG files remain only as offline fallbacks.
 - WakerQuest: [Wind Waker GameCube cover scan](https://gamesdb.launchbox-app.com/games/images/166-the-legend-of-zelda-the-wind-waker).
 
 These images identify the underlying games or community ports. Rights remain with their respective owners; reuse permission has not been independently verified.
+
+## New Quest ports — 30 October 2026
+
+- Project 06 VR: [Sonic Project 06 fan grid on SteamGridDB](https://www.steamgriddb.com/grid/396689).
+- Qualyx: [Half-Life: Alyx banner on Steam Support](https://support.steampowered.com/steamvr/Alyx/AlyxBanner.png).
+
+These images identify the underlying games. Rights remain with their respective owners; reuse permission has not been independently verified.

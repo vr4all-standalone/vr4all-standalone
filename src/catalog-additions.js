@@ -4,6 +4,28 @@ const download = '/sdcard/Download/';
 
 const additions = [
   {
+    id: 'project06-vr', title: 'Project 06 VR', gameName: 'Sonic Project 06', series: 'moistman42069', category: 'PC', color: '#5779d8',
+    description: 'Experimental standalone Quest 3 VR build of the Android Sonic Project 06 port. The creator currently supports Sonic levels; other characters are work in progress.',
+    matchNames: ['Project 06 VR', 'Sonic Project 06', 'P06 Quest'],
+    projectUrl: 'https://github.com/moistman42069/Project06-VR',
+    source: { repo: 'moistman42069/Project06-VR', assetPattern: '^p06-quest-[0-9]+\\.[0-9]+\\.[0-9]+\\.apk$' },
+    data: [],
+    guidance: 'VR4ALL downloads and installs the creator’s published Quest APK. The playable Android port is packaged in that APK, so no separate ROM or PC game folder is needed. The creator has tested this work-in-progress build on Quest 3.',
+    afterInstall: 'Open Project 06 Quest under Unknown Sources. Only Sonic levels are currently supported by the creator’s Quest release.',
+  },
+  {
+    id: 'qualyx', title: 'Qualyx', gameName: 'Half-Life: Alyx', series: 'tinsarfal', category: 'PC', color: '#ad7557',
+    description: 'Native standalone Half-Life: Alyx on Quest. Bring your own Steam game files; Quest 3 is the creator’s main tested headset.',
+    matchNames: ['Qualyx', 'Half-Life Alyx', 'Half Life Alyx'],
+    projectUrl: 'https://github.com/tinsarfal/Qualyx',
+    source: { repo: 'tinsarfal/Qualyx', assetPattern: '^Qualyx-[0-9]+\\.[0-9]+\\.[0-9]+\\.apk$' },
+    data: [{ id: 'game', label: 'Owned Half-Life: Alyx game folder', kind: 'directory', destination: '/sdcard/Qualyx/game/',
+      requiredDirectories: ['hlvr', 'core'], requiredNestedEntries: { hlvr: ['pak01_dir.vpk'], core: ['pak01_dir.vpk'] }, copyEntries: ['hlvr', 'core'],
+      note: 'Choose the game folder from your Steam Half-Life: Alyx installation. It must contain hlvr/pak01_dir.vpk and core/pak01_dir.vpk. VR4ALL copies only hlvr and core; allow substantial headset space and transfer time. Use the extracted folder rather than a game archive larger than 8 GB.' }],
+    guidance: 'VR4ALL installs the creator’s current APK and copies your two owned game folders. On first launch, allow file access and select /sdcard/Qualyx/game if the app does not detect it. The creator also offers an optional in-headset Steam downloader; this VR4ALL profile uses your existing PC files.',
+    afterInstall: 'Open Qualyx under Unknown Sources, allow file access, and select Launch in VR. Quest 2 support is less tested and uses reduced graphics settings.',
+  },
+  {
     id: 'bioshock-vr', title: 'BioShock VR', gameName: 'BioShock', series: 'terx1232', category: 'PC', color: '#8aaec6',
     description: 'Experimental standalone Quest port of the original BioShock (2007). Quest 3 and 3S hardware testing is still pending.',
     projectUrl: 'https://github.com/terx1232/BioShock-Quest-VR',
@@ -357,6 +379,8 @@ const additions = [
 ];
 
 const additionFacets = {
+  'project06-vr': ['PC', 'Platformer'],
+  qualyx: ['PC', 'Shooter'],
   'gt3-revisited': ['PlayStation 2', 'Racing'],
   'vcop2-vr': ['Arcade', 'Rail shooter'],
   'vcop-vr': ['Arcade', 'Rail shooter'],

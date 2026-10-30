@@ -1,5 +1,7 @@
 // Read-only probes for catalogued ports on the selected Android headset.
 const packages = {
+  'project06-vr': 'com.p06.quest',
+  qualyx: 'org.hlvr.quest',
   'project-honeydew': 'org.projecthoneydew.quest',
   'ghost-squad-evolution-vr': 'org.lindbergh.gse.vr',
   'hotd4-vr': 'org.lindbergh.hotd4.vr',
@@ -156,6 +158,11 @@ async function inspectDevice(adb, serial, games, knownPackages = {}) {
     return listCache.get(directory);
   }
   async function hasData(game) {
+    if (game.id === 'qualyx') {
+      const base = '/sdcard/Qualyx/game';
+      return (await list(`${base}/hlvr`)).includes('pak01_dir.vpk')
+        && (await list(`${base}/core`)).includes('pak01_dir.vpk');
+    }
     if (game.id === 'gt3-revisited') {
       return (await list('/sdcard/Download')).some((name) => downloadPatterns['gt3-revisited'].test(name));
     }
