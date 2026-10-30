@@ -21,7 +21,7 @@ test('new Quest ports have distinct cards and actionable source information', ()
     assert.ok(game.source || game.externalInstaller || game.personalBuild || id === 'iron-lung-vr', id);
   }
   assert.equal(new Set(catalog.map((entry) => entry.id)).size, catalog.length);
-  assert.equal(catalog.length, 125);
+  assert.equal(catalog.length, 126);
 });
 
 test('shared Lindbergh release selects each Quest APK and requires different data', () => {

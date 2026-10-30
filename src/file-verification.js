@@ -1,6 +1,7 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const { readManifestPackage } = require('./apk-verification');
 
 const pokemonGen1Hashes = new Set([
   'ea9bcae617fdf159b045185467ae58b2e4a48b9a', // Pokémon Red US
@@ -63,6 +64,17 @@ async function verifyGameFile(game, item, file) {
     const { bytesRead } = await handle.read(buffer, 0, buffer.length, 0);
     bytes = buffer.subarray(0, bytesRead);
   } finally { await handle.close(); }
+  if (game.id === 'max-payne-nightmare-vr') {
+    if (item.id === 'mobileApk') {
+      const packageId = await readManifestPackage(file);
+      if (packageId !== 'com.rockstar.maxpayne') throw new Error('Select the original Max Payne Mobile APK (com.rockstar.maxpayne)');
+      return { level: 'package', message: 'Max Payne Mobile APK package matches; version and game data are checked by the port on first launch' };
+    }
+    if (item.id === 'obb') {
+      if (!/^main\.\d+\.com\.rockstar\.maxpayne\.obb$/i.test(path.basename(file))) throw new Error('Select main.<number>.com.rockstar.maxpayne.obb from the matching mobile installation');
+      return { level: 'filename', message: 'Max Payne Mobile OBB filename matches; contents are checked by the port on first launch' };
+    }
+  }
   if (game.id === 'pokemon-gen1-vr') {
     const stat = await fs.stat(file);
     if (stat.size !== 1024 * 1024) throw new Error('Pokémon Red or Blue US ROM must be 1 MiB');

@@ -4,6 +4,17 @@ const download = '/sdcard/Download/';
 
 const additions = [
   {
+    id: 'max-payne-nightmare-vr', title: 'Max Payne VR: Nightmare Edition', gameName: 'Max Payne', series: 'HaveliSkywalker', category: 'Android', color: '#b43130',
+    description: 'Standalone first-person Quest VR port of the original Max Payne, using your own Max Payne Mobile game files.',
+    projectUrl: 'https://drive.google.com/file/d/1_o_Q7EUyWM0OMrTU4itctTIkYyrapCnr/view',
+    data: [
+      { id: 'mobileApk', label: 'Owned Max Payne Mobile 1.7 APK (64-bit)', kind: 'file', extensions: ['.apk'], destination: '/sdcard/Android/data/com.MPQ.HaveliSkywalker/files/', note: 'Use your original Rockstar Max Payne Mobile 1.7 (64-bit) APK. The port checks the APK during its first-launch import.' },
+      { id: 'obb', label: 'Matching Max Payne Mobile OBB', kind: 'file', extensions: ['.obb'], destination: '/sdcard/Android/data/com.MPQ.HaveliSkywalker/files/', note: 'Use main.<number>.com.rockstar.maxpayne.obb from the same Max Payne Mobile installation.' },
+    ],
+    guidance: 'Download the creator’s Quest APK from the linked Google Drive page and drop it as a Local APK. VR4ALL cannot check that Drive file for updates automatically. Add your own matching Max Payne Mobile 1.7 APK and OBB; the Quest port imports them on first launch.',
+    afterInstall: 'Open MP VR under Unknown Sources. Let it check and unpack your mobile game data, then restart the Quest app when prompted. VR4ALL has not yet verified the import on a headset.',
+  },
+  {
     id: 'project06-vr', title: 'Project 06 VR', gameName: 'Sonic Project 06', series: 'moistman42069', category: 'PC', color: '#5779d8',
     description: 'Experimental standalone Quest 3 VR build of the Android Sonic Project 06 port. The creator currently supports Sonic levels; other characters are work in progress.',
     matchNames: ['Project 06 VR', 'Sonic Project 06', 'P06 Quest'],
@@ -379,6 +390,7 @@ const additions = [
 ];
 
 const additionFacets = {
+  'max-payne-nightmare-vr': ['Android', 'Shooter'],
   'project06-vr': ['PC', 'Platformer'],
   qualyx: ['PC', 'Shooter'],
   'gt3-revisited': ['PlayStation 2', 'Racing'],

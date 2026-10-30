@@ -1,5 +1,6 @@
 // Read-only probes for catalogued ports on the selected Android headset.
 const packages = {
+  'max-payne-nightmare-vr': 'com.MPQ.HaveliSkywalker',
   'project06-vr': 'com.p06.quest',
   qualyx: 'org.hlvr.quest',
   'project-honeydew': 'org.projecthoneydew.quest',
@@ -158,6 +159,17 @@ async function inspectDevice(adb, serial, games, knownPackages = {}) {
     return listCache.get(directory);
   }
   async function hasData(game) {
+    if (game.id === 'max-payne-nightmare-vr') {
+      const base = '/sdcard/Android/data/com.MPQ.HaveliSkywalker/files';
+      const staged = await list(base);
+      if (staged.some((name) => /\.apk$/i.test(name))
+        && staged.some((name) => /^main\.\d+\.com\.rockstar\.maxpayne\.obb$/i.test(name))) return true;
+      for (const directory of [base, `${base}/maxpayne`, `${base}/game`, `${base}/data`]) {
+        const files = await list(directory);
+        if (files.includes('x_data.ras') && files.some((name) => /^x_level\d+\.ras$/i.test(name))) return true;
+      }
+      return false;
+    }
     if (game.id === 'qualyx') {
       const base = '/sdcard/Qualyx/game';
       return (await list(`${base}/hlvr`)).includes('pak01_dir.vpk')
