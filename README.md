@@ -2,6 +2,8 @@
 
 ### Standalone VR Mod Installer for Meta Quest
 
+[☕ Donate to VR4ALL](https://ko-fi.com/vr4all)
+
 **One hub for ALL standalone Quest VR ports. One-click installs. Auto update installed mods.**
 
 ![VR4ALL showing its standalone Quest mod library and a game setup panel](docs/images/vr4all-library.png)
