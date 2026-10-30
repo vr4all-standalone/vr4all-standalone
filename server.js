@@ -1164,7 +1164,7 @@ function createApp(options = {}) {
         if (!game) return json(res, 404, { error: 'Unknown game' });
         const source = sourceFor(game);
         if (!source) return json(res, 200, { release: null, source: null });
-        const logBase = { origin: url.searchParams.get('origin'), gameId: game.id, title: game.title, repo: source.repo };
+        const logBase = { origin: url.searchParams.get('origin'), gameId: game.id, title: game.title, repo: source.repo || source.provider };
         try {
           let release = await releases.latest(source, { force: url.searchParams.get('refresh') === '1' });
           const serial = url.searchParams.get('serial');

@@ -260,6 +260,27 @@ test('a private ROM that cannot be checked does not claim ready', () => {
   assert.match(vm.runInContext('releaseLabel(privateGame)', context), /ROM UNVERIFIED/);
 });
 
+test('Honeydew can update its APK without claiming the private disc import was verified', () => {
+  const { context } = appHarness();
+  context.honeydew = getCatalog().find((game) => game.id === 'project-honeydew');
+  vm.runInContext("state.games = [honeydew]; state.selectedSerial = 'QUEST'; state.deviceLibrary.QUEST = { 'project-honeydew': { packageId: 'org.projecthoneydew.quest', versionName: '0.3.1', dataReady: false, versionComparable: true } }; state.releases['project-honeydew'] = { tag: '0.3.1', stale: false, verifiedSerial: 'QUEST', installedApkMatchesRelease: true }", context);
+  assert.equal(vm.runInContext('versionStatus(honeydew)', context), 'status-installed');
+  assert.match(vm.runInContext('releaseLabel(honeydew)', context), /ROM UNVERIFIED/);
+  vm.runInContext("state.releases['project-honeydew'] = { tag: '0.3.2', stale: false, verifiedSerial: 'QUEST', installedApkMatchesRelease: false }", context);
+  assert.equal(vm.runInContext('versionStatus(honeydew)', context), 'status-update');
+});
+
+test('Honeydew uses its creator download and Deus Ex is clearly a development project', () => {
+  const { context } = appHarness();
+  context.honeydew = getCatalog().find((game) => game.id === 'project-honeydew');
+  context.deus = getCatalog().find((game) => game.id === 'deus-ex-quest-vr');
+  assert.match(vm.runInContext('detailHtml(honeydew)', context), /Latest from creator/);
+  assert.doesNotMatch(vm.runInContext('detailHtml(honeydew)', context), /Edit GitHub source/);
+  assert.match(vm.runInContext('detailHtml(deus)', context), /Follow development/);
+  assert.doesNotMatch(vm.runInContext('detailHtml(deus)', context), /id="installButton"/);
+  assert.match(vm.runInContext('releaseLabel(deus)', context), /IN DEVELOPMENT/);
+});
+
 test('installed Pokémon ports with detected game data use the ready version-unverified style', () => {
   const { context, elements } = appHarness();
   const ports = getCatalog().filter((game) => ['pokemon-gen1-vr', 'pokemon-gen1-recomp'].includes(game.id));
@@ -665,7 +686,7 @@ test('Check updates shows persistent progress while GitHub is still responding',
   complete({ ok: true, json: async () => ({ release: { tag: 'v2', assetName: 'Game.apk' } }) });
   await checking;
   assert.equal(elements.get('#sidebarUpdatesButton').disabled, false);
-  assert.match(elements.get('#updateStatus').textContent, /Checked 1 GitHub source/);
+  assert.match(elements.get('#updateStatus').textContent, /Checked 1 creator source/);
 });
 
 test('Check updates checks VR4ALL after the game sources and offers the app update', async () => {

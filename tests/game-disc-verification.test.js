@@ -61,3 +61,13 @@ test('Mario Party 4 rejects unrelated GameCube discs', async () => {
     assert.match((await verifyGameFile(game, game.data[0], await disc(root, 'party.iso', 'GMPE01'))).message, /Mario Party 4/i);
   } finally { await fs.rm(root, { recursive: true, force: true }); }
 });
+
+test('Project Honeydew accepts only the USA Rev 1 Pikmin disc in ISO or GCM form', async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-disc-'));
+  const game = getCatalog().find((entry) => entry.id === 'project-honeydew');
+  try {
+    await assert.rejects(verifyGameFile(game, game.data[0], await disc(root, 'game.iso', 'GPIE01', 0)), /Rev 1/i);
+    await assert.rejects(verifyGameFile(game, game.data[0], await disc(root, 'game.iso', 'GPIP01', 1)), /USA|GPIE01/i);
+    assert.match((await verifyGameFile(game, game.data[0], await disc(root, 'pikmin.gcm', 'GPIE01', 1))).message, /Pikmin/i);
+  } finally { await fs.rm(root, { recursive: true, force: true }); }
+});

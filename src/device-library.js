@@ -1,5 +1,6 @@
 // Read-only probes for catalogued ports on the selected Android headset.
 const packages = {
+  'project-honeydew': 'org.projecthoneydew.quest',
   'ghost-squad-evolution-vr': 'org.lindbergh.gse.vr',
   'hotd4-vr': 'org.lindbergh.hotd4.vr',
   'daytona-usa-vr': 'io.port0r.daytona',
@@ -106,6 +107,7 @@ const packages = {
 const packageAliases = { 'rdr1-vr': ['com.rockstargames.rdr', 'com.netflix.NGP.Kamo'] };
 
 const downloadPatterns = {
+  'project-honeydew': /pikmin.*\.(?:iso|gcm)$/i,
   'mario-party-4-vr': /(?:mario.party.4|gmpe01|gmpp01).*\.(?:iso|rvz|wia|gcz)$/i,
   'mystical-ninja-vr': /(?:mystical.ninja|goemon).*\.(?:z64|n64|v64)$/i,
   'wwf-no-mercy-vr': /(?:wwf.no.mercy|no.mercy).*\.(?:z64|n64|v64)$/i,

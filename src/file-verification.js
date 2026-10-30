@@ -72,8 +72,13 @@ async function verifyGameFile(game, item, file) {
     if (!pokemonGen1Hashes.has(hash.digest('hex'))) throw new Error('ROM does not match the supported US Pokémon Red or Blue revision');
     return { level: 'hash', message: 'Pokémon Red or Blue US ROM SHA-1 matches the supported release' };
   }
-  if (['.iso', '.gcm'].includes(extension) && ['xelee', 'twilight-vr', 'wii-compiled', 'wakerquest', 'mario-party-4-vr'].includes(game.id)) {
+  if (['.iso', '.gcm'].includes(extension) && ['xelee', 'twilight-vr', 'wii-compiled', 'wakerquest', 'mario-party-4-vr', 'project-honeydew'].includes(game.id)) {
     const code = bytes.toString('ascii', 0, 6);
+    if (game.id === 'project-honeydew') {
+      if (code !== 'GPIE01') throw new Error('Project Honeydew requires a USA Pikmin disc (GPIE01)');
+      if (bytes[7] !== 1) throw new Error('Project Honeydew requires Pikmin USA Rev 1');
+      return { level: 'title', message: 'Pikmin USA GPIE01 Rev 1 disc header matches; full disc identity is not independently verified' };
+    }
     if (game.id === 'wakerquest') {
       if (code !== 'GZLP01') throw new Error('WakerQuest requires a PAL Wind Waker disc (GZLP01)');
       if (bytes[7] !== 0) throw new Error('WakerQuest requires PAL Wind Waker Rev 0');

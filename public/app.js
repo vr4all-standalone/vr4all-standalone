@@ -205,6 +205,12 @@ function versionStatus(game) {
   const device = state.deviceLibrary[state.selectedSerial]?.[game.id];
   const release = state.releases[game.id];
   if (!device) return '';
+  if (!device.dataReady && game.id === 'project-honeydew') {
+    if (release && !release.stale && release.verifiedSerial === state.selectedSerial && release.installedApkMatchesRelease === false) return 'status-update';
+    const installed = parsedVersion(device.versionName);
+    const latest = parsedVersion(release?.tag);
+    return release && !release.stale && installed && latest && compareVersionParts(installed, latest) < 0 ? 'status-update' : 'status-installed';
+  }
   if (!device.dataReady) return game.reuseInstalledData ? 'status-installed' : 'status-incomplete';
   if (game.localPlayerInstall === 'sclerosis') return 'status-current';
   if (game.id === 'fzero-x-virtuavr' && device.packageId === 'dev.gdiffuser.quest') return 'status-current';
@@ -237,7 +243,7 @@ function versionStatus(game) {
 function statusExplanation(game) {
   const device = state.deviceLibrary[state.selectedSerial]?.[game.id];
   if (!device) return state.selectedSerial ? 'This port APK was not found on the selected headset.' : 'Connect and scan a Quest to check this game.';
-  if (!device.dataReady) return game.id === 'beef-raider-xr' ? 'Beef Raider XR demo is installed. Extract your owned Tomb Raider files with the author’s tool, then transfer its mod folder for the full game.' : game.id === 'halo-ce' ? 'OpenCE is installed, but no complete imported Halo game version is selected. Add your owned Xbox disc image, then import it under Game files & versions in the headset.' : game.reuseInstalledData ? 'Port APK found. This port imports its ROM privately, so VR4ALL cannot check the ROM over USB.' : 'Port APK found, but the required game files were not found at the expected location on the headset.';
+  if (!device.dataReady) return game.id === 'beef-raider-xr' ? 'Beef Raider XR demo is installed. Extract your owned Tomb Raider files with the author’s tool, then transfer its mod folder for the full game.' : game.id === 'halo-ce' ? 'OpenCE is installed, but no complete imported Halo game version is selected. Add your owned Xbox disc image, then import it under Game files & versions in the headset.' : game.id === 'project-honeydew' && versionStatus(game) === 'status-update' ? 'A newer Honeydew APK is available. Your imported disc data is private to the game, so VR4ALL cannot verify it over USB; updating the APK preserves it.' : game.reuseInstalledData ? 'Port APK found. This port imports its ROM privately, so VR4ALL cannot check the ROM over USB.' : 'Port APK found, but the required game files were not found at the expected location on the headset.';
   const status = versionStatus(game);
   if (game.localPlayerInstall === 'sclerosis' && status === 'status-current') return 'Sclerosis APK and required Amnesia game folders found on this Quest. Creator APK updates require a manual download.';
   if (game.id === 'fzero-x-virtuavr' && status === 'status-current') return 'Quest APK and all three prepared F-Zero files found. Ready to play; creator releases are downloaded manually.';
@@ -326,6 +332,7 @@ function releaseLabel(game, status = cardStatus(game)) {
   }
   if (status === 'status-ready-unverified') return '<span class="status-pill ready-unverified">READY · VERSION UNVERIFIED</span>';
   if (status === 'status-current') return '<span class="status-pill current">READY</span>';
+  if (game.developmentPreview) return '<span class="status-pill local">IN DEVELOPMENT</span>';
   if (game.manualRelease) return `<span class="status-pill local">${onHeadset ? 'INSTALLED · ' : ''}GITHUB ZIP</span>`;
   if (!source) return `<span class="status-pill ${onHeadset ? 'installed' : 'local'}">${onHeadset ? 'VERSION UNVERIFIED' : game.manualBuild ? 'BUILD / PATCH GUIDE' : game.externalInstaller ? 'SETUP GUIDE' : game.projectUrl ? 'CREATOR DOWNLOAD' : 'LOCAL APK'}</span>`;
   const release = state.releases[game.id];
@@ -335,6 +342,7 @@ function releaseLabel(game, status = cardStatus(game)) {
   if (state.releaseErrors[game.id]) return '<span class="status-pill local">CHECK FAILED</span>';
   if (release?.stale) return '<span class="status-pill local">CACHED RELEASE</span>';
   if (installType(game) === 'apk-included') return '<span class="status-pill staged">INSTALL AVAILABLE</span>';
+  if (source.provider === 'project-honeydew') return `<span class="status-pill">${release ? 'CREATOR RELEASE' : 'CREATOR LINKED'}</span>`;
   return `<span class="status-pill">${release ? 'GITHUB RELEASE' : 'GITHUB LINKED'}</span>`;
 }
 
@@ -572,13 +580,13 @@ function detailHtml(game) {
     const setup = '<div class="sdk-setup-card"><strong>Build tools</strong><p class="field-help">Vice City, RDR and San Andreas reuse tools from the same download folder. Setup checks what is already installed and downloads only missing versions.</p><button id="setupBuildToolsButton" type="button" class="small-button">Set up build tools</button></div>';
     return html.replace('<button type="button" id="personalBuildButton"', `${setup}<button type="button" id="personalBuildButton"`);
   }
-  if (game.externalInstaller) return `<div class="detail-art"><img src="${escapeHtml(game.art || '/art/custom.svg')}" alt="Artwork for ${escapeHtml(game.title)}"></div><div class="detail-series">${escapeHtml(game.console)} · ${escapeHtml(game.genre)} · ${escapeHtml(game.series)}</div><h2 class="detail-title">${escapeHtml(game.title)}</h2><p class="detail-description">${escapeHtml(game.description)}</p><div class="detail-divider"></div><div class="guide-note">${escapeHtml(game.guidance)}</div><a class="primary-button install-button" href="${escapeHtml(game.projectUrl)}" target="_blank" rel="noopener noreferrer">Open official setup ↗</a>`;
+  if (game.externalInstaller) return `<div class="detail-art"><img src="${escapeHtml(game.art || '/art/custom.svg')}" alt="Artwork for ${escapeHtml(game.title)}"></div><div class="detail-series">${escapeHtml(game.console)} · ${escapeHtml(game.genre)} · ${escapeHtml(game.series)}</div><h2 class="detail-title">${escapeHtml(game.title)}</h2><p class="detail-description">${escapeHtml(game.description)}</p><div class="detail-divider"></div><div class="guide-note">${escapeHtml(game.guidance)}</div><a class="primary-button install-button" href="${escapeHtml(game.projectUrl)}" target="_blank" rel="noopener noreferrer">${game.developmentPreview ? 'Follow development ↗' : 'Open official setup ↗'}</a>`;
   return `<div class="detail-art"><img src="${escapeHtml(game.art || '/art/custom.svg')}" alt="Artwork for ${escapeHtml(game.title)}"></div><div class="detail-series">${escapeHtml(game.console || 'Other')} · ${escapeHtml(game.genre || 'Other')} · ${escapeHtml(game.series)}</div><h2 class="detail-title">${escapeHtml(game.title)}</h2><p class="detail-description">${escapeHtml(game.description)}</p>${portChoiceHtml(game)}<div class="detail-divider"></div>
     <div class="detail-step"><span class="step-number">1</span> ${game.playerInstall ? 'Use the official player release' : 'Choose the port APK'}</div>
-    ${game.playerInstall ? `<p class="guide-note">${game.playerInstall === 'beef-raider' ? 'VR4ALL installs the official Quest APK for the demo. For the full game, use the author’s extractor on your owned files, then VR4ALL transfers its output after you launch the app once.' : `VR4ALL downloads ${['road-rash', 'harry-potter'].includes(game.playerInstall) ? 'the official player installer ZIP' : game.playerInstall === 'jkxr' ? 'both official Quest APKs' : game.playerInstall === 'official-zip' ? 'the official Quest player ZIP' : 'the official Quest APK'} and prepares your owned game files.`}</p>` : game.manualRelease ? '<p class="guide-note">The official GitHub release is an installer ZIP, not a directly installable APK. Follow its installer instructions to prepare the game, then select a local APK here.</p>' : source ? `<div class="source-toggle"><button type="button" class="source-choice ${mode === 'github' ? 'active' : ''}" data-mode="github">Latest on GitHub</button><button type="button" class="source-choice ${mode === 'local' ? 'active' : ''}" data-mode="local">Local APK</button></div>` : `<div class="guide-note"><strong>Manual creator APK.</strong> This mod does not publish a verified Quest APK through a GitHub release that VR4ALL can auto-update. Download the APK from the creator, then drop it below. VR4ALL remembers its path for later installs.</div>`}
+    ${game.playerInstall ? `<p class="guide-note">${game.playerInstall === 'beef-raider' ? 'VR4ALL installs the official Quest APK for the demo. For the full game, use the author’s extractor on your owned files, then VR4ALL transfers its output after you launch the app once.' : `VR4ALL downloads ${['road-rash', 'harry-potter'].includes(game.playerInstall) ? 'the official player installer ZIP' : game.playerInstall === 'jkxr' ? 'both official Quest APKs' : game.playerInstall === 'official-zip' ? 'the official Quest player ZIP' : 'the official Quest APK'} and prepares your owned game files.`}</p>` : game.manualRelease ? '<p class="guide-note">The official GitHub release is an installer ZIP, not a directly installable APK. Follow its installer instructions to prepare the game, then select a local APK here.</p>' : source ? `<div class="source-toggle"><button type="button" class="source-choice ${mode === 'github' ? 'active' : ''}" data-mode="github">${source.provider === 'project-honeydew' ? 'Latest from creator' : 'Latest on GitHub'}</button><button type="button" class="source-choice ${mode === 'local' ? 'active' : ''}" data-mode="local">Local APK</button></div>` : `<div class="guide-note"><strong>Manual creator APK.</strong> This mod does not publish a verified Quest APK through a GitHub release that VR4ALL can auto-update. Download the APK from the creator, then drop it below. VR4ALL remembers its path for later installs.</div>`}
     <div id="releaseCard" class="release-card" ${mode === 'local' && !game.manualRelease ? 'hidden' : ''}></div>
     ${game.playerInstall ? '' : `<div id="localApkGroup" ${mode === 'github' ? 'hidden' : ''}><label class="field-label" for="apkPath">Quest APK or archive on your computer</label><div class="input-row"><input id="apkPath" class="text-input" value="${escapeHtml(values.apkPath || '')}" placeholder="C:\\Games\\Port.apk"><button type="button" class="small-button browse-btn" data-picker="file" data-target="apkPath">Browse</button></div><div class="drop-zone apk-drop-zone" data-apk="true">Drop APK, ZIP, 7z, or RAR for ${escapeHtml(game.title)} here</div><p id="apkCheck" class="file-check ${state.apkChecks[game.id]?.startsWith('Rejected:') ? 'error' : ''}">${escapeHtml(state.apkChecks[game.id] || '')}</p>${game.projectUrl ? `<p class="field-help"><a href="${escapeHtml(game.projectUrl)}" target="_blank" rel="noopener noreferrer">${game.manualBuild ? 'Open the official build guide' : source ? 'Open the official project release' : 'Open creator download'} ↗</a> — ${game.manualBuild ? 'prepare your own APK with the developer’s steps before selecting it here.' : source ? 'follow its installer instructions to obtain the APK.' : 'download the creator APK once, then VR4ALL remembers its path for future installs.'}</p>` : ''}</div>`}
-    ${source ? '<div style="margin-top:11px"><button type="button" id="editSourceButton" class="inline-link">Edit GitHub source</button></div>' : ''}
+    ${source && !source.provider ? '<div style="margin-top:11px"><button type="button" id="editSourceButton" class="inline-link">Edit GitHub source</button></div>' : ''}
     <div class="detail-divider"></div><div class="detail-step"><span class="step-number">2</span> ${game.data.length ? 'Add your game files' : 'Review game data'}</div>
     ${game.data.length ? '<p id="existingFilesNote" class="existing-files-note"></p>' : ''}
     ${game.playerInstall === 'jkxr' ? `<label class="field-label" for="jediGameSelect">Your Jedi game</label><select id="jediGameSelect" class="text-input"><option value="jk2" ${values.jediGame === 'jk3' ? '' : 'selected'}>Jedi Outcast</option><option value="jk3" ${values.jediGame === 'jk3' ? 'selected' : ''}>Jedi Academy</option></select>` : ''}
@@ -597,12 +605,12 @@ function renderReleaseCard() {
   const source = sourceFor(game);
   const release = state.releases[game.id];
   const error = state.releaseErrors[game.id];
-  if (!source) { card.textContent = 'This port has no verified GitHub release source. Use the creator download above.'; return; }
-  if (error) { card.innerHTML = `Release check failed: ${escapeHtml(error)}<br><a href="https://github.com/${escapeHtml(source.repo)}/releases" target="_blank" rel="noopener noreferrer">Open releases ↗</a>`; return; }
-  if (!release) { card.textContent = 'Checking GitHub releases…'; return; }
+  if (!source) { card.textContent = 'This port has no verified release source. Use the creator download above.'; return; }
+  if (error) { card.innerHTML = `Release check failed: ${escapeHtml(error)}<br><a href="${escapeHtml(source.provider === 'project-honeydew' ? game.projectUrl : `https://github.com/${source.repo}/releases`)}" target="_blank" rel="noopener noreferrer">Open releases ↗</a>`; return; }
+  if (!release) { card.textContent = source.provider === 'project-honeydew' ? 'Checking creator release…' : 'Checking GitHub releases…'; return; }
   const checked = release.checkedAt ? new Date(release.checkedAt).toLocaleString() : 'this session';
   const published = release.publishedAt ? new Date(release.publishedAt).toLocaleDateString() : 'date unknown';
-  card.innerHTML = `<strong>${escapeHtml(release.title || release.tag)}</strong>${escapeHtml(release.assetName)}<br>${release.stale ? 'Cached release; GitHub could not be refreshed' : game.releaseKind === 'patch' ? 'Verified supported xdelta patch' : game.id === 'bioshock-vr' ? 'Official Windows Quest installer EXE' : game.manualRelease || game.releaseKind === 'installer' ? 'Latest official Quest installer ZIP' : 'Latest matching Quest APK'} in ${escapeHtml(source.repo)}${release.prerelease ? ' · prerelease' : ''}<br>Published ${escapeHtml(published)} · checked ${escapeHtml(checked)}<br><a href="${escapeHtml(release.url)}" target="_blank" rel="noopener noreferrer">View release ↗</a>`;
+  card.innerHTML = `<strong>${escapeHtml(release.title || release.tag)}</strong>${escapeHtml(release.assetName)}<br>${release.stale ? 'Cached release; source could not be refreshed' : game.releaseKind === 'patch' ? 'Verified supported xdelta patch' : game.id === 'bioshock-vr' ? 'Official Windows Quest installer EXE' : game.manualRelease || game.releaseKind === 'installer' ? 'Latest official Quest installer ZIP' : 'Latest matching Quest APK'} from ${escapeHtml(source.provider === 'project-honeydew' ? 'projecthoneydew.com (SHA-256 verified)' : source.repo)}${release.prerelease ? ' · prerelease' : ''}<br>Published ${escapeHtml(published)} · checked ${escapeHtml(checked)}<br><a href="${escapeHtml(release.url)}" target="_blank" rel="noopener noreferrer">View release ↗</a>`;
 }
 
 function renderJob() {
@@ -666,7 +674,7 @@ async function checkAllReleases() {
   const button = $('#sidebarUpdatesButton');
   button.disabled = true;
   button.innerHTML = '<span>↻</span> Checking…';
-  setActivity('updates', 'Checking GitHub releases…');
+  setActivity('updates', 'Checking creator releases…');
   const games = state.games.filter((game) => sourceFor(game)).sort((left, right) =>
     Number(Boolean(state.deviceLibrary[state.selectedSerial]?.[right.id])) - Number(Boolean(state.deviceLibrary[state.selectedSerial]?.[left.id])));
   const checkedRepos = new Set();
@@ -675,7 +683,7 @@ async function checkAllReleases() {
   try {
     for (const game of games) {
       setActivity('updates', `Checking ${checked + 1} of ${games.length}: ${game.title}…`);
-      const repo = sourceFor(game).repo;
+      const repo = sourceFor(game).repo || sourceFor(game).provider;
       const installed = Boolean(state.deviceLibrary[state.selectedSerial]?.[game.id]);
       const error = await checkRelease(game, installed && !checkedRepos.has(repo), 'manual');
       checked++;
@@ -683,7 +691,7 @@ async function checkAllReleases() {
       checkedRepos.add(repo);
     }
     const failures = games.slice(0, checked).filter((game) => state.releaseErrors[game.id]).length;
-    setActivity('updates', stopped ? `Checked ${checked} of ${games.length} GitHub sources · stopped after a GitHub limit. Details saved to update-checks.txt.` : `Checked ${checked} GitHub source${checked === 1 ? '' : 's'}${failures ? ` · ${failures} failed` : ''}. Details saved to update-checks.txt.`, false, stopped || failures > 0);
+    setActivity('updates', stopped ? `Checked ${checked} of ${games.length} creator sources · stopped after a GitHub limit. Details saved to update-checks.txt.` : `Checked ${checked} creator source${checked === 1 ? '' : 's'}${failures ? ` · ${failures} failed` : ''}. Details saved to update-checks.txt.`, false, stopped || failures > 0);
   } catch (error) {
     setActivity('updates', `Update check stopped: ${error.message}. Details saved to update-checks.txt.`, false, true);
     toast(error.message, true);

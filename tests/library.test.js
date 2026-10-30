@@ -27,9 +27,9 @@ test('PC ports that need original files expose the correct folder inputs', () =>
 
 test('every starter port has a console, genre, and local artwork', () => {
   const games = getCatalog();
-  assert.equal(games.length, 121);
-  assert.equal(games.filter((game) => !game.variantOf).length, 114);
-  assert.equal(new Set(games.filter((game) => !game.variantOf).map((game) => game.art)).size, 114);
+  assert.equal(games.length, 123);
+  assert.equal(games.filter((game) => !game.variantOf).length, 116);
+  assert.equal(new Set(games.filter((game) => !game.variantOf).map((game) => game.art)).size, 116);
   for (const game of games) {
     assert.ok(game.console, `${game.id}: console`);
     assert.ok(game.genre, `${game.id}: genre`);

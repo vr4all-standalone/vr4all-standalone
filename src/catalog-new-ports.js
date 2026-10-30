@@ -5,6 +5,21 @@ const n64 = ['.z64', '.n64', '.v64'];
 
 const newPorts = [
   {
+    id: 'project-honeydew', title: 'Project Honeydew', gameName: 'Pikmin', series: 'Project Honeydew', category: 'GameCube', color: '#78bb65',
+    description: 'Pikmin in first-person VR on standalone Quest 3 and 3S, with online co-op.',
+    projectUrl: 'https://projecthoneydew.com/#download', source: { provider: 'project-honeydew' }, verifyApkHash: true, reuseInstalledData: true,
+    data: [{ id: 'disc', label: 'Owned Pikmin GameCube disc', kind: 'file', extensions: ['.iso', '.gcm'], destination: download, renameOnHeadset: true,
+      note: 'USA Rev 1 disc image. Quest imports ISO or GCM on first launch; convert RVZ, WIA or GCZ to ISO first. Leave about 2.5 GB free on the headset.' }],
+    guidance: 'VR4ALL fetches the creator’s current Quest APK from projecthoneydew.com, verifies its published SHA-256, and copies your disc to Download. The game performs a one-time import when you choose the disc inside the headset.',
+    afterInstall: 'Open Project Honeydew under Unknown Sources and choose the copied disc when prompted. Quest supports online co-op but not voice chat yet. Keep the app installed for updates; uninstalling deletes its imported game and saves.',
+  },
+  {
+    id: 'deus-ex-quest-vr', title: 'Deus Ex Quest VR', gameName: 'Deus Ex', series: 'MarekDedio', category: 'PC', color: '#7797bc',
+    description: 'In-development Quest 3 port of Deus Ex (2000); the full campaign is not yet playable.',
+    projectUrl: 'https://github.com/MarekDedio/Deus-Ex-2000-Meta-Quest-3-Standalone', externalInstaller: true, developmentPreview: true,
+    data: [], guidance: 'Development preview only. The author has a source-built Quest smoke test for a limited Training route, but no public playable APK release or completed campaign. Follow the project for progress; VR4ALL will enable installation when the author publishes a playable Quest build.',
+  },
+  {
     id: 'ghost-squad-evolution-vr', title: 'Ghost Squad Evolution VR', gameName: 'Ghost Squad Evolution', series: 'lialan', category: 'Arcade', color: '#6fae9e',
     description: 'The Sega Lindbergh arcade shooter on Quest with tracked aiming.',
     projectUrl: 'https://github.com/lialan/lindbergh-recomp-ports/blob/main/docs/ghostsquadevolution/QUEST.md',
@@ -130,6 +145,7 @@ const newPorts = [
 ];
 
 const newPortFacets = {
+  'project-honeydew': ['GameCube', 'Adventure'], 'deus-ex-quest-vr': ['PC', 'RPG'],
   'ghost-squad-evolution-vr': ['Arcade', 'Rail shooter'], 'hotd4-vr': ['Arcade', 'Rail shooter'],
   'daytona-usa-vr': ['Arcade', 'Racing'], 'mario-party-4-vr': ['GameCube', 'Party'],
   'ctr-turbocharged-vr': ['PlayStation', 'Racing'], 'iron-lung-vr': ['PC', 'Horror'],
