@@ -67,6 +67,7 @@ body[data-theme] .brand-mark{
 body[data-theme] .brand-mark img{width:32px;height:27px}
 body[data-theme] .brand-mark::after{display:none}
 body[data-theme] .brand strong{font:800 16px/1 'Segoe UI Variable Display','Segoe UI',sans-serif;letter-spacing:-.7px;color:var(--app-text);font-style:normal;text-shadow:none}
+body[data-theme] .brand-version{margin-left:3px;color:var(--app-muted);font:600 9px/1 Bahnschrift,'Segoe UI',sans-serif;letter-spacing:0;white-space:nowrap}
 body[data-theme] .brand small{margin-top:5px;color:var(--app-muted);font-size:6.5px;letter-spacing:1.15px}
 body[data-theme] .sidebar-label,body[data-theme] .headsets-heading{margin-left:10px;color:var(--app-muted);font:700 9px Bahnschrift,'Segoe UI',sans-serif;letter-spacing:1.35px}
 body[data-theme] .headsets-panel{

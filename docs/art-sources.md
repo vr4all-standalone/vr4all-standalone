@@ -146,3 +146,16 @@ These images identify the underlying games or community ports. Rights remain wit
 - Vampire: The Masquerade – Bloodlines: [official Steam game header](https://store.steampowered.com/app/2600/Vampire_The_Masquerade__Bloodlines/), used to identify the original game in the re:Source port card.
 
 These images identify the underlying games. Rights remain with their respective owners; reuse permission has not been independently verified.
+
+## Quest ports and tools — 31 October 2026
+
+- Daggerfall Unity VR: original *Daggerfall* cover from IGDB (`images.igdb.com`).
+- Star Fox Enhanced VR: original *Star Fox* box scan from SNES Central.
+- QuestCraft: creator image from [QuestCraft](https://github.com/QuestCraftPlusPlus/QuestCraft).
+- Outlaws VR: thumbnail from the [creator's gameplay video](https://github.com/outlawshub-arch/OutlawsVR/releases/tag/v0.95).
+- AGE of Joy: project banner linked from the [creator README](https://github.com/curif/AgeOfJoy-2022.1).
+- CitraVR: project logo from [CitraVR](https://github.com/amwatson/CitraVR).
+- DolphinXR: Dolphin's CC0 project logo from Wikimedia Commons.
+- PPSSPP VR and WinlatorXR: creator app icons from their SideQuest listings; the download links in VR4ALL point to the creators' own sites.
+
+Game cover and project images identify the underlying titles and projects. Rights remain with their respective owners except where a license is stated.

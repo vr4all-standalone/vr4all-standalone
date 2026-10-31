@@ -22,6 +22,7 @@ const { validateMgsDiscPairs } = require('./src/mgs-discs');
 const { inspectApkPackage } = require('./src/apk-verification');
 const { ManagedLibrary } = require('./src/managed-library');
 const { GitHubReleases, validateSource } = require('./src/releases');
+const { prepareReleaseApk } = require('./src/release-apk');
 const { matchesInstalledApk, matchesInstalledDigest } = require('./src/apk-match');
 const { validatePersonalBuildInput, runPersonalBuild } = require('./src/personal-build');
 const { validateVictoryHeatInput, runVictoryHeatBuild } = require('./src/victory-heat-runner');
@@ -567,11 +568,12 @@ function createApp(options = {}) {
         job.release = { tag: release.tag, url: release.url, assetName: release.assetName };
         log(`Downloading ${release.assetName}...`);
         let lastPercent = -1;
-        apkPath = await releases.download(release, (done, total) => {
+        const preparedApk = await prepareReleaseApk(game, releases, release, (done, total) => {
           const percent = total ? Math.floor(done / total * 100) : 0;
           if (total && percent >= lastPercent + 10) { lastPercent = percent; log(`Download ${percent}%`); }
         });
-        apkPath = await keepDownloadedApk(game, apkPath);
+        if (preparedApk.directory) { input.tempDirectories.push(preparedApk.directory); conversionDirectories.add(preparedApk.directory); }
+        apkPath = await keepDownloadedApk(game, preparedApk.path);
       }
       if (game.companionSource) {
         log('Checking the official companion launcher release...');
@@ -1176,7 +1178,7 @@ function createApp(options = {}) {
         try {
           let release = await releases.latest(source, { force: url.searchParams.get('refresh') === '1' });
           const serial = url.searchParams.get('serial');
-          if (release && serial && packages[game.id] && game.releaseKind !== 'installer' && (release.digest || game.verifyApkHash || typeof releases.cachedFile === 'function')) {
+          if (release && serial && packages[game.id] && game.releaseKind !== 'installer' && !game.sourceArchive && (release.digest || game.verifyApkHash || typeof releases.cachedFile === 'function')) {
             const devices = await adb.listDevices().catch(() => []);
             if (devices.some((device) => device.serial === serial && device.state === 'device')) {
               let installedApkMatchesRelease = null;

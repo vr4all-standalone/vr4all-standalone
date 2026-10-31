@@ -1,5 +1,11 @@
 // Read-only probes for catalogued ports on the selected Android headset.
 const packages = {
+  'daggerfall-unity-vr': 'com.dfworkshop.dfuquest3',
+  'star-fox-enhanced-vr': 'com.starfox.enhanced.quest',
+  questcraft: 'com.qcxr.qcxr',
+  'outlaws-vr': 'com.outlawsvr.OutlawsUE',
+  'age-of-joy': 'com.curif.AgeOfJoy',
+  dolphinxr: 'org.dolphinemu.dolphinemu.quest',
   'vtmb-resource': 'diy.resource.vtmb.vulkan',
   'gunblade-ny-vr': 'com.vrlightgunhub.gunbladeny',
   'hotd-model2-vr': 'com.vrlightgunhub.hotdmodel2',
@@ -353,7 +359,7 @@ async function inspectDevice(adb, serial, games, knownPackages = {}) {
       const academy = await list('/sdcard/JKXR/JK3/base');
       return outcast.includes('assets0.pk3') || academy.includes('assets0.pk3');
     }
-    if (!game.data.length) return true; // Release APK embeds the playable data.
+    if (!game.data.length) return true; // No external files are managed by VR4ALL for this app.
     for (const item of game.data.filter((entry) => !entry.optional)) {
       if (item.kind === 'directory') {
         const names = await list(item.destination);

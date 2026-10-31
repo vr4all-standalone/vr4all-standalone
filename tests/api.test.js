@@ -64,7 +64,7 @@ test('mutating API calls require the local session token', async () => {
   assert.equal(response.status, 403);
 });
 
-test('library shell shows the current app version beside its sidebar actions', async () => {
+test('library shell shows the current app version beside its top-left brand', async () => {
   const app = createApp({ adb: { listDevices: async () => [] }, releases: {} });
   try {
     const html = await new Promise((resolve) => {
@@ -75,7 +75,7 @@ test('library shell shows the current app version beside its sidebar actions', a
       const res = { writeHead() {}, end(body) { resolve(String(body)); } };
       app.server.emit('request', req, res);
     });
-    assert.match(html, new RegExp(`VR4ALL v${require('../package.json').version.replaceAll('.', '\\.')}`));
+    assert.match(html, new RegExp(`VR4ALL <span class="brand-version">v${require('../package.json').version.replaceAll('.', '\\.')}<\\/span>`));
     assert.doesNotMatch(html, /__VR4ALL_VERSION__/);
   } finally { app.server.close(); }
 });

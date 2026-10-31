@@ -471,12 +471,12 @@ test('install-type views filter actual ports without a connected headset and inc
   assert.equal(vm.runInContext('state.libraryScope', context), 'build');
 });
 
-test('Available to install sits between All and New and shows only complete install inputs', () => {
+test('Ready to install follows All, New and Emulators and shows only complete install inputs', () => {
   const { context, elements, listeners } = appHarness();
   const catalog = getCatalog();
   context.ports = ['time-crisis-vr', 'dr89-time-crisis', 'mgs-vr', 'vice-city-vr', 'wave-race-vr'].map((id) => catalog.find((game) => game.id === id));
   vm.runInContext("state.games = ports; renderLibraryScopeOptions(); state.libraryScope = 'available'; renderGrid()", context);
-  assert.match(elements.get('#libraryScope').innerHTML, /All games<\/option><option value="available">Available to install<\/option><option value="new">New games/);
+  assert.match(elements.get('#libraryScope').innerHTML, /All games<\/option><option value="new">New games<\/option><option value="emulators">Emulators<\/option><option value="available">Ready to install/);
   const ids = () => [...elements.get('#gameGrid').innerHTML.matchAll(/data-id="([^"]+)"/g)].map((match) => match[1]);
   assert.deepEqual(ids(), ['time-crisis-vr']);
   assert.equal(vm.runInContext("cardProfile(ports[0]).id", context), 'dr89-time-crisis');
@@ -492,6 +492,19 @@ test('Available to install sits between All and New and shows only complete inst
   listeners.get('#sidebarSearchInput:input')({ target: { value: 'Time Crisis' } });
   assert.equal(vm.runInContext('state.libraryScope', context), 'available');
   assert.deepEqual(ids(), ['time-crisis-vr']);
+});
+
+test('Emulators filter includes only the five tool cards', () => {
+  const { context, elements } = appHarness();
+  context.ports = getCatalog();
+  vm.runInContext("state.games = ports; state.libraryScope = 'emulators'; renderLibraryScopeOptions(); renderGrid()", context);
+  const ids = [...elements.get('#gameGrid').innerHTML.matchAll(/data-id="([^"]+)"/g)].map((match) => match[1]);
+  assert.deepEqual(ids.sort(), ['age-of-joy', 'citravr', 'dolphinxr', 'ppsspp-vr', 'winlatorxr'].sort());
+  vm.runInContext("state.libraryScope = 'new'; renderGrid()", context);
+  const newIds = [...elements.get('#gameGrid').innerHTML.matchAll(/data-id="([^"]+)"/g)].map((match) => match[1]);
+  assert.equal(newIds.length, 10);
+  assert.ok(newIds.includes('outlaws-vr'));
+  assert.ok(newIds.every((id) => !['age-of-joy', 'citravr', 'dolphinxr', 'ppsspp-vr', 'winlatorxr'].includes(id)));
 });
 
 test('Time Crisis cards choose DR-89 by default while an explicit port choice persists', () => {
@@ -613,7 +626,7 @@ test('new games selects ten catalog cards while Most downloaded sorts the full v
   const games = getCatalog();
   const rootGames = games.filter((game) => !game.variantOf);
   context.catalogGames = games;
-  const newest = rootGames.slice(-10).map((game) => game.id);
+  const newest = rootGames.filter((game) => game.catalogGroup !== 'emulator').slice(-10).map((game) => game.id);
   assert.ok(newest.includes('wakerquest'));
   vm.runInContext("state.games = catalogGames; state.libraryScope = 'new'; renderGrid()", context);
   const ids = () => [...elements.get('#gameGrid').innerHTML.matchAll(/data-id="([^"]+)"/g)].map((match) => match[1]);
@@ -946,11 +959,11 @@ test('bulk install lists only absent games while bulk update lists only installe
   assert.doesNotMatch(elements.get('#bulkMatches').innerHTML, /Wave Race/);
 });
 
-test('bulk install offers all six self-contained Quest APKs without a local file match', () => {
+test('bulk install offers all eleven self-contained Quest APKs without a local file match', () => {
   const { context, elements } = appHarness();
   const catalog = getCatalog();
   const included = catalog.filter((game) => !game.data.length && game.source && !game.manualDataSetup && !game.personalBuild && !game.playerInstall);
-  assert.equal(included.length, 6);
+  assert.equal(included.length, 11);
   context.bulkGames = [...included, catalog.find((game) => game.id === 'mgs-vr'), catalog.find((game) => game.id === 'time-crisis-vr')];
   vm.runInContext("state.games = bulkGames; state.selectedSerial = 'QUEST'; state.deviceLibrary.QUEST = {}; state.bulkMatches = []; state.bulkMode = 'new'; renderBulkMatches()", context);
   const html = elements.get('#bulkMatches').innerHTML;
@@ -958,12 +971,12 @@ test('bulk install offers all six self-contained Quest APKs without a local file
     assert.ok(html.includes(`value="${game.id}"`), game.title);
     assert.ok(html.includes(game.title), game.title);
   }
-  assert.equal((html.match(/class="bulk-select"/g) || []).length, 6);
+  assert.equal((html.match(/class="bulk-select"/g) || []).length, 11);
   assert.doesNotMatch(html, /Metal Gear Solid VR|Time Crisis VR<\/strong>/);
   vm.runInContext("state.deviceLibrary.QUEST['time-crisis-vr'] = { dataReady: true }; renderBulkMatches()", context);
   assert.ok(elements.get('#bulkMatches').innerHTML.includes('value="dr89-time-crisis"'), 'the separate DR-89 port remains installable');
   vm.runInContext(`state.deviceLibrary.QUEST['${included[0].id}'] = { dataReady: true }; renderBulkMatches()`, context);
-  assert.equal((elements.get('#bulkMatches').innerHTML.match(/class="bulk-select"/g) || []).length, 5);
+  assert.equal((elements.get('#bulkMatches').innerHTML.match(/class="bulk-select"/g) || []).length, 10);
 });
 
 test('bulk install includes every available game with remembered paths even when the saved-file scan omits matches', () => {

@@ -24,7 +24,7 @@ test('new Quest ports have distinct cards and actionable source information', ()
     assert.ok(game.source || game.externalInstaller || game.personalBuild || id === 'iron-lung-vr', id);
   }
   assert.equal(new Set(catalog.map((entry) => entry.id)).size, catalog.length);
-  assert.equal(catalog.length, 132);
+  assert.equal(catalog.length, 141);
 });
 
 test('Scud Race selects only the Quest release and copies the owned arcade ZIP', () => {

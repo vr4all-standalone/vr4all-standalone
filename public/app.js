@@ -296,7 +296,8 @@ function isAvailableForInstall(game) {
 function matchesScope(game) {
   if (state.libraryScope === 'all') return true;
   if (state.libraryScope === 'available') return portFamily(game).some(isAvailableForInstall);
-  if (state.libraryScope === 'new') return libraryGames().slice(-10).some((entry) => entry.id === game.id);
+  if (state.libraryScope === 'new') return libraryGames().filter((entry) => entry.catalogGroup !== 'emulator').slice(-10).some((entry) => entry.id === game.id);
+  if (state.libraryScope === 'emulators') return game.catalogGroup === 'emulator';
   if (['apk-files', 'apk-included', 'build', 'special', 'manual-apk', 'guided'].includes(state.libraryScope)) {
     return portFamily(game).some((entry) => installType(entry) === state.libraryScope);
   }
@@ -310,7 +311,7 @@ function renderLibraryScopeOptions() {
   const headset = state.devices.find((device) => device.serial === state.selectedSerial && device.state === 'device');
   if (!headset && ['installed', 'updates'].includes(state.libraryScope)) state.libraryScope = 'all';
   const select = $('#libraryScope');
-  select.innerHTML = '<option value="all">All games</option><option value="available">Available to install</option><option value="new">New games</option>'
+  select.innerHTML = '<option value="all">All games</option><option value="new">New games</option><option value="emulators">Emulators</option><option value="available">Ready to install</option>'
     + '<optgroup label="Install type"><option value="apk-files">APK + game files</option><option value="apk-included">APK includes game files</option><option value="build">Build or patch</option><option value="special">Special installer</option><option value="manual-apk">Manual APK download</option><option value="guided">Guided game-data setup</option></optgroup>'
     + (headset ? `<optgroup label="${escapeHtml(headset.model || 'Headset')}"><option value="installed">Installed games</option><option value="updates">Update available</option></optgroup>` : '');
   select.value = state.libraryScope;
@@ -349,7 +350,7 @@ function releaseLabel(game, status = cardStatus(game)) {
 function renderCategories() {
   const facet = state.browseMode;
   const scoped = libraryGames().filter(matchesScope);
-  const order = facet === 'console' ? ['Arcade', 'Game Boy', 'Nintendo 64', 'GameCube', 'Wii', 'Dreamcast', 'Xbox', 'PlayStation', 'PC', 'Android', 'Other'] : ['Rail shooter', 'Racing', 'Adventure', 'Shooter', 'Space combat', 'Strategy', 'Platformer', 'Fighting', 'Sports', 'Stealth', 'Other'];
+  const order = facet === 'console' ? ['Arcade', 'Game Boy', 'Super Nintendo', 'Nintendo 64', 'Nintendo 3DS', 'GameCube', 'Wii', 'Dreamcast', 'Xbox', 'PlayStation', 'PlayStation Portable', 'PC', 'Android', 'Other'] : ['Rail shooter', 'Racing', 'Adventure', 'Shooter', 'Space combat', 'Strategy', 'Platformer', 'Fighting', 'Sports', 'Stealth', 'Emulator', 'Arcade gallery', 'Compatibility runtime', 'Sandbox', 'Other'];
   const values = [...new Set(libraryGames().map((game) => game[facet] || 'Other'))];
   const categories = ['All games', ...values.sort((a, b) => (order.indexOf(a) === -1 ? 99 : order.indexOf(a)) - (order.indexOf(b) === -1 ? 99 : order.indexOf(b)) || a.localeCompare(b))];
   const icons = { 'All games': '▦', Arcade: '◎', 'Game Boy': '◈', 'Nintendo 64': '✦', GameCube: '◇', Wii: '◌', Dreamcast: '✳', Xbox: '⬢', PlayStation: '◈', PC: '▤', Android: '◈', 'Rail shooter': '⊕', Racing: '↗', Adventure: '◆', Shooter: '◎', 'Space combat': '✦', Strategy: '◆', Platformer: '★', Fighting: '✦', Sports: '⬡', Stealth: '◢', Other: '◌' };
@@ -379,9 +380,9 @@ function renderGrid() {
       : state.sortMode === 'downloads' ? (githubDownloads(b) ?? -1) - (githubDownloads(a) ?? -1) || byName(a, b)
         : byName(a, b);
   games.sort((a, b) => state.installedFirst && hasHeadsetLibrary ? Number(onHeadset(b)) - Number(onHeadset(a)) || compareSort(a, b) : compareSort(a, b));
-  $('#gameCount').textContent = `${games.length} game${games.length === 1 ? '' : 's'}`;
+  $('#gameCount').textContent = `${games.length} ${state.libraryScope === 'emulators' ? 'emulator' : 'game'}${games.length === 1 ? '' : 's'}`;
   const scopeNote = $('#libraryScopeNote');
-  scopeNote.textContent = [state.libraryScope === 'available' ? 'Ready from saved game files or a Quest APK with game files included.' : state.libraryScope === 'new' ? 'The 10 most recently added games in VR4ALL.' : '', state.sortMode === 'downloads' ? 'Quest release download counts. Check updates to refresh.' : ''].filter(Boolean).join(' ');
+  scopeNote.textContent = [state.libraryScope === 'available' ? 'Ready from saved game files or a Quest APK with game files included.' : state.libraryScope === 'new' ? 'The 10 most recently added entries in VR4ALL.' : state.libraryScope === 'emulators' ? 'Standalone Quest emulators and game runtimes. Bring your own games.' : '', state.sortMode === 'downloads' ? 'Quest release download counts. Check updates to refresh.' : ''].filter(Boolean).join(' ');
   scopeNote.hidden = !scopeNote.textContent;
   $('#emptyState').hidden = games.length > 0;
   $('#emptyState').textContent = !state.selectedSerial && ['installed', 'updates'].includes(state.libraryScope) ? 'Connect a Quest and scan it to use this view.' : state.libraryScope === 'updates' ? 'No confirmed APK updates in this view. Use Check updates to refresh GitHub.' : state.libraryScope === 'available' ? 'No new games have complete install inputs yet. Add files to a game card.' : 'No games match this view.';
@@ -610,7 +611,7 @@ function renderReleaseCard() {
   if (!release) { card.textContent = source.provider === 'project-honeydew' ? 'Checking creator release…' : 'Checking GitHub releases…'; return; }
   const checked = release.checkedAt ? new Date(release.checkedAt).toLocaleString() : 'this session';
   const published = release.publishedAt ? new Date(release.publishedAt).toLocaleDateString() : 'date unknown';
-  card.innerHTML = `<strong>${escapeHtml(release.title || release.tag)}</strong>${escapeHtml(release.assetName)}<br>${release.stale ? 'Cached release; source could not be refreshed' : game.releaseKind === 'patch' ? 'Verified supported xdelta patch' : game.id === 'bioshock-vr' ? 'Official Windows Quest installer EXE' : game.manualRelease || game.releaseKind === 'installer' ? 'Latest official Quest installer ZIP' : 'Latest matching Quest APK'} from ${escapeHtml(source.provider === 'project-honeydew' ? 'projecthoneydew.com (SHA-256 verified)' : source.repo)}${release.prerelease ? ' · prerelease' : ''}<br>Published ${escapeHtml(published)} · checked ${escapeHtml(checked)}<br><a href="${escapeHtml(release.url)}" target="_blank" rel="noopener noreferrer">View release ↗</a>`;
+  card.innerHTML = `<strong>${escapeHtml(release.title || release.tag)}</strong>${escapeHtml(release.assetName)}<br>${release.stale ? 'Cached release; source could not be refreshed' : game.releaseKind === 'patch' ? 'Verified supported xdelta patch' : game.id === 'bioshock-vr' ? 'Official Windows Quest installer EXE' : game.sourceArchive === 'single-apk' ? 'Official Quest ZIP containing one APK' : game.manualRelease || game.releaseKind === 'installer' ? 'Latest official Quest installer ZIP' : 'Latest matching Quest APK'} from ${escapeHtml(source.provider === 'project-honeydew' ? 'projecthoneydew.com (SHA-256 verified)' : source.repo)}${release.prerelease ? ' · prerelease' : ''}<br>Published ${escapeHtml(published)} · checked ${escapeHtml(checked)}<br><a href="${escapeHtml(release.url)}" target="_blank" rel="noopener noreferrer">View release ↗</a>`;
 }
 
 function renderJob() {
