@@ -5,6 +5,55 @@ const n64 = ['.z64', '.n64', '.v64'];
 
 const newPorts = [
   {
+    id: 'gunblade-ny-vr', title: 'Gunblade NY VR', gameName: 'Gunblade NY', series: 'vr4all-standalone', category: 'Arcade', color: '#5c91bc',
+    description: 'The Sega Model 2 lightgun game in standalone stereo VR, with tracked aiming and the original arcade play.',
+    projectUrl: 'https://github.com/vr4all-standalone/gunblade-ny-vr',
+    source: { repo: 'vr4all-standalone/gunblade-ny-vr', assetPattern: '^gunblade-ny-vr-quest\\.apk$' },
+    verifyApkHash: true,
+    data: [
+      { id: 'game', label: 'Owned Gunblade NY arcade set', kind: 'file', extensions: ['.zip'], destination: '/sdcard/Android/data/com.vrlightgunhub.gunbladeny/files/roms/gunblade.zip', note: 'Complete original Model 2 gunblade set. The game checks every required ROM payload.' },
+      { id: 'segabill', label: 'Optional separate Sega billboard firmware', kind: 'file', extensions: ['.zip'], destination: '/sdcard/Android/data/com.vrlightgunhub.gunbladeny/files/roms/segabill.zip', optional: true, note: 'Needed only when the required billboard ROM is absent from gunblade.zip.' },
+    ],
+    guidance: 'VR4ALL installs the signed Quest port and copies your owned arcade ZIP into the app game folder. A complete combined ZIP needs no separate firmware file.',
+  },
+  {
+    id: 'hotd-model2-vr', variantOf: 'hotd-vr', title: 'The House of the Dead VR (VR4ALL)', gameName: 'The House of the Dead', portLabel: 'VR4ALL standalone', series: 'vr4all-standalone', category: 'Arcade', color: '#a94b56',
+    description: 'The original House of the Dead Model 2 arcade game in standalone stereo VR.',
+    projectUrl: 'https://github.com/vr4all-standalone/hotd-model2-vr',
+    source: { repo: 'vr4all-standalone/hotd-model2-vr', assetPattern: '^hotd-model2-vr-quest\\.apk$' },
+    fileAccessPackage: 'com.vrlightgunhub.hotdmodel2', verifyApkHash: true,
+    data: [{ id: 'game', label: 'Owned original House of the Dead arcade set', kind: 'file', extensions: ['.zip'], destination: `${download}hotdo.zip`, note: 'Original Model 2 revision hotdo with all required payloads. An archive named hotd.zip is accepted only if its contents match the original revision.' }],
+    guidance: 'This is a separate Quest app from Port0r’s House of the Dead VR. The VR4ALL port validates the original revision’s ROM contents before play.',
+  },
+  {
+    id: 'behind-enemy-lines-vr', title: 'Behind Enemy Lines VR', gameName: 'Behind Enemy Lines', series: 'vr4all-standalone', category: 'Arcade', color: '#749b78',
+    description: 'The Sega Model 2 arcade shooter in standalone stereo VR.',
+    projectUrl: 'https://github.com/vr4all-standalone/behind-enemy-lines-vr',
+    source: { repo: 'vr4all-standalone/behind-enemy-lines-vr', assetPattern: '^behind-enemy-lines-vr-quest\\.apk$' },
+    verifyApkHash: true,
+    data: [{ id: 'game', label: 'Owned Behind Enemy Lines arcade set', kind: 'file', extensions: ['.zip'], destination: '/sdcard/Android/data/com.vrlightgunhub.bel/files/roms/bel.zip', note: 'Complete original bel set with all 31 ROM payloads. No separate firmware is required.' }],
+  },
+  {
+    id: 'rail-chase-2-vr', title: 'Rail Chase 2 VR', gameName: 'Rail Chase 2', series: 'vr4all-standalone', category: 'Arcade', color: '#a78369',
+    description: 'Sega Model 2 Rail Chase 2 in standalone stereo VR with tracked arcade aiming.',
+    projectUrl: 'https://github.com/vr4all-standalone/rail-chase-2-vr',
+    source: { repo: 'vr4all-standalone/rail-chase-2-vr', assetPattern: '^rail-chase-2-vr-quest\\.apk$' },
+    verifyApkHash: true,
+    data: [
+      { id: 'game', label: 'Owned Rail Chase 2 arcade set', kind: 'file', extensions: ['.zip'], destination: '/sdcard/Android/data/com.vrlightgunhub.rchase2/files/roms/rchase2.zip', note: 'Complete Revision A set, including I/O and billboard firmware if using a combined archive.' },
+      { id: 'segabill', label: 'Optional separate Sega billboard firmware', kind: 'file', extensions: ['.zip'], destination: '/sdcard/Android/data/com.vrlightgunhub.rchase2/files/roms/segabill.zip', optional: true, note: 'Needed only when the billboard ROM is absent from rchase2.zip.' },
+    ],
+    guidance: 'The creator’s Quest port validates ROM contents on the headset. Some scenes currently run below full arcade speed.',
+  },
+  {
+    id: 'scud-race-vr', title: 'Scud Race VR', gameName: 'Scud Race', series: 'Port0r', category: 'Arcade', color: '#e6a55d',
+    description: 'Sega AM2’s 1996 arcade racer in standalone stereo VR on Quest 3.',
+    projectUrl: 'https://github.com/jacquesdupontd/port0r/releases/tag/scud-v0.1.7',
+    source: { repo: 'jacquesdupontd/port0r', releasePattern: 'scud-v[0-9]', assetPattern: '^Port0r-ScudRaceVR-v[0-9.]+-quest3\\.apk$' },
+    data: [{ id: 'game', label: 'Owned Scud Race arcade set', kind: 'file', extensions: ['.zip'], destination: `${download}scud.zip`, note: 'Recent MAME 0.289 scud.zip. VR4ALL can package loose files or convert a 7z/RAR archive.' }],
+    guidance: 'VR4ALL selects the Scud Race Quest 3 APK from Port0r’s shared releases and copies your owned scud.zip to Download. The creator currently lists Quest 3 support.',
+  },
+  {
     id: 'project-honeydew', title: 'Project Honeydew', gameName: 'Pikmin', series: 'Project Honeydew', category: 'GameCube', color: '#78bb65',
     description: 'Pikmin in first-person VR on standalone Quest 3 and 3S, with online co-op.',
     projectUrl: 'https://projecthoneydew.com/#download', source: { provider: 'project-honeydew' }, verifyApkHash: true, reuseInstalledData: true,
@@ -145,6 +194,9 @@ const newPorts = [
 ];
 
 const newPortFacets = {
+  'gunblade-ny-vr': ['Arcade', 'Rail shooter'], 'hotd-model2-vr': ['Arcade', 'Rail shooter'],
+  'behind-enemy-lines-vr': ['Arcade', 'Rail shooter'], 'rail-chase-2-vr': ['Arcade', 'Rail shooter'],
+  'scud-race-vr': ['Arcade', 'Racing'],
   'project-honeydew': ['GameCube', 'Adventure'], 'deus-ex-quest-vr': ['PC', 'RPG'],
   'ghost-squad-evolution-vr': ['Arcade', 'Rail shooter'], 'hotd4-vr': ['Arcade', 'Rail shooter'],
   'daytona-usa-vr': ['Arcade', 'Racing'], 'mario-party-4-vr': ['GameCube', 'Party'],

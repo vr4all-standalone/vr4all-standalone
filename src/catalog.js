@@ -34,7 +34,7 @@ const games = [
     afterInstall: 'Open Port0r: Time Crisis II VR; it imports timecrs2.zip from Download.',
   },
   {
-    id: 'hotd-vr', title: 'House of the Dead VR', series: 'Port0r', category: 'Arcade', icon: '✳', color: '#dc766e',
+    id: 'hotd-vr', title: 'House of the Dead VR', defaultPortId: 'hotd-model2-vr', preferDefaultPort: true, portLabel: 'Port0r', series: 'Port0r', category: 'Arcade', icon: '✳', color: '#dc766e',
     description: 'The original arcade House of the Dead.',
     source: { repo: 'jacquesdupontd/port0r', assetPattern: '^Port0r-HouseOfTheDeadVR-.*quest3\\.apk$' },
     data: [{ id: 'hotd', label: 'House of the Dead arcade set', kind: 'file', extensions: ['.zip'], destination: `${download}hotd.zip`, note: 'Recent MAME set' }],

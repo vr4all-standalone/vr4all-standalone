@@ -1,5 +1,9 @@
 // Read-only probes for catalogued ports on the selected Android headset.
 const packages = {
+  'gunblade-ny-vr': 'com.vrlightgunhub.gunbladeny',
+  'hotd-model2-vr': 'com.vrlightgunhub.hotdmodel2',
+  'behind-enemy-lines-vr': 'com.vrlightgunhub.bel',
+  'rail-chase-2-vr': 'com.vrlightgunhub.rchase2',
   'max-payne-nightmare-vr': 'com.MPQ.HaveliSkywalker',
   'project06-vr': 'com.p06.quest',
   qualyx: 'org.hlvr.quest',
