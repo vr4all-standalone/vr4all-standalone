@@ -5,6 +5,18 @@ const n64 = ['.z64', '.n64', '.v64'];
 
 const newPorts = [
   {
+    id: 'vtmb-resource', title: 'VtMB VR [re:Source]', gameName: 'Vampire: The Masquerade – Bloodlines', series: 'alex-nax', category: 'PC', color: '#9c3038',
+    description: 'Early Vulkan Quest 3 port of the original Bloodlines PC game.',
+    projectUrl: 'https://github.com/alex-nax/resource',
+    source: { repo: 'alex-nax/resource', assetPattern: '^vtmb-re_source-[0-9]+-[0-9]+-[0-9]+\\.apk$' },
+    patchSource: { repo: 'alex-nax/resource', assetPattern: '^resource-unofficial-patch-[0-9.]+-resource\\.[0-9]+-sidequest\\.zip$' },
+    fileAccessPackage: 'diy.resource.vtmb.vulkan', verifyApkHash: true,
+    data: [{ id: 'game', label: 'Owned Bloodlines Vampire folder', kind: 'directory', destination: '/sdcard/vtmb/Vampire/', requiredEntries: ['pack000.vpk'], maxArchiveEntries: 50000,
+      note: 'Choose the Vampire folder from an installed original Steam or GOG copy, or a ZIP/7z/RAR containing it. VR4ALL downloads the creator patch separately and combines them on the Quest.' }],
+    guidance: 'VR4ALL installs the creator’s Quest APK, downloads the latest available re:Source Unofficial Patch, and transfers it alongside your owned Vampire folder. The first transfer may take a while. This early build has not been fully tested beyond Downtown; the creator notes incomplete animations and gameplay systems.',
+    afterInstall: 'Open the app once under Unknown Sources and grant All files access if asked. Keep the app installed when updating so your saves and game files remain on the headset.',
+  },
+  {
     id: 'gunblade-ny-vr', title: 'Gunblade NY VR', gameName: 'Gunblade NY', series: 'vr4all-standalone', category: 'Arcade', color: '#5c91bc',
     description: 'The Sega Model 2 lightgun game in standalone stereo VR, with tracked aiming and the original arcade play.',
     projectUrl: 'https://github.com/vr4all-standalone/gunblade-ny-vr',
@@ -194,6 +206,7 @@ const newPorts = [
 ];
 
 const newPortFacets = {
+  'vtmb-resource': ['PC', 'RPG'],
   'gunblade-ny-vr': ['Arcade', 'Rail shooter'], 'hotd-model2-vr': ['Arcade', 'Rail shooter'],
   'behind-enemy-lines-vr': ['Arcade', 'Rail shooter'], 'rail-chase-2-vr': ['Arcade', 'Rail shooter'],
   'scud-race-vr': ['Arcade', 'Racing'],

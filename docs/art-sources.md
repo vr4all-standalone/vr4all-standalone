@@ -143,5 +143,6 @@ These images identify the underlying games or community ports. Rights remain wit
 - Project 06 VR: [Sonic Project 06 fan grid on SteamGridDB](https://www.steamgriddb.com/grid/396689).
 - Qualyx: [Half-Life: Alyx banner on Steam Support](https://support.steampowered.com/steamvr/Alyx/AlyxBanner.png).
 - Max Payne VR: Nightmare Edition: [official Max Payne Steam header](https://store.steampowered.com/app/12140/Max_Payne/), used to identify the original game.
+- Vampire: The Masquerade – Bloodlines: [official Steam game header](https://store.steampowered.com/app/2600/Vampire_The_Masquerade__Bloodlines/), used to identify the original game in the re:Source port card.
 
 These images identify the underlying games. Rights remain with their respective owners; reuse permission has not been independently verified.

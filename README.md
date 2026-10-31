@@ -8,15 +8,15 @@
 
 ![VR4ALL showing its standalone Quest mod library and a game setup panel](docs/images/vr4all-library.png)
 
-## 🎮 Current number of supported game projects: 123
+## 🎮 Current number of supported game projects: 124
 
-The catalog has **123 game cards and 131 port choices**, including alternate mods for Time Crisis, Pokémon, Halo, Virtua Cop, and The House of the Dead. Each card explains its setup requirements; Quest model support varies by port.
+The catalog has **124 game cards and 132 port choices**, including alternate mods for Time Crisis, Pokémon, Halo, Virtua Cop, and The House of the Dead. Each card explains its setup requirements; Quest model support varies by port.
 
 Project Honeydew can be installed from its checksum-verified creator APK with your own Pikmin disc. Deus Ex is listed as an **in-development project**; its creator has not published a playable Quest release, so VR4ALL links the project without offering an install.
 
 ## What VR4ALL does
 
-- 🧭 **One hub for ALL standalone Quest VR ports.** Browse 123 game projects in VR4ALL, search by game, console, or genre, and find each mod creator's project in one place.
+- 🧭 **One hub for ALL standalone Quest VR ports.** Browse 124 game projects in VR4ALL, search by game, console, or genre, and find each mod creator's project in one place.
 - ⚡ **Simple, one-click installation.** Bring the game files or creator APK requested on the card, then click **Install**. VR4ALL handles the build, patch, and headset transfer steps in the app, so players do not need to follow a separate build guide.
 - 🔄 **Auto update installed mods.** Scan your connected Quest to find new creator releases, then approve the updates you want VR4ALL to install on the headset.
 - 🖥️ **Update VR4ALL itself.** The desktop app checks for its own release when it opens and after **Check updates**. Approve a newer release to download, restart, and reopen the portable app with your settings intact.

@@ -39,14 +39,14 @@ async function runSevenZip(binary, args, options = {}) {
   }
 }
 
-function parseListing(listing) {
+function parseListing(listing, allowedEntries = maxEntries) {
   const content = listing.split(/^-{10,}\s*$/m)[1];
   if (!content) throw new Error('Archive has no readable file listing');
   const entries = content.trim().split(/\r?\n\s*\r?\n/).map((block) => Object.fromEntries(block.split(/\r?\n/).map((line) => {
     const separator = line.indexOf(' = ');
     return separator < 0 ? null : [line.slice(0, separator), line.slice(separator + 3)];
   }).filter(Boolean)));
-  if (!entries.length || entries.length > maxEntries) throw new Error('Archive must contain 1–5,000 entries');
+  if (!entries.length || entries.length > allowedEntries) throw new Error(`Archive must contain 1–${allowedEntries.toLocaleString('en-US')} entries`);
   let total = 0n;
   let files = 0;
   const names = new Set();
@@ -118,13 +118,13 @@ function directoryRoot(entries, item) {
     && entries.every((entry) => entry.name.startsWith(`${root}/`) || entry.name === root && entry.directory) ? root : '';
 }
 
-async function inspectDirectoryArchive(item, source) {
+async function inspectDirectoryArchive(item, source, options = {}) {
   if (!folderArchiveExtensions.has(path.extname(source).toLowerCase())) throw new Error('Choose a ZIP, 7z, or RAR game archive');
   const stat = await fs.stat(source).catch(() => null);
   if (!stat?.isFile() || !stat.size || stat.size > Number(maxUnpackedBytes)) throw new Error('Choose a nonempty game archive under 8 GB');
   const binary = await sevenZipPath();
   const { stdout } = await runSevenZip(binary, ['l', '-slt', '-p-', source]);
-  const { summary, entries } = parseListing(stdout);
+  const { summary, entries } = parseListing(stdout, options.maxEntries || maxEntries);
   return { ...summary, root: directoryRoot(entries, item) };
 }
 
@@ -170,14 +170,14 @@ async function extractSingleFileArchive(item, source, options = {}) {
   }
 }
 
-async function extractDirectoryArchive(item, source) {
-  const inspected = await inspectDirectoryArchive(item, source);
+async function extractDirectoryArchive(item, source, options = {}) {
+  const inspected = await inspectDirectoryArchive(item, source, options);
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-convert-'));
   const extracted = path.join(directory, 'contents');
   try {
     await fs.mkdir(extracted);
     await runSevenZip(await sevenZipPath(), ['x', '-y', '-p-', `-o${extracted}`, source]);
-    await inspectDirectory(extracted);
+    await inspectDirectory(extracted, options);
     const gamePath = inspected.root ? path.join(extracted, ...inspected.root.split('/')) : extracted;
     if (!(await fs.stat(gamePath).catch(() => null))?.isDirectory()) throw new Error('Game archive does not contain the expected folder');
     return { path: gamePath, directory, ...inspected };
@@ -194,7 +194,7 @@ async function removeConversionDirectory(directory, parentRoot = os.tmpdir()) {
   await fs.rm(resolved, { recursive: true, force: true });
 }
 
-async function inspectDirectory(source) {
+async function inspectDirectory(source, options = {}) {
   const root = await fs.lstat(source).catch(() => null);
   if (!root?.isDirectory() || root.isSymbolicLink()) throw new Error('Choose an existing regular folder');
   let entries = 0;
@@ -213,7 +213,7 @@ async function inspectDirectory(source) {
       const key = relative.toLowerCase();
       if (names.has(key)) throw new Error('Folder contains duplicate paths');
       names.add(key);
-      if (++entries > maxEntries) throw new Error('Folder must contain at most 5,000 entries');
+      if (++entries > (options.maxEntries || maxEntries)) throw new Error(`Folder must contain at most ${(options.maxEntries || maxEntries).toLocaleString('en-US')} entries`);
       const local = path.join(directory, entry.name);
       const stat = await fs.lstat(local);
       if (stat.isSymbolicLink() || !stat.isDirectory() && !stat.isFile()) throw new Error('Folder contains a link or unsupported file');

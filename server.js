@@ -16,6 +16,7 @@ const { verifyPushedFile } = require('./src/transfer-verification');
 const { stageLowercaseDirectory } = require('./src/lowercase-directory');
 const { packageWipeoutData, transferWipeoutData } = require('./src/wipeout-data');
 const { packageAvpData, transferAvpData } = require('./src/avp-data');
+const { prepareResourcePatch, transferResourcePatch } = require('./src/resource-patch');
 const { isWipeoutDisc, isWipeoutArchive, inspectWipeoutDisc, inspectWipeoutArchive, extractWipeoutArchive, inspectWipeoutFolder } = require('./src/wipeout-disc');
 const { validateMgsDiscPairs } = require('./src/mgs-discs');
 const { inspectApkPackage } = require('./src/apk-verification');
@@ -337,7 +338,7 @@ function createApp(options = {}) {
       return Boolean(stat.size) && Boolean(await inspectSingleFileArchive(item, local).catch(() => null));
     }
     if (item.kind === 'directory') {
-      if (stat.isFile() && ['.zip', '.7z', '.rar'].includes(path.extname(local).toLowerCase())) return Boolean(stat.size) && Boolean(await inspectDirectoryArchive(item, local).catch(() => null));
+      if (stat.isFile() && ['.zip', '.7z', '.rar'].includes(path.extname(local).toLowerCase())) return Boolean(stat.size) && Boolean(await inspectDirectoryArchive(item, local, { maxEntries: item.maxArchiveEntries }).catch(() => null));
       if (!stat.isDirectory()) return false;
       const entries = await fs.readdir(local, { withFileTypes: true }).catch(() => []);
       const names = new Map(entries.map((entry) => [entry.name.toLowerCase(), entry]));
@@ -409,7 +410,7 @@ function createApp(options = {}) {
     }
     if (item.kind !== 'directory') throw new Error('Invalid game data kind');
     if (stat.isFile()) {
-      const inspected = await inspectDirectoryArchive(item, local);
+      const inspected = await inspectDirectoryArchive(item, local, { maxEntries: item.maxArchiveEntries });
       return { verification: { level: 'archive', message: `Archive contains ${inspected.files} game files; identity and edition are not independently verified` }, entries: null, path: local };
     }
     const entries = await fs.readdir(local, { withFileTypes: true });
@@ -525,7 +526,7 @@ function createApp(options = {}) {
         await validateLocalItem(game, item, extracted.path);
         files[item.id] = extracted.path;
       } else if (item.kind === 'directory' && validated.verification.level === 'archive') {
-        const extracted = await extractDirectoryArchive(item, local);
+        const extracted = await extractDirectoryArchive(item, local, { maxEntries: item.maxArchiveEntries });
         tempDirectories.push(extracted.directory);
         conversionDirectories.add(extracted.directory);
         const unpacked = await validateLocalItem(game, item, extracted.path);
@@ -551,6 +552,7 @@ function createApp(options = {}) {
     job.status = 'running';
     let packagedWipeout = null;
     let packagedAvp = null;
+    let resourcePatch = null;
     let finalStatus = 'error';
     try {
       let apkPath = input.apkPath;
@@ -580,6 +582,10 @@ function createApp(options = {}) {
       }
       const installedPackageId = await inspectApk(apkPath, adb.getPath?.() || settings.adbPath);
       if (packages[game.id] && installedPackageId && installedPackageId !== packages[game.id]) throw new Error(`Downloaded APK belongs to ${installedPackageId}, not ${game.title} (${packages[game.id]})`);
+      if (game.patchSource && input.files?.game) {
+        resourcePatch = await prepareResourcePatch(releases, game.patchSource, log);
+        job.patchRelease = { tag: resourcePatch.release.tag, url: resourcePatch.release.url, assetName: resourcePatch.release.assetName };
+      }
       const planGame = ['wipeout-vr', 'avp-vr'].includes(game.id) ? { ...game, data: [] } : game;
       const plan = buildInstallPlan(planGame, { serial: input.serial, apkPath, files: input.files || {}, directoryEntries: input.directoryEntries, reuseExistingData: input.reuseExistingData });
       if (input.reuseExistingData && !Object.values(input.files || {}).some(Boolean)) log('Keeping existing game files on the headset.');
@@ -604,6 +610,7 @@ function createApp(options = {}) {
         packagedAvp = await packageAvpData(input.files.game, buildWorkRoot());
         await transferAvpData(adb, input.serial, packagedAvp, log);
       }
+      if (resourcePatch) await transferResourcePatch(adb, input.serial, resourcePatch.path, log);
       if (companionApkPath) {
         log('Installing companion launcher...');
         await adb.run(['-s', input.serial, 'install', '-r', companionApkPath], (line) => {
@@ -620,6 +627,7 @@ function createApp(options = {}) {
     finally {
       if (packagedWipeout) await packagedWipeout.cleanup();
       if (packagedAvp) await packagedAvp.cleanup();
+      if (resourcePatch) await resourcePatch.cleanup();
 
       for (const directory of input.tempDirectories || []) { await removeConversionDirectory(directory); conversionDirectories.delete(directory); }
       for (const file of [...Object.values(input.files || {}), ...Object.values(input.originalFiles || {}), input.apkPath, input.originalApkPath]) {

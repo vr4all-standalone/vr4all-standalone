@@ -1,5 +1,6 @@
 // Read-only probes for catalogued ports on the selected Android headset.
 const packages = {
+  'vtmb-resource': 'diy.resource.vtmb.vulkan',
   'gunblade-ny-vr': 'com.vrlightgunhub.gunbladeny',
   'hotd-model2-vr': 'com.vrlightgunhub.hotdmodel2',
   'behind-enemy-lines-vr': 'com.vrlightgunhub.bel',
@@ -163,6 +164,13 @@ async function inspectDevice(adb, serial, games, knownPackages = {}) {
     return listCache.get(directory);
   }
   async function hasData(game) {
+    if (game.id === 'vtmb-resource') {
+      const vampire = await list('/sdcard/vtmb/Vampire/');
+      const root = await list('/sdcard/vtmb/');
+      const scripts = await list('/sdcard/vtmb/Unofficial_Patch/scripts/');
+      return vampire.includes('pack000.vpk') && root.includes('pack.json')
+        && root.includes('Unofficial_Patch') && scripts.includes('liblist.gam');
+    }
     if (game.id === 'max-payne-nightmare-vr') {
       const base = '/sdcard/Android/data/com.MPQ.HaveliSkywalker/files';
       const staged = await list(base);
