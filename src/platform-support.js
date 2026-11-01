@@ -12,6 +12,7 @@ const NOT_ON_LINUX = Object.freeze({
 // Ports whose Linux install path exists. x64: the Linux artifacts are x86-64 only.
 const LINUX_PORTS = Object.freeze({
   'crazy-taxi-vr': { x64: true },
+  'magic-carpet-vr': { x64: true },
 });
 
 // personalBuild covers the creator PowerShell kits (GTA SA, RDR, Vice City), the BioShock

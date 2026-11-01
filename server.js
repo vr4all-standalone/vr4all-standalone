@@ -875,13 +875,14 @@ function createApp(options = {}) {
     const log = (message) => { job.log.push(String(message).slice(0, 500)); if (job.log.length > 150) job.log.shift(); job.updatedAt = new Date().toISOString(); };
     job.status = 'running';
     try {
-      log(input.gamePath ? 'Checking the official Quest APK and Windows importer releases...' : 'Checking the official Quest APK release...');
+      const win = (options.platform || process.platform) === 'win32';
+      log(input.gamePath ? `Checking the official Quest APK and ${win ? 'Windows importer' : 'importer'} releases...` : 'Checking the official Quest APK release...');
       const apkRelease = await releases.latest(sourceFor(game), { force: true });
-      const importerRelease = input.gamePath ? await releases.latest({ repo: 'NathanaelA/mgcarpet-vr', assetPattern: '^mgc-import-windows\\.zip$' }) : null;
+      const importerRelease = input.gamePath ? await releases.latest({ repo: 'NathanaelA/mgcarpet-vr', assetPattern: win ? '^mgc-import-windows\\.zip$' : '^mgc-import-linux\\.zip$' }) : null;
       if (!apkRelease || apkRelease.stale || input.gamePath && (!importerRelease || importerRelease.stale)) throw new Error('The required official Magic Carpet release could not be confirmed');
       const apkPath = await keepDownloadedApk(game, await releases.download(apkRelease));
       const importerZip = input.gamePath ? await releases.downloadPackage(importerRelease) : null;
-      const result = await withSpecialGamePath(game, input.gamePath, (gamePath) => magicCarpetInstaller({ apkPath, importerZip, gamePath: gamePath || null, serial: input.serial, adb, workRoot: buildWorkRoot(), onLog: log }));
+      const result = await withSpecialGamePath(game, input.gamePath, (gamePath) => magicCarpetInstaller({ apkPath, importerZip, gamePath: gamePath || null, serial: input.serial, adb, platform: options.platform, workRoot: buildWorkRoot(), onLog: log }));
       job.release = { tag: apkRelease.tag, url: apkRelease.url, assetName: apkRelease.assetName };
       job.status = 'success';
       log('Magic Carpet VR is installed. Open it on the headset to confirm play.');
