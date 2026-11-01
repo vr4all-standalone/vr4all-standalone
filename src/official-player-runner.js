@@ -129,6 +129,7 @@ function allowQuest3SInInstaller(source) {
 // Ports whose creator installer is PowerShell on Windows and has a Linux path here; loaded lazily (they require this module).
 const linuxInstallers = {
   'gt2-vr': (args) => require('./gt2-linux').installGt2Linux(args),
+  'descent12-vr': (args) => require('./descent-linux').installDescentLinux(args),
 };
 
 async function installOfficialPlayer(input) {

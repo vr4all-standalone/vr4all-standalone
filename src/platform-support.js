@@ -15,6 +15,7 @@ const LINUX_PORTS = Object.freeze({
   'magic-carpet-vr': { x64: true },
   'galaxyquest': {},
   'gt2-vr': {},
+  'descent12-vr': {},
 });
 
 // personalBuild covers the creator PowerShell kits (GTA SA, RDR, Vice City), the BioShock
