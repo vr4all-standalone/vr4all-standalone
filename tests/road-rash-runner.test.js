@@ -7,6 +7,7 @@ const crypto = require('node:crypto');
 const { EventEmitter } = require('node:events');
 const { PassThrough } = require('node:stream');
 const { extractReleaseZip, installRoadRashPlayer } = require('../src/road-rash-runner');
+const { buildDisc, fixtureIdentity, fakeAdb } = require('./helpers/road-rash-disc');
 
 const needsPowerShell = process.platform !== 'win32' && 'Windows PowerShell is required for this flow';
 
@@ -198,4 +199,47 @@ test('runner passes the selected disc, Quest, and ADB to the official script and
   assert.ok(logs.includes('Installing APK'));
   assert.ok(logs.includes('Checking disc'));
   assert.deepEqual((await fs.readdir(root)).sort(), ['owned disc.cue']);
+});
+
+function linuxPlayerZip() {
+  const prefix = 'RoadRashJailbreak-0.1.0-installer-r2/';
+  const names = ['tools/rrgame.exe', 'tools/rrtool.exe', 'scripts/install-player.ps1', 'scripts/install.ps1',
+    'scripts/install-quest-player.ps1', 'scripts/platform-tools.ps1', 'scripts/transfer-saves.ps1', 'RoadRashJailbreak-VR-0.1.0.apk'];
+  const files = names.map((name) => ({ path: name, bytes: name.length, sha256: crypto.createHash('sha256').update(name).digest('hex') }));
+  const manifest = '\uFEFF' + JSON.stringify({ version: '0.1.0', package: 'com.rrjb.vr', quest: true, files });
+  return zip([{ name: prefix }, ...names.map((name) => ({ name: prefix + name, data: name })), { name: prefix + 'release-manifest.json', data: manifest }]);
+}
+
+test('runner on Linux extracts the verified package in Node, validates the disc and installs through adb without PowerShell', async (t) => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-road-rash-linux-run-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const discImage = path.join(root, 'owned.bin');
+  await fs.writeFile(discImage, buildDisc());
+  const bytes = linuxPlayerZip();
+  const adb = fakeAdb();
+  const logs = [];
+  const result = await installRoadRashPlayer({ discImage, serial: 'Q3', adb, release: releaseFor(bytes), onLog: (line) => logs.push(line) }, {
+    platform: 'linux', tempRoot: root, identity: fixtureIdentity, fetchImpl: async () => new Response(bytes),
+    spawnImpl: () => { throw new Error('PowerShell must not run on Linux'); },
+  });
+  assert.deepEqual(result, { exitCode: 0, tag: 'v0.1.0' });
+  assert.ok(adb.calls.some((call) => call.startsWith('push ')));
+  assert.ok(logs.some((line) => /Disc identified/.test(line)));
+  assert.deepEqual((await fs.readdir(root)).sort(), ['owned.bin']);
+});
+
+test('runner on Linux rejects a tampered package before any adb call', async (t) => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-road-rash-linux-bad-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const discImage = path.join(root, 'owned.bin');
+  await fs.writeFile(discImage, buildDisc());
+  const prefix = 'RoadRashJailbreak-0.1.0-installer-r2/';
+  const bytes = zip([{ name: prefix + 'scripts/install-player.ps1', data: 'x' },
+    { name: prefix + 'release-manifest.json', data: JSON.stringify({ version: '0.1.0', package: 'com.rrjb.vr', files: [{ path: 'scripts/install-player.ps1', sha256: '0'.repeat(64) }] }) }]);
+  const adb = fakeAdb();
+  await assert.rejects(installRoadRashPlayer({ discImage, serial: 'Q3', adb, release: releaseFor(bytes) }, {
+    platform: 'linux', tempRoot: root, identity: fixtureIdentity, fetchImpl: async () => new Response(bytes),
+  }), /Release file failed verification/);
+  assert.deepEqual(adb.calls, []);
+  assert.deepEqual((await fs.readdir(root)).sort(), ['owned.bin']);
 });

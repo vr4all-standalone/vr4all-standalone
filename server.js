@@ -776,7 +776,7 @@ function createApp(options = {}) {
       const release = await releases.latest(game.source, { force: true });
       if (!release || release.stale) throw new Error('The current official Road Rash player ZIP could not be confirmed');
       if (path.extname(input.discImage).toLowerCase() === '.rar') convertedDisc = await convertArchiveToZip(input.discImage);
-      const result = await roadRashInstaller({ discImage: convertedDisc?.path || input.discImage, serial: input.serial, adbPath: adb.getPath?.() || settings.adbPath, release, onLog: log });
+      const result = await roadRashInstaller({ discImage: convertedDisc?.path || input.discImage, serial: input.serial, adbPath: adb.getPath?.() || settings.adbPath, adb, release, platform: options.platform, onLog: log });
       job.release = { tag: release.tag, url: release.url, assetName: release.assetName };
       log('Official disc validation and Quest installation completed. Open the game to confirm it plays.');
       settings.installed[input.serial] ||= {};

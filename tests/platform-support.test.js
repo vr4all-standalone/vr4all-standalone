@@ -9,13 +9,13 @@ const byId = (id) => getCatalog().find((entry) => entry.id === id);
 
 // Ports without a Linux install path. Each port task removes its id from this list.
 const LINUX_REFUSED = ['gta-sa-vr', 'bioshock-vr', 'vice-city-vr', 'rdr1-vr', 'fzero-x-virtuavr', 'victory-heat-rally-vr',
-  'road-rash-vr', 'harry-potter-vr', 'gothic2-vr'];
+  'harry-potter-vr', 'gothic2-vr'];
 
 // Ports with a Linux path that needs an x86-64 host. Each port task adds its id.
 const LINUX_EXPERIMENTAL = ['crazy-taxi-vr', 'magic-carpet-vr'];
 
 // Ports with a Linux path that runs on any architecture (Node or Python). Each port task adds its id.
-const LINUX_EXPERIMENTAL_ANY_ARCH = ['galaxyquest', 'gt2-vr', 'descent12-vr', 'animal-crossing-vr'];
+const LINUX_EXPERIMENTAL_ANY_ARCH = ['galaxyquest', 'gt2-vr', 'descent12-vr', 'animal-crossing-vr', 'road-rash-vr'];
 
 test('Windows runs every port', () => {
   for (const game of getCatalog()) assert.equal(platformSupport(game, 'win32').supported, true, game.id);
@@ -96,7 +96,6 @@ test('Linux server refuses Windows-only installs before any device, download or 
     personalBuilder: async () => { touched.push('build'); }, sdkSetup: async () => { touched.push('sdk'); } });
   const attempts = [['/api/personal-build', { gameId: 'gta-sa-vr', serial: 'Q3' }], ['/api/personal-build', { gameId: 'bioshock-vr', serial: 'Q3' }],
     ['/api/install', { gameId: 'bioshock-vr', serial: 'Q3', apkMode: 'github' }],
-    ['/api/road-rash-install', { gameId: 'road-rash-vr', serial: 'Q3' }],
     ['/api/harry-potter-install', { gameId: 'harry-potter-vr', serial: 'Q3' }],
     ['/api/build-tools', { gameId: 'vice-city-vr', downloadLocation: '/tmp' }]];
   for (const [url, payload] of attempts) {
