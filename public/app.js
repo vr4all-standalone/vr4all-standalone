@@ -505,12 +505,12 @@ async function refreshDevices({ scanLibrary = true } = {}) {
 
 function updateInstallEnabled() {
   const button = $('#installButton');
-  if (button) button.disabled = state.installSubmitting || !state.selectedSerial || (state.selectedId === 'halo-ce' && !state.deviceLibrary[state.selectedSerial]?.['halo-ce']?.dataReady && !hasRequiredLocalGameFiles(selectedGame())) || state.jobs.some((job) => job.serial === state.selectedSerial && job.gameId === state.selectedId && ['queued', 'running'].includes(job.status));
+  if (button) button.disabled = selectedGame()?.support?.supported === false || state.installSubmitting || !state.selectedSerial || (state.selectedId === 'halo-ce' && !state.deviceLibrary[state.selectedSerial]?.['halo-ce']?.dataReady && !hasRequiredLocalGameFiles(selectedGame())) || state.jobs.some((job) => job.serial === state.selectedSerial && job.gameId === state.selectedId && ['queued', 'running'].includes(job.status));
   const buildButton = $('#personalBuildButton');
   if (buildButton) {
     const game = selectedGame();
     const values = state.inputs[game?.id] || {};
-    buildButton.disabled = state.installSubmitting || !state.selectedSerial || !localPathAvailable(game, 'gamePackage') || game.personalBuild.audioLabel && !game.personalBuild.audioOptional && !localPathAvailable(game, 'audioSource') || state.jobs.some((job) => ['queued', 'running'].includes(job.status) && (job.serial === state.selectedSerial && job.gameId === game.id || job.kind === 'build-tools' && job.gameId === game.id));
+    buildButton.disabled = game.support?.supported === false || state.installSubmitting || !state.selectedSerial || !localPathAvailable(game, 'gamePackage') || game.personalBuild.audioLabel && !game.personalBuild.audioOptional && !localPathAvailable(game, 'audioSource') || state.jobs.some((job) => ['queued', 'running'].includes(job.status) && (job.serial === state.selectedSerial && job.gameId === game.id || job.kind === 'build-tools' && job.gameId === game.id));
   }
 }
 
@@ -611,10 +611,12 @@ function detailHtml(game) {
   const mode = !source ? 'local' : state.mode[game.id] || (!game.manualRelease || game.playerInstall ? 'github' : 'local');
   state.mode[game.id] = mode;
   if (game.personalBuild) {
+    const unsupported = game.support?.supported === false;
     const html = personalBuildHtml(game).replace('<input id="buildGamePath"', '<button type="button" class="copy-requirement" data-copy-build="gamePackage" title="Copy the original game file requirement">Copy requirement</button><input id="buildGamePath"');
-    if (!['vice-city-vr', 'rdr1-vr', 'gta-sa-vr'].includes(game.id)) return html;
-    const setup = '<div class="sdk-setup-card"><strong>Build tools</strong><p class="field-help">Vice City, RDR and San Andreas reuse tools from the same download folder. Setup checks what is already installed and downloads only missing versions.</p><button id="setupBuildToolsButton" type="button" class="small-button">Set up build tools</button></div>';
-    return html.replace('<button type="button" id="personalBuildButton"', `${setup}<button type="button" id="personalBuildButton"`);
+    const gated = unsupported ? html.replace('<button type="button" id="personalBuildButton"', `<div class="guide-note">${escapeHtml(game.support.reason)}</div><button type="button" id="personalBuildButton" disabled`) : html;
+    if (!['vice-city-vr', 'rdr1-vr', 'gta-sa-vr'].includes(game.id)) return gated;
+    const setup = `<div class="sdk-setup-card"><strong>Build tools</strong><p class="field-help">Vice City, RDR and San Andreas reuse tools from the same download folder. Setup checks what is already installed and downloads only missing versions.</p><button id="setupBuildToolsButton" type="button" class="small-button"${unsupported ? ' disabled' : ''}>Set up build tools</button></div>`;
+    return gated.replace('<button type="button" id="personalBuildButton"', `${setup}<button type="button" id="personalBuildButton"`);
   }
   if (game.externalInstaller) return `<div class="detail-art"><img src="${escapeHtml(game.art || '/art/custom.svg')}" alt="Artwork for ${escapeHtml(game.title)}"></div><div class="detail-series">${escapeHtml(game.console)} · ${escapeHtml(game.genre)} · ${escapeHtml(game.series)}</div><h2 class="detail-title">${escapeHtml(game.title)}</h2><p class="detail-description">${escapeHtml(game.description)}</p><div class="detail-divider"></div><div class="guide-note">${escapeHtml(game.guidance)}</div><a class="primary-button install-button" href="${escapeHtml(game.projectUrl)}" target="_blank" rel="noopener noreferrer">${game.developmentPreview ? 'Follow development ↗' : 'Open official setup ↗'}</a>`;
   return `<div class="detail-art"><img src="${escapeHtml(game.art || '/art/custom.svg')}" alt="Artwork for ${escapeHtml(game.title)}"></div><div class="detail-series">${escapeHtml(game.console || 'Other')} · ${escapeHtml(game.genre || 'Other')} · ${escapeHtml(game.series)}</div><h2 class="detail-title">${escapeHtml(game.title)}</h2><p class="detail-description">${escapeHtml(game.description)}</p>${portChoiceHtml(game)}<div class="detail-divider"></div>
@@ -630,7 +632,8 @@ function detailHtml(game) {
     ${game.guidance ? `<div class="guide-note">${escapeHtml(game.guidance)}</div>` : '<p class="field-help">Use game files from a copy you own. VR4ALL checks the selected format before transfer.</p>'}
     ${game.playerInstall === 'beef-raider' ? '<p class="field-help"><a href="https://github.com/DrBeef/BeefRaiderXR/releases/download/1.0.0/BeefRaiderXR-1.0.0.7z" target="_blank" rel="noopener noreferrer">Download the official Beef Raider Extraction Tool ↗</a></p>' : ''}
     <div class="detail-divider"></div><div class="detail-step"><span class="step-number">3</span> Install to your Quest</div><p class="after-note">${escapeHtml(game.afterInstall || 'Open the game under Unknown Sources after installing.')}</p>
-    <button type="button" id="installButton" class="primary-button install-button">${game.playerInstall ? 'Prepare & install' : mode === 'github' ? 'Download & install' : 'Install port'} <span>→</span></button><div id="jobContainer"></div>`;
+    ${game.support?.supported === false ? `<div class="guide-note">${escapeHtml(game.support.reason)}</div>` : ''}
+    <button type="button" id="installButton" class="primary-button install-button" ${game.support?.supported === false ? 'disabled' : ''}>${game.playerInstall ? 'Prepare & install' : mode === 'github' ? 'Download & install' : 'Install port'} <span>→</span></button><div id="jobContainer"></div>`;
 }
 
 function renderReleaseCard() {
@@ -828,6 +831,7 @@ function bulkCandidate(match) {
   if (!game) return { game: null, reason: 'Unknown game' };
   const device = state.deviceLibrary[state.selectedSerial]?.[game.id];
   const missing = (game.data || []).filter((item) => !item.optional && !match.files?.[item.id]);
+  if (game.support?.supported === false) return { game, reason: game.support.reason };
   if (!state.selectedSerial) return { game, reason: 'Connect and scan a Quest first' };
   if (state.bulkMode === 'new' && device || state.bulkMode === 'update' && !device) return { game, hidden: true, reason: '' };
   if (state.bulkMode === 'update' && versionStatus(game) !== 'status-update') return { game, reason: 'No confirmed APK update for this port' };

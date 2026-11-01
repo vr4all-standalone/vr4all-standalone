@@ -1,0 +1,69 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const { Readable } = require('node:stream');
+const { platformSupport } = require('../src/platform-support');
+const { getCatalog } = require('../src/catalog');
+const { createApp } = require('../server');
+
+const byId = (id) => getCatalog().find((entry) => entry.id === id);
+
+test('Windows runs every port', () => {
+  for (const game of getCatalog()) assert.equal(platformSupport(game, 'win32').supported, true, game.id);
+});
+
+test('Linux refuses ports that need PowerShell kits or Windows executables, with a reason', () => {
+  for (const id of ['gta-sa-vr', 'bioshock-vr', 'vice-city-vr', 'rdr1-vr', 'crazy-taxi-vr', 'fzero-x-virtuavr', 'victory-heat-rally-vr',
+    'road-rash-vr', 'harry-potter-vr', 'galaxyquest', 'magic-carpet-vr', 'descent12-vr', 'gothic2-vr', 'animal-crossing-vr', 'gt2-vr']) {
+    const game = byId(id);
+    assert.ok(game, id);
+    const result = platformSupport(game, 'linux');
+    assert.equal(result.supported, false, id);
+    assert.match(result.reason, /Windows/);
+  }
+});
+
+test('Linux accepts a plain creator-APK port', () => {
+  const plain = getCatalog().find((game) => !game.personalBuild && !game.playerInstall && !game.externalInstaller && !game.manualBuild && !game.releaseKind);
+  assert.ok(plain);
+  assert.deepEqual(platformSupport(plain, 'linux'), { supported: true });
+});
+
+test('Linux accepts Node-only player installs and link-only external installers', () => {
+  for (const id of ['jkxr', 'descent3-vr', 'beef-raider-xr', 'astroquest', 'sclerosis-vr', 'deus-ex-quest-vr', 'jurassic-park-arcade-vr']) {
+    assert.ok(byId(id), id);
+    assert.deepEqual(platformSupport(byId(id), 'linux'), { supported: true }, id);
+  }
+});
+
+test('every catalog game carries its support state for this platform', () => {
+  for (const game of getCatalog()) assert.equal(typeof game.support.supported, 'boolean', game.id);
+});
+
+function request(app, url, payload) {
+  return new Promise((resolve) => {
+    const req = Readable.from([JSON.stringify(payload)]);
+    req.method = 'POST';
+    req.url = url;
+    req.headers = { 'content-type': 'application/json', host: '127.0.0.1:4173', 'x-questdesk-token': app.token };
+    const res = { writeHead(status) { this.status = status; }, end(body) { resolve({ status: this.status, body: JSON.parse(body) }); } };
+    app.server.emit('request', req, res);
+  });
+}
+
+test('Linux server refuses Windows-only installs before any device, download or spawn', async () => {
+  const touched = [];
+  const app = createApp({ platform: 'linux', adb: { listDevices: async () => { touched.push('adb'); return []; } },
+    releases: { latest: async () => { touched.push('releases'); return null; } },
+    personalBuilder: async () => { touched.push('build'); }, sdkSetup: async () => { touched.push('sdk'); } });
+  const attempts = [['/api/personal-build', { gameId: 'gta-sa-vr', serial: 'Q3' }], ['/api/personal-build', { gameId: 'bioshock-vr', serial: 'Q3' }],
+    ['/api/install', { gameId: 'bioshock-vr', serial: 'Q3', apkMode: 'github' }], ['/api/install', { gameId: 'gt2-vr', serial: 'Q3', apkMode: 'github' }],
+    ['/api/official-player-install', { gameId: 'gt2-vr', serial: 'Q3' }], ['/api/road-rash-install', { gameId: 'road-rash-vr', serial: 'Q3' }],
+    ['/api/harry-potter-install', { gameId: 'harry-potter-vr', serial: 'Q3' }], ['/api/galaxyquest-install', { gameId: 'galaxyquest', serial: 'Q3' }],
+    ['/api/magic-carpet-install', { gameId: 'magic-carpet-vr', serial: 'Q3' }], ['/api/build-tools', { gameId: 'vice-city-vr', downloadLocation: '/tmp' }]];
+  for (const [url, payload] of attempts) {
+    const response = await request(app, url, payload);
+    assert.equal(response.status, 400, `${url} ${payload.gameId}`);
+    assert.match(response.body.error, /Windows-only/, `${url} ${payload.gameId}`);
+  }
+  assert.deepEqual(touched, []);
+});

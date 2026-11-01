@@ -28,7 +28,7 @@ test('RDR API blocks an offline selected Quest before building and permits retry
   const settingsPath = path.join(root, 'settings.json');
   const gamePackage = path.join(root, 'original.apkm'); await fs.writeFile(gamePackage, 'owned');
   let online = false, builds = 0;
-  const app = createApp({ settingsPath, adb: {
+  const app = createApp({ platform: 'win32', settingsPath, adb: {
     listDevices: async () => [{ serial: 'SELECTED', state: 'device' }, { serial: 'PRESERVED', state: 'device' }],
     run: async (args) => {
       assert.deepEqual(args, ['-s', 'SELECTED', 'shell', 'dumpsys', 'connectivity']);
@@ -61,7 +61,7 @@ test('GTA SA builds without RDR connectivity checks', async (t) => {
   const gamePackage = path.join(root, 'original.apk'), audioSource = path.join(root, 'audio.zip');
   await fs.writeFile(gamePackage, 'owned'); await fs.writeFile(audioSource, 'owned audio');
   let builds = 0;
-  const app = createApp({ adb: { listDevices: async () => [{ serial: 'QUEST', state: 'device' }], run: async () => { throw new Error('RDR diagnostic must not run'); } },
+  const app = createApp({ platform: 'win32', adb: { listDevices: async () => [{ serial: 'QUEST', state: 'device' }], run: async () => { throw new Error('RDR diagnostic must not run'); } },
     personalBuilder: async () => { builds++; return { sha: 'a'.repeat(40) }; } });
   t.after(() => app.server.close());
   const started = await request(app, 'POST', '/api/personal-build', { gameId: 'gta-sa-vr', serial: 'QUEST', gamePackage, audioSource });

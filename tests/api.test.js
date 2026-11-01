@@ -405,7 +405,7 @@ test('failed install activity remains available after the desktop app restarts',
   const settingsPath = path.join(root, 'settings.json');
   const gamePackage = path.join(root, 'RDR.xapk');
   await fs.writeFile(gamePackage, 'owned fixture');
-  const options = { settingsPath, adb: { listDevices: async () => [{ serial: 'Q3', state: 'device' }] },
+  const options = { platform: 'win32', settingsPath, adb: { listDevices: async () => [{ serial: 'Q3', state: 'device' }] },
     personalBuilder: async () => { throw new Error('synthetic build failure'); } };
   try {
     const first = createApp(options);
@@ -427,7 +427,7 @@ test('personal build accepts a complete RDR export and passes the selected seria
   const gamePackage = path.join(root, 'RDR-complete.xapk');
   await fs.writeFile(gamePackage, 'fixture');
   const calls = [];
-  const app = createApp({
+  const app = createApp({ platform: 'win32',
     adb: { listDevices: async () => [{ serial: 'Q3-ONE', state: 'device' }, { serial: 'Q3-TWO', state: 'device' }] },
     personalBuilder: async (gameId, input, _roots, log) => { calls.push({ gameId, input }); log('Official validation passed'); return { sha: 'a'.repeat(40) }; },
   });
@@ -449,7 +449,7 @@ test('Victory Heat Rally build button reaches its builder with the selected game
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-vhr-api-'));
   await fs.writeFile(path.join(root, 'data.win'), 'owned fixture');
   const calls = [];
-  const app = createApp({
+  const app = createApp({ platform: 'win32',
     adb: { listDevices: async () => [{ serial: 'Q3S', state: 'device' }] },
     victoryHeatBuilder: async (input) => { calls.push(input); return { sha: 'v1.1', packageId: 'com.segadreamcat.vhrquest' }; },
   });
@@ -471,7 +471,7 @@ test('F-Zero X VirtuaVRPort personal install uses its own ROM preparation flow a
   await fs.writeFile(rom, 'test fixture');
   await fs.writeFile(bundle, 'test fixture');
   const calls = [];
-  const app = createApp({
+  const app = createApp({ platform: 'win32',
     adb: { listDevices: async () => [{ serial: 'Q3-ONE', state: 'device' }, { serial: 'Q3-TWO', state: 'device' }] },
     validateFzeroVirtuaInput: async (input) => input,
     fzeroVirtuaInstaller: async (input) => { calls.push(input); return { packageId: 'dev.gdiffuser.quest', tag: 'R10' }; },
@@ -496,7 +496,7 @@ test('personal build rejects missing GTA audio, wrong headset, and conflicting w
   await fs.writeFile(audioSource, 'fixture');
   let finish;
   const gate = new Promise((resolve) => { finish = resolve; });
-  const app = createApp({
+  const app = createApp({ platform: 'win32',
     adb: { listDevices: async () => [{ serial: 'Q3', state: 'device' }] },
     personalBuilder: async () => { await gate; return { sha: 'b'.repeat(40) }; },
   });
@@ -518,7 +518,7 @@ test('personal build rejects missing GTA audio, wrong headset, and conflicting w
 });
 
 test('Road Rash GitHub ZIP is visible but cannot be passed to the APK installer', async () => {
-  const app = createApp({ adb: { listDevices: async () => [{ serial: 'Q3', state: 'device' }] }, releases: { latest: async () => ({ tag: 'v0.1.0', assetName: 'RoadRashJailbreak-0.1.0.zip' }) }, picker: async () => null });
+  const app = createApp({ platform: 'win32', adb: { listDevices: async () => [{ serial: 'Q3', state: 'device' }] }, releases: { latest: async () => ({ tag: 'v0.1.0', assetName: 'RoadRashJailbreak-0.1.0.zip' }) }, picker: async () => null });
   const release = await request(app, 'GET', '/api/releases?gameId=road-rash-vr');
   assert.equal(release.body.release.assetName, 'RoadRashJailbreak-0.1.0.zip');
   const install = await request(app, 'POST', '/api/install', { gameId: 'road-rash-vr', serial: 'Q3', apkMode: 'github', files: {} });
@@ -532,7 +532,7 @@ test('Road Rash player install accepts an owned disc and targets only the select
   await fs.writeFile(discImage, 'owned disc fixture');
   const calls = [];
   const release = { tag: 'v0.1.0', assetName: 'RoadRashJailbreak-0.1.0.zip', downloadUrl: 'https://github.com/dubrovskiy-yevhen-stakelogic/road-rash-jailbreak/releases/download/v0.1.0/RoadRashJailbreak-0.1.0.zip', digest: `sha256:${'a'.repeat(64)}`, stale: false };
-  const app = createApp({
+  const app = createApp({ platform: 'win32',
     adb: { listDevices: async () => [{ serial: 'QUEST-ONE', state: 'device' }, { serial: 'QUEST-TWO', state: 'device' }], getPath: () => 'C:\\adb.exe' },
     releases: { latest: async () => release },
     roadRashInstaller: async (input) => { calls.push(input); input.onLog('Official disc validation passed'); return { exitCode: 0, tag: release.tag }; },
@@ -561,7 +561,7 @@ test('Harry Potter player install hands an owned game folder and selected Quest 
   await fs.writeFile(path.join(gamePath, 'System.u'), 'owned fixture');
   const release = { tag: 'v0.1.4.1', assetName: 'HPVR-Quest-0.1.4.1.zip', downloadUrl: 'https://github.com/dubrovskiy-yevhen-stakelogic/harry-potter-vr/releases/download/v0.1.4.1/HPVR-Quest-0.1.4.1.zip', digest: `sha256:${'a'.repeat(64)}`, stale: false };
   const calls = [];
-  const app = createApp({
+  const app = createApp({ platform: 'win32',
     adb: { listDevices: async () => [{ serial: 'QUEST-ONE', state: 'device' }, { serial: 'QUEST-TWO', state: 'device' }], getPath: () => 'C:\\adb.exe' },
     releases: { latest: async () => release },
     harryPotterInstaller: async (input) => { calls.push(input); input.onLog('INSTALL=PASS DATA_IMPORT=PASS'); return { exitCode: 0 }; },

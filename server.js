@@ -7,6 +7,7 @@ const os = require('node:os');
 const { Transform } = require('node:stream');
 const { pipeline } = require('node:stream/promises');
 const { getCatalog } = require('./src/catalog');
+const { platformSupport } = require('./src/platform-support');
 const { migrateStandaloneSettings } = require('./src/standalone-settings-migration');
 const { buildInstallPlan, safeDestination } = require('./src/core');
 const { createAdb } = require('./src/adb');
@@ -199,6 +200,7 @@ function createApp(options = {}) {
 
   function catalog() { return [...getCatalog(), ...(settings.customGames || [])]; }
   function gameById(id) { return catalog().find((game) => game.id === id); }
+  function requireSupported(game) { const support = platformSupport(game, options.platform); if (!support.supported) throw new Error(support.reason); }
   function sourceFor(game) { return game.id === 'victory-heat-rally-vr' ? game.source : settings.sources?.[game.id] || game.source; }
   function saveSettings() {
     if (!settingsPath) return Promise.resolve();
@@ -1365,6 +1367,7 @@ function createApp(options = {}) {
         const input = await body(req);
         const game = gameById(input.gameId);
         if (!game) throw new Error('Unknown game');
+        requireSupported(game);
         if (game.externalInstaller) throw new Error('This port requires its official build-and-install guide');
         if (game.manualRelease && input.apkMode === 'github') throw new Error('The official GitHub release is an installer ZIP. Use its installer to prepare an APK, then select that APK locally.');
         if (!canQueueInstall(input.serial)) return json(res, 409, { error: 'Another operation is already running on this device' });
@@ -1403,6 +1406,7 @@ function createApp(options = {}) {
         const input = await body(req);
         const game = gameById(input.gameId);
         if (!game || !officialPlayerRecipes[game.id] || game.playerInstall !== 'official-zip') throw new Error('Choose an integrated Quest player');
+        requireSupported(game);
         if (!canQueueInstall(input.serial)) return json(res, 409, { error: 'Another operation is already running on this device' });
 
         try {
@@ -1424,6 +1428,7 @@ function createApp(options = {}) {
         const input = await body(req);
         const game = gameById(input.gameId);
         if (game?.id !== 'magic-carpet-vr') throw new Error('Choose Magic Carpet VR');
+        requireSupported(game);
         if (!canQueueInstall(input.serial)) return json(res, 409, { error: 'Another operation is already running on this device' });
 
         try {
@@ -1465,6 +1470,7 @@ function createApp(options = {}) {
         const input = await body(req);
         const game = gameById(input.gameId);
         if (game?.id !== 'galaxyquest') throw new Error('Choose GalaxyQuest');
+        requireSupported(game);
         if (!canQueueInstall(input.serial)) return json(res, 409, { error: 'Another operation is already running on this device' });
 
         try {
@@ -1511,6 +1517,7 @@ function createApp(options = {}) {
         const input = await body(req);
         const game = gameById(input.gameId);
         if (game?.id !== 'road-rash-vr') throw new Error('Choose Road Rash Jailbreak VR');
+        requireSupported(game);
         if (typeof input.discImage !== 'string' || !['.bin', '.cue', '.zip', '.7z', '.rar'].includes(path.extname(input.discImage).toLowerCase())) {
           throw new Error('Choose an owned USA Road Rash BIN/CUE, ZIP, 7z, or RAR disc image');
         }
@@ -1532,6 +1539,7 @@ function createApp(options = {}) {
         const input = await body(req);
         const game = gameById(input.gameId);
         if (game?.id !== 'harry-potter-vr') throw new Error('Choose Harry Potter VR');
+        requireSupported(game);
         if (typeof input.gamePath !== 'string' || !path.isAbsolute(input.gamePath)) throw new Error('Choose your owned US PC game folder or ZIP');
         const gameStat = await fs.stat(input.gamePath).catch(() => null);
         if (!gameStat || !gameStat.isDirectory() && (!['.zip', '.7z', '.rar'].includes(path.extname(input.gamePath).toLowerCase()) || !gameStat.isFile())) throw new Error('Choose an existing game folder, ZIP, 7z, or RAR');
@@ -1617,6 +1625,7 @@ function createApp(options = {}) {
       if (url.pathname === '/api/build-tools' && req.method === 'POST') {
         const input = await body(req);
         if (!buildToolGames.has(input.gameId)) throw new Error('Choose a supported build tool setup');
+        requireSupported(gameById(input.gameId));
         if (busyBuildGames.has(input.gameId)) return json(res, 409, { error: 'Game tool setup or build is already running' });
         const downloadLocation = await validateBuildToolsLocation(input.downloadLocation);
         if (busyBuildGames.has(input.gameId)) return json(res, 409, { error: 'Game tool setup or build is already running' });
@@ -1692,6 +1701,7 @@ function createApp(options = {}) {
         const requestInput = await body(req);
         const game = gameById(requestInput.gameId);
         if (!game || !['gta-sa-vr', 'rdr1-vr', 'vice-city-vr', 'crazy-taxi-vr', 'fzero-x-virtuavr', 'bioshock-vr', 'victory-heat-rally-vr'].includes(game.id)) throw new Error('Choose a supported personal build');
+        requireSupported(game);
         if (buildToolGames.has(game.id) && busyBuildGames.has(game.id)) return json(res, 409, { error: 'Game tool setup or build is already running' });
         const downloadLocation = buildToolGames.has(game.id) && (game.id === 'vice-city-vr' || buildToolsLocation(game.id))
           ? await validateBuildToolsLocation(buildToolsLocation(game.id)) : null;

@@ -42,7 +42,7 @@ test('BioShock card uses the official Quest 3/3S installer and validates the own
   await fs.mkdir(path.join(gamePackage, 'Content'));
   await fs.writeFile(path.join(gamePackage, 'Builds', 'Release', 'Bioshock.exe'), 'fixture');
   const calls = [];
-  const app = createApp({ settingsPath: path.join(root, 'settings.json'),
+  const app = createApp({ platform: 'win32', settingsPath: path.join(root, 'settings.json'),
     adb: { listDevices: async () => [{ serial: 'Q3S-ONE', state: 'device' }], run: async () => 'Quest 3S' },
     releases: { latest: async () => ({ tag: 'initial-release' }) },
     bioshockInstaller: async (input) => { calls.push(input); return { tag: 'initial-release', packageId: 'com.winlator.cmod', version: 'initial-release' }; },
@@ -73,7 +73,7 @@ test('Vice City accepts one owned game folder and builds only for the selected Q
   await fs.writeFile(path.join(gamePackage, 'data', 'gta.dat'), 'owned fixture');
   const calls = [];
   await fs.writeFile(path.join(root, 'settings.json'), JSON.stringify({ buildToolsLocations: { 'vice-city-vr': root } }));
-  const app = createApp({ settingsPath: path.join(root, 'settings.json'),
+  const app = createApp({ platform: 'win32', settingsPath: path.join(root, 'settings.json'),
     adb: { listDevices: async () => [{ serial: 'Q3A', state: 'device' }, { serial: 'Q3B', state: 'device' }] },
     viceCityBuilder: async (input, _roots, log) => { calls.push(input); log('Official Vice City builder finished'); return { sha: 'a'.repeat(40) }; },
   });
@@ -156,7 +156,7 @@ test('Crazy Taxi accepts one owned Android package and patches only for the sele
   const gamePackage = path.join(root, 'com.sega.CrazyTaxiplayhaven_6.0-80_2arch_7dpi_24lang_1feat_017e8b1c582569ff9682193551b7e22c_apkmirror.com.apkm');
   await fs.writeFile(gamePackage, Buffer.from('PK\u0003\u0004owned fixture'));
   const calls = [];
-  const app = createApp({ settingsPath: path.join(root, 'settings.json'),
+  const app = createApp({ platform: 'win32', settingsPath: path.join(root, 'settings.json'),
     adb: { listDevices: async () => [{ serial: 'Q3A', state: 'device' }, { serial: 'Q3B', state: 'device' }] },
     crazyTaxiInstaller: async (input) => { calls.push(input); await fs.writeFile(input.outputPath, Buffer.from('PK\u0003\u0004personal APK')); input.onLog('Patched Crazy Taxi APK installed'); return { tag: 'v0.1-beta', apkPath: input.outputPath }; },
   });

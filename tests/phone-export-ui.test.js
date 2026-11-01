@@ -27,7 +27,8 @@ function harness(gameId = 'rdr1-vr') {
     },
   });
   vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'public', 'app.js'), 'utf8').replace(/\nboot\(\);/, '\n'), context);
-  context.game = getCatalog().find((entry) => entry.id === gameId);
+  // These tests drive the Windows build flow, so the fixture game is supported regardless of the host.
+  context.game = { ...getCatalog().find((entry) => entry.id === gameId), support: { supported: true } };
   vm.runInContext("state.games = [game]; state.selectedId = game.id; state.inputs[game.id] = { gamePackage: 'E:\\\\Owned Games\\\\game.apkm' }; renderJob = () => {}; renderGrid = () => {}; updateInstallEnabled = () => {};", context);
   return { context, elements, requests };
 }

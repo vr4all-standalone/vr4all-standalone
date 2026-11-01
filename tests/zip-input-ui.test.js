@@ -1046,7 +1046,7 @@ test('bulk install sends remembered game files when the saved-file scan omitted 
 
 test('official installer ports with saved game files are bulk selectable without a separate APK', () => {
   const { context, elements } = appHarness();
-  context.road = getCatalog().find((game) => game.id === 'road-rash-vr');
+  context.road = { ...getCatalog().find((game) => game.id === 'road-rash-vr'), support: { supported: true } }; // Windows flow under test
   vm.runInContext(`
     state.games = [road]; state.selectedSerial = 'QUEST'; state.deviceLibrary.QUEST = {};
     state.bulkMode = 'new'; state.bulkMatches = [];
@@ -1221,7 +1221,7 @@ test('forgetting a Bulk install choice updates the list without running the slow
 
 test('Bulk install can build a game with its saved inputs, including RDR', async () => {
   const { context, elements } = appHarness();
-  const rdr = getCatalog().find((entry) => entry.id === 'rdr1-vr');
+  const rdr = { ...getCatalog().find((entry) => entry.id === 'rdr1-vr'), support: { supported: true } }; // Windows flow under test
   context.rdr = rdr;
   const requests = [];
   context.mockApi = async (url, options) => {
