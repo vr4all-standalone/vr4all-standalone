@@ -133,3 +133,17 @@ test('folder ZIP packaging works on Windows without a separate 7-Zip installatio
     await fs.rm(root, { recursive: true, force: true });
   }
 });
+
+test('packageDirectoryToZip writes a real ZIP (PK signature), not a tar named .zip', async () => {
+  const source = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-zipsig-'));
+  let converted;
+  try {
+    await fs.writeFile(path.join(source, 'game.bin'), 'fixture');
+    converted = await packageDirectoryToZip(source, 'sig');
+    const head = (await fs.readFile(converted.path)).subarray(0, 2).toString('latin1');
+    assert.equal(head, 'PK');
+  } finally {
+    if (converted) await removeConversionDirectory(converted.directory);
+    await fs.rm(source, { recursive: true, force: true });
+  }
+});

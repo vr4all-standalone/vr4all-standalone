@@ -253,13 +253,14 @@ async function packageDirectoryToZip(source, name = path.basename(source)) {
   const manifest = path.join(directory, 'files.txt');
   try {
     await fs.writeFile(manifest, `${topLevel.join('\n')}\n`, 'utf8');
-    const tar = process.platform === 'win32'
-      ? path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'tar.exe')
-      : 'tar';
     try {
-      await runFile(tar, ['-a', '-cf', zipPath, '-C', source, '-T', manifest], {
-        windowsHide: true, timeout: 10 * 60 * 1000, maxBuffer: 10 * 1024 * 1024,
-      });
+      if (process.platform === 'win32') {
+        await runFile(path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'tar.exe'), ['-a', '-cf', zipPath, '-C', source, '-T', manifest], {
+          windowsHide: true, timeout: 10 * 60 * 1000, maxBuffer: 10 * 1024 * 1024,
+        });
+      } else {
+        await runSevenZip(await sevenZipPath(), ['a', '-tzip', '-bd', zipPath, `@${manifest}`], { cwd: source });
+      }
     } catch (error) {
       throw new Error(`Could not package folder as ZIP: ${String(error.stderr || error.message).trim().slice(0, 320)}`);
     }
