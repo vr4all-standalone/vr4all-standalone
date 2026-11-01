@@ -575,7 +575,7 @@ function personalBuildHtml(game) {
 
 function romRequirementHelp(game, item) {
   const requirement = item.romRequirement;
-  const copy = `<button type="button" class="copy-requirement" data-copy-item="${escapeHtml(item.id)}" title="Copy the exact game file requirement">Copy requirement</button>`;
+  const copy = `<button type="button" class="copy-requirement" data-copy-item="${escapeHtml(item.id)}" title="Copy the documented game file requirement">Copy requirement</button>`;
   if (requirement) {
     const check = requirement.discSha1
       ? 'VR4ALL checks the CHD identity header before transfer; the port checks the complete disc on launch.'
@@ -595,14 +595,14 @@ function romRequirementHelp(game, item) {
 function requirementCopyText(game, item) {
   const title = game.gameName || game.title;
   if (item.romRequirement) return `${title} — ${item.romRequirement.set} — ${item.romRequirement.revision}`;
-  const firstNote = String(item.note || '').split(/\.\s/)[0].trim();
-  return [title, item.label, firstNote].filter(Boolean).join(' — ');
+  if (item.copyRequirement) return item.copyRequirement;
+  return [title, item.label, String(item.note || '').trim()].filter(Boolean).join(' — ');
 }
 
 function buildRequirementCopyText(game) {
   const build = game.personalBuild || {};
-  const firstHint = String(build.gameHint || '').split(/\.\s/)[0].trim();
-  return [game.gameName || game.title, build.gameLabel || 'Original game files', firstHint].filter(Boolean).join(' — ');
+  if (build.copyRequirement) return build.copyRequirement;
+  return [game.gameName || game.title, build.gameLabel || 'Original game files', String(build.gameHint || '').trim()].filter(Boolean).join(' — ');
 }
 
 function detailHtml(game) {

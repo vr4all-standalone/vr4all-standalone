@@ -2,6 +2,7 @@ const download = '/sdcard/Download/';
 const fs = require('node:fs');
 const path = require('node:path');
 const { originalNames } = require('./original-names');
+const { ORIGINAL_NAME: CRAZY_TAXI_ORIGINAL_NAME } = require('./crazy-taxi-runner');
 const { additions, additionFacets } = require('./catalog-additions');
 const { newPorts, newPortFacets } = require('./catalog-new-ports');
 const { questports, questportFacets } = require('./catalog-questports');
@@ -331,7 +332,7 @@ const games = [
     description: 'A standalone VR patch of Crazy Taxi for Android.',
     source: { repo: 'Baywilly/Crazy-Taxi-VR-Standalone', releasePattern: 'v0\\.1-beta$', assetPattern: '^crazywilly\\.xdelta$' }, releaseKind: 'patch',
     manualBuild: true, projectUrl: 'https://github.com/Baywilly/Crazy-Taxi-VR-Standalone', data: [],
-    personalBuild: { gameLabel: 'Crazy Taxi APKM or Crazy Taxi VR APK', gameHint: 'Drop your compatible original Crazy Taxi APKM or an already patched Crazy Taxi VR APK. Either can also be inside a ZIP, 7z, or RAR. VR4ALL checks the file contents and installs the right result.', fileOnly: true, inputStep: 'Drop your Crazy Taxi package', actionLabel: 'Prepare and install', toolUrl: 'https://github.com/marco-calautti/DeltaPatcher', decoderUrl: 'https://github.com/jmacd/xdelta', processDescription: 'For the compatible original APKM, VR4ALL downloads the verified v0.1-beta xdelta patch and applies it locally. An already patched Crazy Taxi VR APK is installed directly. The app verifies the Quest APK package before installation.' },
+    personalBuild: { gameLabel: 'Crazy Taxi APKM or Crazy Taxi VR APK', gameHint: `The creator's compatible original APKM reference filename is ${CRAZY_TAXI_ORIGINAL_NAME}. VR4ALL checks package and version contents, so a renamed copy can work. An already patched Crazy Taxi VR APK also works. Either can be inside a ZIP, 7z, or RAR.`, copyRequirement: CRAZY_TAXI_ORIGINAL_NAME, fileOnly: true, inputStep: 'Drop your Crazy Taxi package', actionLabel: 'Prepare and install', toolUrl: 'https://github.com/marco-calautti/DeltaPatcher', decoderUrl: 'https://github.com/jmacd/xdelta', processDescription: 'For the compatible original APKM, VR4ALL downloads the verified v0.1-beta xdelta patch and applies it locally. An already patched Crazy Taxi VR APK is installed directly. The app verifies the Quest APK package before installation.' },
     guidance: 'The official release is an xdelta patch. Supply your own exact compatible original Crazy Taxi APKM for automatic patching, or an already patched Crazy Taxi VR APK. VR4ALL identifies the input by its contents before installing.',
     afterInstall: 'Open Crazy Taxi VR on the headset to confirm it plays.',
   },
