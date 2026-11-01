@@ -14,16 +14,17 @@ const NOT_ON_LINUX = Object.freeze({
 });
 // Ports whose Linux install path exists. x64: the Linux artifacts are x86-64 only.
 // wine: the creator's Windows helper tools run through Wine, so it must be installed.
+// tested: a user has completed this install end to end from Linux, so it carries no experimental note.
 const LINUX_PORTS = Object.freeze({
   'crazy-taxi-vr': { x64: true },
   'magic-carpet-vr': { x64: true },
   'galaxyquest': {},
   'gt2-vr': {},
   'descent12-vr': {},
-  'animal-crossing-vr': {},
+  'animal-crossing-vr': { tested: true },
   'road-rash-vr': {},
   'gothic2-vr': {},
-  'gta-sa-vr': { x64: true },
+  'gta-sa-vr': { x64: true, tested: true },
   'rdr1-vr': { x64: true },
   'vice-city-vr': { x64: true },
   'victory-heat-rally-vr': { x64: true },
@@ -45,6 +46,7 @@ function platformSupport(game, platform = process.platform, host = {}) {
   const entry = LINUX_PORTS[game.id];
   if (!entry) return { supported: false, reason: WINDOWS_ONLY_REASON };
   if (entry.x64 && (host.arch || process.arch) !== 'x64') return { supported: false, reason: ARCH_REASON };
+  if (entry.tested) return { supported: true };
   if (entry.wine) {
     if (!(host.findWine || findWineLauncher)()) return { supported: false, reason: WINE_REASON };
     return { supported: true, experimental: true, note: `${EXPERIMENTAL_NOTE} It runs the creator’s Windows tools through Wine.` };

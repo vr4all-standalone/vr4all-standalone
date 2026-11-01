@@ -11,14 +11,22 @@ const byId = (id) => getCatalog().find((entry) => entry.id === id);
 const LINUX_REFUSED = ['bioshock-vr'];
 
 // Ports with a Linux path that needs an x86-64 host. Each port task adds its id.
-const LINUX_EXPERIMENTAL = ['crazy-taxi-vr', 'magic-carpet-vr', 'gta-sa-vr', 'rdr1-vr', 'vice-city-vr', 'victory-heat-rally-vr'];
+const LINUX_EXPERIMENTAL = ['crazy-taxi-vr', 'magic-carpet-vr', 'rdr1-vr', 'vice-city-vr', 'victory-heat-rally-vr'];
 
 // Ports with a Linux path that runs on any architecture (Node or Python). Each port task adds its id.
 // Ports with a Linux path that needs an x86-64 host and Wine. Each port task adds its id.
 const LINUX_EXPERIMENTAL_WINE = ['fzero-x-virtuavr', 'harry-potter-vr'];
 const WINE = () => ({ kind: 'wine', path: '/usr/bin/wine' });
 
-const LINUX_EXPERIMENTAL_ANY_ARCH = ['galaxyquest', 'gt2-vr', 'descent12-vr', 'animal-crossing-vr', 'road-rash-vr', 'gothic2-vr'];
+const LINUX_EXPERIMENTAL_ANY_ARCH = ['galaxyquest', 'gt2-vr', 'descent12-vr', 'road-rash-vr', 'gothic2-vr'];
+
+test('Linux ports installed end to end from Linux carry no experimental note, and keep their host limits', () => {
+  assert.deepEqual(platformSupport(byId('animal-crossing-vr'), 'linux', { arch: 'arm64' }), { supported: true });
+  assert.deepEqual(platformSupport(byId('gta-sa-vr'), 'linux', { arch: 'x64' }), { supported: true });
+  const arm = platformSupport(byId('gta-sa-vr'), 'linux', { arch: 'arm64' });
+  assert.equal(arm.supported, false);
+  assert.match(arm.reason, /x64/);
+});
 
 test('Windows runs every port', () => {
   for (const game of getCatalog()) assert.equal(platformSupport(game, 'win32').supported, true, game.id);
