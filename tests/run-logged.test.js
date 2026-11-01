@@ -44,13 +44,13 @@ test('runLogged passes cwd and env to the child', async () => {
 });
 
 test('runLogged kills a process that outlives its timeout', async () => {
-  await assert.rejects(node('setInterval(()=>{},1000)', { timeoutMs: 100 }), /node did not finish within \d+ minutes/);
+  await assert.rejects(node('setInterval(()=>{},1000)', { timeoutMs: 100 }), /node(\.exe)? did not finish within \d+ minutes/);
 });
 
 test('runLogged rejects output beyond 8 MiB when capturing', async () => {
   await assert.rejects(
     node("const b=Buffer.alloc(1024*1024,97);let n=0;(function w(){while(n++<12){if(!process.stdout.write(b))return process.stdout.once('drain',w)}})()", { captureStdout: true }),
-    /node printed more than 8 MiB of output/,
+    /node(\.exe)? printed more than 8 MiB of output/,
   );
 });
 

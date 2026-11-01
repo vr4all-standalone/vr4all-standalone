@@ -125,7 +125,8 @@ test('an already prepared SDK needs no license acceptance or installation', asyn
 });
 
 test('PowerShell imports SDK helpers without running the author game installer', { skip: process.platform !== 'win32' }, async (t) => {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-sdk-import-'));
+  // realpath: the Windows temp folder can be an 8.3 short path (RUNNER~1) while PowerShell reports the long one.
+  const root = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-sdk-import-')));
   t.after(() => fs.rm(root, { recursive: true, force: true }));
   const kit = path.join(root, 'kit');
   await fs.mkdir(path.join(kit, 'tools'), { recursive: true });
@@ -174,7 +175,8 @@ throw 'The game installer entry point must never run during SDK setup'
 
 for (const gameId of ['rdr1-vr', 'gta-sa-vr']) {
 test(`${gameId} bootstrap imports its own SDK requirements without executing the game installer or accepting licenses`, { skip: process.platform !== 'win32' }, async (t) => {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-rdr-sdk-import-'));
+  // realpath: the Windows temp folder can be an 8.3 short path (RUNNER~1) while PowerShell reports the long one.
+  const root = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-rdr-sdk-import-')));
   t.after(() => fs.rm(root, { recursive: true, force: true }));
   const kit = path.join(root, 'kit');
   await fs.mkdir(path.join(kit, 'tools'), { recursive: true });

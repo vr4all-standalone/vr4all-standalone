@@ -8,6 +8,7 @@ const { getCatalog } = require('../src/catalog');
 const { buildInstallPlan } = require('../src/core');
 
 test('Honeydew resolves only the checksum-verified Quest APK from the creator site', async (t) => {
+  await fs.mkdir(path.join(__dirname, '..', '.cache'), { recursive: true });
   const root = await fs.mkdtemp(path.join(__dirname, '..', '.cache', 'honeydew-test-'));
   t.after(() => fs.rm(root, { recursive: true, force: true }));
   const originalFetch = global.fetch;

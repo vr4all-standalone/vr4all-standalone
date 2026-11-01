@@ -25,7 +25,7 @@ test('wineInvocation carries its own prefix and quiet environment', { skip: proc
     env: { WINEPREFIX: '/root/wine', WINEDEBUG: '-all', WINEDLLOVERRIDES: 'mscoree,mshtml=;winemenubuilder.exe=d' } });
 });
 
-test('runWindowsTool creates the prefix folder and passes the environment, cwd and limits to the runner', async () => {
+test('runWindowsTool creates the prefix folder and passes the environment, cwd and limits to the runner', { skip: process.platform === 'win32' && 'Linux-only install path (POSIX paths, file modes or shell tools)' }, async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-wine-run-'));
   try {
     const calls = [];

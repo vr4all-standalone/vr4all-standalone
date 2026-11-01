@@ -30,7 +30,7 @@ async function fixture(t, importerBytes) {
   return { root, apkPath, importerZip, gamePath, calls, adb, workRoot };
 }
 
-test('Linux runs the official importer then transfers to the selected Quest', async (t) => {
+test('Linux runs the official importer then transfers to the selected Quest', { skip: process.platform === 'win32' && 'Linux-only install path (POSIX paths, file modes or shell tools)' }, async (t) => {
   const f = await fixture(t, '\x7fELF');
   const execs = [];
   let mode;

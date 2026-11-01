@@ -314,7 +314,7 @@ test('Linux resolves symlinked game inputs to their real files, Windows leaves t
 });
 
 for (const gameId of ['rdr1-vr', 'gta-sa-vr']) {
-  test(`Linux ${gameId} runs the creator script with the shared tools and the selected Quest`, async () => {
+  test(`Linux ${gameId} runs the creator script with the shared tools and the selected Quest`, { skip: process.platform === 'win32' && 'Linux-only install path (POSIX paths, file modes or shell tools)' }, async () => {
     const lines = [];
     let call;
     const input = { gamePackage: '/games/export.zip', audioSource: gameId === 'gta-sa-vr' ? '/games/audio.7z' : null, serial: 'Q3' };

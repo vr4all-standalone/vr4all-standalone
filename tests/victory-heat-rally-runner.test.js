@@ -103,7 +103,7 @@ function fakeRunner(calls, { patchLine = 'Patched', buildLine = 'Built VHRQuest.
   };
 }
 
-test('Victory Heat Rally Linux build downloads the pinned CLI and loader then patches and builds with the creator scripts', async () => {
+test('Victory Heat Rally Linux build downloads the pinned CLI and loader then patches and builds with the creator scripts', { skip: process.platform === 'win32' && 'Linux-only install path (POSIX paths, file modes or shell tools)' }, async () => {
   const f = await linuxKit({ sha: 'verified data.win' });
   const calls = [];
   const logs = [];

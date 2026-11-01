@@ -142,7 +142,7 @@ const run = (env, adb, fake, overrides = {}) => installHarryPotterLinux(
   { findWine: () => WINE, findTool: () => FFMPEG, runner: fake.runner, ...overrides },
 );
 
-test('Linux install runs every helper under Wine with Z: paths and imports the verified data', async (t) => {
+test('Linux install runs every helper under Wine with Z: paths and imports the verified data', { skip: process.platform === 'win32' && 'Linux-only install path (POSIX paths, file modes or shell tools)' }, async (t) => {
   const env = await setup(t);
   env.logs = [];
   const adb = fakeAdb();

@@ -191,7 +191,7 @@ test('Linux serializes different games and releases the queue after an error', a
   assert.ok(logs.some((line) => /Waiting for the other build/.test(line)));
 });
 
-test('Linux aliases the pinned command-line tools between latest and the versioned name and finds the newest JDK 21', async (t) => {
+test('Linux aliases the pinned command-line tools between latest and the versioned name and finds the newest JDK 21', { skip: process.platform === 'win32' && 'Linux-only install path (POSIX paths, file modes or shell tools)' }, async (t) => {
   const root = await fixture(t);
   const options = { platform: 'linux' };
   await linux(path.join(root, 'rdr1-vr'), async (work) => {

@@ -57,7 +57,7 @@ test('Windows builds relocate the Android user folder and drop the inherited Pow
   });
 });
 
-test('Linux builds use the shared temp and Gradle folders but leave the Android user folder alone', () => {
+test('Linux builds use the shared temp and Gradle folders but leave the Android user folder alone', { skip: process.platform === 'win32' && 'Linux-only install path (POSIX paths, file modes or shell tools)' }, () => {
   withEnv({ ANDROID_USER_HOME: '/home/user/.android', APPIMAGE: undefined, LD_LIBRARY_PATH: '/keep' }, () => {
     const env = buildEnvironment('/work/shared', { platform: 'linux' });
     for (const key of ['TEMP', 'TMP', 'TMPDIR']) assert.equal(env[key], '/work/shared/.tmp', key);

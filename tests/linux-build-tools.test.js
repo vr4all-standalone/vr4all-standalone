@@ -205,7 +205,7 @@ function pinsFor(jdkBody = 'jdk archive', cliBody = 'cli archive') {
   return { pins, fetchImpl: fakeFetch({ [JDK_URL]: jdkBody, [CLI_URL]: cliBody }) };
 }
 
-test('the JDK is downloaded with its pin, unpacked, checked for version 21 and installed under the shared name', async (t) => {
+test('the JDK is downloaded with its pin, unpacked, checked for version 21 and installed under the shared name', { skip: process.platform === 'win32' && 'Linux-only install path (POSIX paths, file modes or shell tools)' }, async (t) => {
   const root = await fixture(t);
   const { pins, fetchImpl } = pinsFor();
   const tools = fakeTools();
@@ -240,7 +240,7 @@ test('a missing tar or unzip is reported by name and package', async (t) => {
   await assert.rejects(ensureCommandLineTools(root, pins.cli, { findTool: () => null, fetchImpl }), /unzip is required on Linux \(package unzip\)/);
 });
 
-test('the command-line tools are unpacked with unzip, made executable and found in the versioned folder', async (t) => {
+test('the command-line tools are unpacked with unzip, made executable and found in the versioned folder', { skip: process.platform === 'win32' && 'Linux-only install path (POSIX paths, file modes or shell tools)' }, async (t) => {
   const root = await fixture(t);
   const { pins, fetchImpl } = pinsFor();
   const tools = fakeTools();
@@ -272,7 +272,7 @@ test('an archive without bin/sdkmanager is refused', async (t) => {
   assert.deepEqual(await fs.readdir(path.join(root, '.tools')), []);
 });
 
-test('prepareSdkToolsLinux returns the same settings shape as the PowerShell helper', async (t) => {
+test('prepareSdkToolsLinux returns the same settings shape as the PowerShell helper', { skip: process.platform === 'win32' && 'Linux-only install path (POSIX paths, file modes or shell tools)' }, async (t) => {
   const root = await fixture(t);
   const kit = path.join(root, 'kit');
   await fs.mkdir(path.join(kit, 'tools'), { recursive: true });
@@ -336,7 +336,7 @@ test('assertLinuxToolsReady demands the JDK, the command-line tools and every SD
   assert.deepEqual(await assertLinuxToolsReady(kit, toolsDir), { javaHome: path.join(toolsDir, '.tools', 'jdk-21.0.11+10-linux-x64'), sdkRoot: path.join(toolsDir, '.android-sdk') });
 });
 
-test('buildShellArgs passes each kit exactly the options its script accepts', () => {
+test('buildShellArgs passes each kit exactly the options its script accepts', { skip: process.platform === 'win32' && 'Linux-only install path (POSIX paths, file modes or shell tools)' }, () => {
   const kit = '/kits/k';
   const tools = { toolsDir: '/work/shared', javaHome: '/work/shared/.tools/jdk', sdkRoot: '/work/shared/.android-sdk' };
   const script = '/kits/k/tools/build-and-install.sh';
@@ -349,7 +349,7 @@ test('buildShellArgs passes each kit exactly the options its script accepts', ()
     [script, '--game-dir', '/vc', '--serial', 'Q1', '--non-interactive', ...common]);
 });
 
-test('setupBuildTools on Linux installs the JDK and tools into the one shared folder, then asks SDK Manager for the missing packages', async (t) => {
+test('setupBuildTools on Linux installs the JDK and tools into the one shared folder, then asks SDK Manager for the missing packages', { skip: process.platform === 'win32' && 'Linux-only install path (POSIX paths, file modes or shell tools)' }, async (t) => {
   const { setupBuildTools } = require('../src/android-sdk-setup');
   const root = await fixture(t);
   const kit = path.join(root, 'kit');

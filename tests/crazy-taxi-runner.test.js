@@ -221,7 +221,7 @@ async function xdelta3Tarball(root, firstBytes) {
   return { bytes, asset: { url: 'https://example.test/xdelta3.tar.gz', sha256: crypto.createHash('sha256').update(bytes).digest('hex'), maxBytes: 1024 * 1024, member } };
 }
 
-test('Linux prepares the pinned xdelta3 tarball as an executable ELF', async (t) => {
+test('Linux prepares the pinned xdelta3 tarball as an executable ELF', { skip: process.platform === 'win32' && 'Linux-only install path (POSIX paths, file modes or shell tools)' }, async (t) => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-crazy-taxi-linux-'));
   t.after(() => fs.rm(root, { recursive: true, force: true }));
   const { bytes, asset } = await xdelta3Tarball(root, '\x7fELF');
