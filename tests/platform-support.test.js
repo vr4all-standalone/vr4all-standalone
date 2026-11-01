@@ -8,10 +8,10 @@ const { createApp } = require('../server');
 const byId = (id) => getCatalog().find((entry) => entry.id === id);
 
 // Ports without a Linux install path. Each port task removes its id from this list.
-const LINUX_REFUSED = ['bioshock-vr', 'vice-city-vr', 'fzero-x-virtuavr', 'victory-heat-rally-vr', 'harry-potter-vr'];
+const LINUX_REFUSED = ['bioshock-vr', 'fzero-x-virtuavr', 'victory-heat-rally-vr', 'harry-potter-vr'];
 
 // Ports with a Linux path that needs an x86-64 host. Each port task adds its id.
-const LINUX_EXPERIMENTAL = ['crazy-taxi-vr', 'magic-carpet-vr', 'gta-sa-vr', 'rdr1-vr'];
+const LINUX_EXPERIMENTAL = ['crazy-taxi-vr', 'magic-carpet-vr', 'gta-sa-vr', 'rdr1-vr', 'vice-city-vr'];
 
 // Ports with a Linux path that runs on any architecture (Node or Python). Each port task adds its id.
 const LINUX_EXPERIMENTAL_ANY_ARCH = ['galaxyquest', 'gt2-vr', 'descent12-vr', 'animal-crossing-vr', 'road-rash-vr', 'gothic2-vr'];
@@ -93,7 +93,7 @@ test('Linux server refuses the creator-script builds and their tool setup on a n
   const app = createApp({ platform: 'linux', arch: 'arm64', adb: { listDevices: async () => { touched.push('adb'); return []; } },
     personalBuilder: async () => { touched.push('build'); }, viceCityBuilder: async () => { touched.push('vice'); }, sdkSetup: async () => { touched.push('sdk'); } });
   const attempts = [['/api/personal-build', { gameId: 'gta-sa-vr', serial: 'Q3' }], ['/api/personal-build', { gameId: 'rdr1-vr', serial: 'Q3' }],
-    ['/api/build-tools', { gameId: 'gta-sa-vr', downloadLocation: '/tmp' }]];
+    ['/api/personal-build', { gameId: 'vice-city-vr', serial: 'Q3' }], ['/api/build-tools', { gameId: 'vice-city-vr', downloadLocation: '/tmp' }]];
   for (const [url, payload] of attempts) {
     const response = await request(app, url, payload);
     assert.equal(response.status, 400, `${url} ${payload.gameId}`);
@@ -109,7 +109,7 @@ test('Linux server refuses Windows-only installs before any device, download or 
     personalBuilder: async () => { touched.push('build'); }, sdkSetup: async () => { touched.push('sdk'); } });
   const attempts = [['/api/personal-build', { gameId: 'victory-heat-rally-vr', serial: 'Q3' }], ['/api/personal-build', { gameId: 'bioshock-vr', serial: 'Q3' }],
     ['/api/install', { gameId: 'bioshock-vr', serial: 'Q3', apkMode: 'github' }],
-    ['/api/harry-potter-install', { gameId: 'harry-potter-vr', serial: 'Q3' }], ['/api/build-tools', { gameId: 'vice-city-vr', downloadLocation: '/tmp' }]];
+    ['/api/harry-potter-install', { gameId: 'harry-potter-vr', serial: 'Q3' }]];
   for (const [url, payload] of attempts) {
     const response = await request(app, url, payload);
     assert.equal(response.status, 400, `${url} ${payload.gameId}`);

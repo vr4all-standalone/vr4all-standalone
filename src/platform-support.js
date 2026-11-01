@@ -21,6 +21,7 @@ const LINUX_PORTS = Object.freeze({
   'gothic2-vr': {},
   'gta-sa-vr': { x64: true },
   'rdr1-vr': { x64: true },
+  'vice-city-vr': { x64: true },
 });
 
 // personalBuild covers the creator PowerShell kits (GTA SA, RDR, Vice City), the BioShock

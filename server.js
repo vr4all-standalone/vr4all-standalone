@@ -652,7 +652,7 @@ function createApp(options = {}) {
         convertedGame = await convertArchiveToZip(input.gamePackage, { tempRoot: path.join(viceCityRoots(input.downloadLocation).workRoot, 'vice-city-vr', '.tmp') });
       }
       const kit = game.id === 'vice-city-vr'
-        ? await viceCityBuilder({ ...input, gamePackage: convertedGame?.path || input.gamePackage }, viceCityRoots(input.downloadLocation), log)
+        ? await viceCityBuilder({ ...input, gamePackage: convertedGame?.path || input.gamePackage }, viceCityRoots(input.downloadLocation), log, { platform: options.platform })
         : game.id === 'victory-heat-rally-vr'
         ? await victoryHeatBuilder({ ...input, releases, source: sourceFor(game), adb, workspaceRoot: buildWorkRoot(), inspectApk, onLog: log })
         : await personalBuilder(game.id, input, input.downloadLocation ? viceCityRoots(input.downloadLocation) : personalRoots(), log, { platform: options.platform });
