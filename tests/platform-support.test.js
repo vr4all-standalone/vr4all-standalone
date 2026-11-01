@@ -8,12 +8,16 @@ const { createApp } = require('../server');
 const byId = (id) => getCatalog().find((entry) => entry.id === id);
 
 // Ports without a Linux install path. Each port task removes its id from this list.
-const LINUX_REFUSED = ['bioshock-vr', 'fzero-x-virtuavr', 'harry-potter-vr'];
+const LINUX_REFUSED = ['bioshock-vr', 'harry-potter-vr'];
 
 // Ports with a Linux path that needs an x86-64 host. Each port task adds its id.
 const LINUX_EXPERIMENTAL = ['crazy-taxi-vr', 'magic-carpet-vr', 'gta-sa-vr', 'rdr1-vr', 'vice-city-vr', 'victory-heat-rally-vr'];
 
 // Ports with a Linux path that runs on any architecture (Node or Python). Each port task adds its id.
+// Ports with a Linux path that needs an x86-64 host and Wine. Each port task adds its id.
+const LINUX_EXPERIMENTAL_WINE = ['fzero-x-virtuavr'];
+const WINE = () => ({ kind: 'wine', path: '/usr/bin/wine' });
+
 const LINUX_EXPERIMENTAL_ANY_ARCH = ['galaxyquest', 'gt2-vr', 'descent12-vr', 'animal-crossing-vr', 'road-rash-vr', 'gothic2-vr'];
 
 test('Windows runs every port', () => {
@@ -42,6 +46,22 @@ test('Linux enables the ports that have a Linux install path, as experimental', 
 test('Linux enables the architecture-independent ports as experimental on every host', () => {
   for (const id of LINUX_EXPERIMENTAL_ANY_ARCH) {
     for (const arch of ['x64', 'arm64']) assert.deepEqual(platformSupport(byId(id), 'linux', { arch }), { supported: true, experimental: true, note: EXPERIMENTAL_NOTE }, `${id} ${arch}`);
+  }
+});
+
+test('Linux enables the Wine ports as experimental only when Wine is found', () => {
+  for (const id of LINUX_EXPERIMENTAL_WINE) {
+    const result = platformSupport(byId(id), 'linux', { arch: 'x64', findWine: WINE });
+    assert.equal(result.supported, true, id);
+    assert.equal(result.experimental, true, id);
+    assert.ok(result.note.startsWith(EXPERIMENTAL_NOTE), id);
+    assert.match(result.note, /Wine/, id);
+    const none = platformSupport(byId(id), 'linux', { arch: 'x64', findWine: () => null });
+    assert.equal(none.supported, false, id);
+    assert.match(none.reason, /Wine/, id);
+    const arm = platformSupport(byId(id), 'linux', { arch: 'arm64', findWine: WINE });
+    assert.equal(arm.supported, false, id);
+    assert.match(arm.reason, /x64/, id);
   }
 });
 
@@ -99,6 +119,16 @@ test('Linux server refuses the creator-script builds and their tool setup on a n
     assert.equal(response.status, 400, `${url} ${payload.gameId}`);
     assert.match(response.body.error, /x64/, `${url} ${payload.gameId}`);
   }
+  assert.deepEqual(touched, []);
+});
+
+test('Linux server refuses a Wine port before any device, download or spawn when Wine is missing', async () => {
+  const touched = [];
+  const app = createApp({ platform: 'linux', arch: 'x64', findWine: () => null, adb: { listDevices: async () => { touched.push('adb'); return []; } },
+    fzeroVirtuaInstaller: async () => { touched.push('fzero'); } });
+  const response = await request(app, '/api/personal-build', { gameId: 'fzero-x-virtuavr', serial: 'Q3' });
+  assert.equal(response.status, 400);
+  assert.match(response.body.error, /Wine/);
   assert.deepEqual(touched, []);
 });
 

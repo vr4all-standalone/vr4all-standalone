@@ -153,6 +153,7 @@ function createApp(options = {}) {
   const defaultScanFolder = path.resolve(options.downloadsPath || path.join(os.homedir(), 'Downloads'));
   const builderHome = settingsPath ? path.dirname(settingsPath) : path.join(os.tmpdir(), 'vr4all-personal-build');
   const builderRoots = options.builderRoots || { cacheRoot: path.join(builderHome, 'source-kits'), workRoot: path.join(builderHome, 'builds') };
+  const winePrefix = path.join(builderHome, 'wine');
   function buildWorkRoot() { return settings.buildWorkspace || builderRoots.workRoot; }
   function personalRoots() { return { ...builderRoots, workRoot: buildWorkRoot() }; }
   function viceCityRoots(downloadLocation) {
@@ -757,7 +758,7 @@ function createApp(options = {}) {
     let prepared = null;
     try {
       prepared = await prepareFzeroPaths(input);
-      const result = await fzeroVirtuaInstaller(prepared.prepared, { adb, onLog: log });
+      const result = await fzeroVirtuaInstaller(prepared.prepared, { adb, onLog: log, winePrefix });
       job.status = 'success';
       log('VirtuaVRPort APK and all three prepared game files were transferred. Open it on the Quest to confirm the graphics.');
       settings.installed[input.serial] ||= {};

@@ -471,10 +471,11 @@ test('F-Zero X VirtuaVRPort personal install uses its own ROM preparation flow a
   await fs.writeFile(rom, 'test fixture');
   await fs.writeFile(bundle, 'test fixture');
   const calls = [];
+  const prefixes = [];
   const app = createApp({ platform: 'win32',
     adb: { listDevices: async () => [{ serial: 'Q3-ONE', state: 'device' }, { serial: 'Q3-TWO', state: 'device' }] },
     validateFzeroVirtuaInput: async (input) => input,
-    fzeroVirtuaInstaller: async (input) => { calls.push(input); return { packageId: 'dev.gdiffuser.quest', tag: 'R10' }; },
+    fzeroVirtuaInstaller: async (input, services) => { calls.push(input); prefixes.push(services.winePrefix); return { packageId: 'dev.gdiffuser.quest', tag: 'R10' }; },
   });
   try {
     const started = await request(app, 'POST', '/api/personal-build', { gameId: 'fzero-x-virtuavr', serial: 'Q3-TWO', gamePackage: rom, audioSource: bundle });
@@ -485,6 +486,7 @@ test('F-Zero X VirtuaVRPort personal install uses its own ROM preparation flow a
     assert.equal(calls[0].serial, 'Q3-TWO');
     assert.equal(calls[0].gamePackage, rom);
     assert.equal(calls[0].audioSource, bundle);
+    assert.equal(path.basename(prefixes[0]), 'wine');
   } finally { app.server.close(); await fs.rm(root, { recursive: true, force: true }); }
 });
 
