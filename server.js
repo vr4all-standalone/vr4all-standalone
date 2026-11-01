@@ -654,7 +654,7 @@ function createApp(options = {}) {
       const kit = game.id === 'vice-city-vr'
         ? await viceCityBuilder({ ...input, gamePackage: convertedGame?.path || input.gamePackage }, viceCityRoots(input.downloadLocation), log, { platform: options.platform })
         : game.id === 'victory-heat-rally-vr'
-        ? await victoryHeatBuilder({ ...input, releases, source: sourceFor(game), adb, workspaceRoot: buildWorkRoot(), inspectApk, onLog: log })
+        ? await victoryHeatBuilder({ ...input, releases, source: sourceFor(game), adb, workspaceRoot: buildWorkRoot(), inspectApk, onLog: log, platform: options.platform })
         : await personalBuilder(game.id, input, input.downloadLocation ? viceCityRoots(input.downloadLocation) : personalRoots(), log, { platform: options.platform });
       job.sourceCommit = kit.sha;
       job.status = 'success';
