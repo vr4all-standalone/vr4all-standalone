@@ -126,8 +126,14 @@ function allowQuest3SInInstaller(source) {
   return source.replace(originalCheck, "if ($model.Text.Trim() -in @('Quest 3', 'Quest 3S')) { $quests += $serial }");
 }
 
+// Ports whose creator installer is PowerShell on Windows and has a Linux path here; loaded lazily (they require this module).
+const linuxInstallers = {
+  'gt2-vr': (args) => require('./gt2-linux').installGt2Linux(args),
+};
+
 async function installOfficialPlayer(input) {
   const { gameId, gamePath, serial, adbPath, adb, zipPath, onLog = () => {}, runScript = runPowerShell } = input || {};
+  const platform = input?.platform || process.platform;
   const recipe = recipes[gameId];
   if (!recipe) throw new Error('No integrated Quest player recipe for this port');
   if (!/^[A-Za-z0-9._:-]+$/.test(serial || '')) throw new Error('Choose a connected Quest');
@@ -148,6 +154,13 @@ async function installOfficialPlayer(input) {
       await adb.run(['-s', serial, 'install', '-r', apk], (chunk) => onLog(String(chunk).trim().slice(0, 500)));
       return { apk, updatedOnly: true };
     }
+    const linuxInstall = platform === 'win32' ? null : (input.linuxInstallers || linuxInstallers)[gameId] || null;
+    if (linuxInstall) {
+      onLog('Preparing your owned game data with VR4ALL’s Linux installer for this port...');
+      const result = await linuxInstall({ release: path.join(work, 'release'), apk, gamePath, serial, adb, adbPath, work, onLog, selectedQuest });
+      return { apk, updatedOnly: false, ...result };
+    }
+    if (platform !== 'win32') throw new Error('This port has no Linux installer yet');
     const script = await findRecipeFile(path.join(work, 'release'), recipe.script);
     if (gameId === 'animal-crossing-vr' && selectedQuest?.model === 'Quest 3S') {
       const original = await fs.readFile(script, 'utf8');
