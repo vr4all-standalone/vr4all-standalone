@@ -49,7 +49,7 @@ RDR requires a complete Android game export and an engine supported by the mod's
 ## Requirements
 
 - Windows x64 PC.
-- Linux x64 with `adb`, `7z` (p7zip), `chdman` (mame-tools) and `zenity` or `kdialog` installed; ports that need Windows-only tools are shown as unavailable.
+- Linux x64 with `adb`, `7z` (p7zip), `chdman` (mame-tools) and `zenity` or `kdialog` installed; most Windows-tool ports run through Linux artifacts or Wine and are marked experimental; BioShock VR is unavailable (see `docs/user-guide.md`).
 - A Meta Quest supported by the chosen port, a USB data cable, Developer Mode, and USB debugging.
 - Your own legally obtained game files for any port that requires them.
 
