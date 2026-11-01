@@ -33,10 +33,10 @@ VR4ALL runs on Linux x64 as a development preview in your browser, as the Electr
    - `zenity` or `kdialog`: file and folder choosers for **Browse** in the browser preview. The desktop app and AppImage use Electron's own chooser. Without them, type the path in the field.
 2. Install udev rules for the Quest so `adb` can open the USB device without root, for example the `android-udev` or `android-udev-rules` package, or a rule for Meta's USB vendor ID `2833`. Replug the headset, accept **Allow USB debugging** inside it, and confirm `adb devices` lists it as `device`.
 3. Start the browser preview with `./start.sh` (needs Node.js 20 or newer), or the desktop app with `npm install` then `npm run start:desktop`.
-4. Build the AppImage with `npm run dist:linux`. It writes `dist/VR4ALL-linux-x64.AppImage`; mark it executable with `chmod +x dist/VR4ALL-linux-x64.AppImage` and run it. If your environment sets `CI`, electron-builder tries to publish and asks for a GitHub token; run `env -u CI npm run dist:linux`. Building needs network access the first time to download Electron and the AppImage toolchain.
+4. After `npm install`, build the AppImage with `npm run dist:linux`. It writes `dist/VR4ALL-linux-x64.AppImage`; mark it executable with `chmod +x dist/VR4ALL-linux-x64.AppImage` and run it. Building needs network access the first time to download Electron and the AppImage toolchain.
 5. Ports that install through creator PowerShell kits or Windows `.exe` tools (personal builds, installer and patch kits, and the official-zip, Road Rash, Harry Potter, GalaxyQuest and Magic Carpet installs) are shown as unavailable on Linux and are never run.
 
-The in-app self-update is for the Windows portable `.exe`; update the Linux build by rebuilding or downloading a new AppImage.
+The in-app self-update is for the Windows portable `.exe`; update the Linux build by pulling the latest source and rebuilding the AppImage.
 
 ## How profiles work
 

@@ -7,7 +7,7 @@
   "scripts": {
     "start:desktop": "electron .",
     "dist:win": "electron-builder --win portable --x64",
-    "dist:linux": "electron-builder --linux AppImage --x64",
+    "dist:linux": "electron-builder --linux AppImage --x64 --publish never",
     "test": "node --test"
   },
   "devDependencies": {
