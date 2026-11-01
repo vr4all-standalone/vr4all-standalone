@@ -3,12 +3,13 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
+const { sevenZipBinary } = require('./helpers/seven-zip');
 const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const { inspectListing, needsZipConversion, inspectDirectory, inspectDirectoryArchive, extractDirectoryArchive, packageDirectoryToZip, removeConversionDirectory, convertArchiveToZip } = require('../src/archive-conversion');
 const runFile = promisify(execFile);
-const sevenZip = path.join(process.env.ProgramFiles || 'C:\\Program Files', '7-Zip', '7z.exe');
-const bundledZip = path.join(__dirname, '..', 'vendor', '7zip', '7z.exe');
+const sevenZip = sevenZipBinary();
+const bundledZip = sevenZipBinary();
 
 test('game archive conversion stays on the selected drive and removes its private files', { skip: process.platform !== 'win32' }, async (t) => {
   const root = await fs.mkdtemp(path.join(__dirname, '.selected-conversion-'));
@@ -90,7 +91,6 @@ test('folder packing rejects links, empty folders, unsafe names, and over-limit 
 });
 
 test('folder contents are packed at ZIP root with nested paths preserved', { skip: process.platform !== 'win32' }, async () => {
-  if (!(await fs.stat(sevenZip).catch(() => null))?.isFile()) return;
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-pack-root-'));
   let converted;
   try {

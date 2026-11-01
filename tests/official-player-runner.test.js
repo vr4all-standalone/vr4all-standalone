@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
+const { sevenZipBinary } = require('./helpers/seven-zip');
 const { spawnSync } = require('node:child_process');
 const { requireSingleQuest3Family, allowQuest3SInInstaller, installOfficialPlayer } = require('../src/official-player-runner');
 
@@ -42,7 +43,7 @@ test('Quest 3S adaptation changes only the released installer model check', () =
 test('Animal Crossing adapts only its extracted installer for Quest 3S before running it', { skip: process.platform !== 'win32' }, async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-animal-3s-'));
   const adbPath = path.join(__dirname, '..', 'vendor', 'platform-tools', 'adb.exe');
-  const sevenZip = path.join(__dirname, '..', 'vendor', '7zip', '7z.exe');
+  const sevenZip = sevenZipBinary();
   const archive = path.join(root, 'creator.zip');
   const bundle = path.join(root, 'bundle');
   const gamePath = path.join(root, 'game.iso');

@@ -3,13 +3,14 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
+const { sevenZipBinary } = require('./helpers/seven-zip');
 const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const { getCatalog } = require('../src/catalog');
 const { scanLibraryFolder, scanLibraryPaths } = require('../src/library-folder');
 const { inspectDirectoryArchive, inspectSingleFileArchive } = require('../src/archive-conversion');
 const runFile = promisify(execFile);
-const bundledZip = path.join(__dirname, '..', 'vendor', '7zip', '7z.exe');
+const bundledZip = sevenZipBinary();
 
 test('one folder matches official APK names and verifies Nintendo 64 game identity', async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-library-'));

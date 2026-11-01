@@ -3,12 +3,13 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
+const { sevenZipBinary } = require('./helpers/seven-zip');
 const { Readable } = require('node:stream');
 const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const { createApp } = require('../server');
 const runFile = promisify(execFile);
-const sevenZip = path.join(process.env.ProgramFiles || 'C:\\Program Files', '7-Zip', '7z.exe');
+const sevenZip = sevenZipBinary();
 const winRar = path.join(process.env.ProgramFiles || 'C:\\Program Files', 'WinRAR', 'Rar.exe');
 
 function request(app, method, url, payload, authorized = true, headers = {}) {
@@ -262,7 +263,7 @@ test('selected game files keep their original path across restart', async () => 
 test('one chosen board or BIOS file fills matching games and Forget clears the shared choice', { skip: process.platform !== 'win32' }, async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-shared-input-'));
   const settingsPath = path.join(root, 'settings.json');
-  const sevenZipTool = path.join(__dirname, '..', 'vendor', '7zip', '7z.exe');
+  const sevenZipTool = sevenZipBinary();
   const board = path.join(root, 'namcoc71.zip');
   const bios = path.join(root, 'naomi.zip');
   await fs.writeFile(path.join(root, 'board.bin'), 'board fixture');
@@ -304,7 +305,7 @@ test('one chosen board or BIOS file fills matching games and Forget clears the s
 test('an older saved BIOS choice fills matching games when settings are opened', { skip: process.platform !== 'win32' }, async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-shared-migrate-'));
   const settingsPath = path.join(root, 'settings.json');
-  const sevenZipTool = path.join(__dirname, '..', 'vendor', '7zip', '7z.exe');
+  const sevenZipTool = sevenZipBinary();
   const bios = path.join(root, 'naomi.zip');
   await fs.writeFile(path.join(root, 'board.bin'), 'board fixture');
   await runFile(sevenZipTool, ['a', '-tzip', bios, 'board.bin'], { cwd: root, windowsHide: true });
@@ -629,7 +630,6 @@ test('Doom3Quest folder validation rejects incomplete game data', async () => {
 });
 
 test('ZIP field accepts a folder, remembers its source path, and installs the ZIP contents', { skip: process.platform !== 'win32' }, async () => {
-  if (!(await fs.stat(sevenZip).catch(() => null))?.isFile()) return;
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-folder-api-'));
   const source = path.join(root, 'timecris');
   const boardSource = path.join(root, 'namcoc71');
@@ -675,7 +675,7 @@ test('ZIP field accepts a folder, remembers its source path, and installs the ZI
 });
 
 test('Rave Racer accepts archived c71.bin and transfers the extracted BIOS file', { skip: process.platform !== 'win32' }, async () => {
-  const bundledZip = path.join(__dirname, '..', 'vendor', '7zip', '7z.exe');
+  const bundledZip = sevenZipBinary();
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-c71-bios-'));
   const calls = [];
   let transferredBios = null;
@@ -726,7 +726,7 @@ test('Rave Racer accepts archived c71.bin and transfers the extracted BIOS file'
 });
 
 test('single-file game fields accept ZIP, 7z, and RAR wrappers and reject ambiguous archives', { skip: process.platform !== 'win32' }, async () => {
-  const bundledZip = path.join(__dirname, '..', 'vendor', '7zip', '7z.exe');
+  const bundledZip = sevenZipBinary();
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-wrapped-rom-'));
   const calls = [];
   const app = createApp({ settingsPath: path.join(root, 'settings.json'), adb: simulatedTransferAdb(async (args) => { calls.push(args); }), releases: {}, inspectApkPackage: async () => null });
@@ -771,7 +771,7 @@ test('single-file game fields accept ZIP, 7z, and RAR wrappers and reject ambigu
 });
 
 test('a local port APK can be selected from a ZIP wrapper without keeping an extracted copy', { skip: process.platform !== 'win32' }, async () => {
-  const bundledZip = path.join(__dirname, '..', 'vendor', '7zip', '7z.exe');
+  const bundledZip = sevenZipBinary();
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-wrapped-apk-'));
   const calls = [];
   let installedBytes = '';
@@ -850,7 +850,7 @@ test('Wipeout install packages selected game data in the configured PC build fol
 });
 
 test('a ZIP game set inside a 7z wrapper is unwrapped and its original path is remembered', { skip: process.platform !== 'win32' }, async () => {
-  const bundledZip = path.join(__dirname, '..', 'vendor', '7zip', '7z.exe');
+  const bundledZip = sevenZipBinary();
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-nested-zip-'));
   let transferredListing = '';
   const app = createApp({ settingsPath: path.join(root, 'settings.json'), adb: simulatedTransferAdb(async (args) => {
@@ -892,7 +892,7 @@ test('a ZIP game set inside a 7z wrapper is unwrapped and its original path is r
 });
 
 test('F-Zero X personal setup accepts a wrapped ROM and creator ZIP', { skip: process.platform !== 'win32' }, async () => {
-  const bundledZip = path.join(__dirname, '..', 'vendor', '7zip', '7z.exe');
+  const bundledZip = sevenZipBinary();
   const winRarTool = path.join(process.env.ProgramFiles || 'C:\\Program Files', 'WinRAR', 'Rar.exe');
   if (!(await fs.stat(winRarTool).catch(() => null))?.isFile()) return;
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-fzero-wrapped-'));
@@ -935,7 +935,7 @@ test('F-Zero X personal setup accepts a wrapped ROM and creator ZIP', { skip: pr
 
 test('directory field accepts a ZIP and transfers extracted game files while remembering the archive', { skip: process.platform !== 'win32' }, async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-dir-archive-api-'));
-  const bundledZip = path.join(__dirname, '..', 'vendor', '7zip', '7z.exe');
+  const bundledZip = sevenZipBinary();
   const archive = path.join(root, 'Quake id1.zip');
   const apkPath = path.join(root, 'port.apk');
   const calls = [];
@@ -966,7 +966,6 @@ test('directory field accepts a ZIP and transfers extracted game files while rem
 });
 
 test('multiple uploaded game files package into one ZIP at its root', { skip: process.platform !== 'win32' }, async () => {
-  if (!(await fs.stat(sevenZip).catch(() => null))?.isFile()) return;
   const app = createApp({ adb: { listDevices: async () => [] }, releases: {} });
   try {
     const session = await request(app, 'POST', '/api/bulk-sessions', {});
@@ -1100,7 +1099,6 @@ test('saved library ignores an unselected Downloads ROM and uses only the game c
 });
 
 test('7z drop converts to a verified ZIP for a game file field', { skip: process.platform !== 'win32' }, async () => {
-  if (!(await fs.stat(sevenZip).catch(() => null))?.isFile()) return;
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-archive-test-'));
   const app = createApp({ adb: { listDevices: async () => [] }, releases: {}, picker: async () => null });
   try {
@@ -1127,7 +1125,7 @@ test('invalid RAR drop is rejected before it can be staged', async () => {
 });
 
 test('real RAR drop converts to a verified ZIP', { skip: process.platform !== 'win32' }, async () => {
-  if (!(await fs.stat(winRar).catch(() => null))?.isFile() || !(await fs.stat(sevenZip).catch(() => null))?.isFile()) return;
+  if (!(await fs.stat(winRar).catch(() => null))?.isFile()) return;
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-rar-test-'));
   const app = createApp({ adb: { listDevices: async () => [] }, releases: {}, picker: async () => null });
   try {
@@ -1398,7 +1396,7 @@ test('AvP and UT99 reject incomplete retail folders before an install starts', a
     await fs.writeFile(path.join(avp, 'FASTFILE', 'data.ffl'), 'data');
     assert.equal((await request(app, 'POST', '/api/validate-file', { gameId: 'avp-vr', itemId: 'game', path: avp })).status, 200);
     const avpZip = path.join(temp, 'avp.zip');
-    await runFile(path.join(__dirname, '..', 'vendor', '7zip', '7z.exe'), ['a', '-tzip', avpZip, '.'], { cwd: avp });
+    await runFile(sevenZipBinary(), ['a', '-tzip', avpZip, '.'], { cwd: avp });
     assert.equal((await request(app, 'POST', '/api/validate-file', { gameId: 'avp-vr', itemId: 'game', path: avpZip })).status, 200);
     const ut = path.join(temp, 'ut');
     for (const folder of ['System', 'Maps', 'Textures', 'Sounds', 'Music']) {
@@ -1410,7 +1408,7 @@ test('AvP and UT99 reject incomplete retail folders before an install starts', a
     for (const file of ['Core.u', 'Engine.u', 'Botpack.u']) await fs.writeFile(path.join(ut, 'System', file), 'package');
     assert.equal((await request(app, 'POST', '/api/validate-file', input)).status, 200);
     const utZip = path.join(temp, 'ut.zip');
-    await runFile(path.join(__dirname, '..', 'vendor', '7zip', '7z.exe'), ['a', '-tzip', utZip, '.'], { cwd: ut });
+    await runFile(sevenZipBinary(), ['a', '-tzip', utZip, '.'], { cwd: ut });
     assert.equal((await request(app, 'POST', '/api/validate-file', { ...input, path: utZip })).status, 200);
     const wolf = path.join(temp, 'wolf');
     await fs.mkdir(wolf);
@@ -1475,7 +1473,7 @@ test('AvP install unpacks a TAR of owned assets into its app folder when nested 
     await fs.writeFile(path.join(installed, 'user_profiles', 'player.prf'), 'quest save');
     await fs.writeFile(path.join(installed, 'default.cfg'), 'quest settings');
     const archive = path.join(root, 'game.zip');
-    await runFile(path.join(__dirname, '..', 'vendor', '7zip', '7z.exe'), ['a', '-tzip', archive, '.'], { cwd: source });
+    await runFile(sevenZipBinary(), ['a', '-tzip', archive, '.'], { cwd: source });
     const apk = path.join(root, 'avp.apk');
     await fs.writeFile(apk, 'APK fixture');
     const started = await request(app, 'POST', '/api/install', { gameId: 'avp-vr', serial: 'Q3-FAKE', apkMode: 'local', apkPath: apk, files: { game: archive } });

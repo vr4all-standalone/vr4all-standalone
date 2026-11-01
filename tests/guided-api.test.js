@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
+const { sevenZipBinary } = require('./helpers/seven-zip');
 const { Readable } = require('node:stream');
 const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
@@ -93,7 +94,7 @@ test('Vice City accepts a RAR export and remembers the archive while building fr
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-vc-rar-'));
   const rarTool = path.join(process.env.ProgramFiles || 'C:\\Program Files', 'WinRAR', 'Rar.exe');
   if (!(await fs.stat(rarTool).catch(() => null))?.isFile()) { await fs.rm(root, { recursive: true, force: true }); return; }
-  const sevenZip = path.join(__dirname, '..', 'vendor', '7zip', '7z.exe');
+  const sevenZip = sevenZipBinary();
   let receivedListing = '';
   await fs.writeFile(path.join(root, 'settings.json'), JSON.stringify({ buildToolsLocations: { 'vice-city-vr': root } }));
   const app = createApp({ settingsPath: path.join(root, 'settings.json'),
@@ -183,7 +184,7 @@ test('Crazy Taxi accepts one owned Android package and patches only for the sele
 
 test('Crazy Taxi accepts an APK inside a ZIP and keeps the archive as the remembered source', { skip: process.platform !== 'win32' }, async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-taxi-wrapped-'));
-  const sevenZip = path.join(__dirname, '..', 'vendor', '7zip', '7z.exe');
+  const sevenZip = sevenZipBinary();
   let received = '';
   const app = createApp({ settingsPath: path.join(root, 'settings.json'),
     adb: { listDevices: async () => [{ serial: 'Q3A', state: 'device' }] },
@@ -210,7 +211,7 @@ test('special installer inputs accept a RAR and pass a temporary ZIP to the crea
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-special-rar-'));
   const rarTool = path.join(process.env.ProgramFiles || 'C:\\Program Files', 'WinRAR', 'Rar.exe');
   if (!(await fs.stat(rarTool).catch(() => null))?.isFile()) { await fs.rm(root, { recursive: true, force: true }); return; }
-  const sevenZip = path.join(__dirname, '..', 'vendor', '7zip', '7z.exe');
+  const sevenZip = sevenZipBinary();
   const calls = [];
   const app = createApp({ settingsPath: path.join(root, 'settings.json'),
     adb: { listDevices: async () => [{ serial: 'Q3A', state: 'device' }] },
@@ -237,7 +238,7 @@ test('special installer inputs accept a RAR and pass a temporary ZIP to the crea
 
 test('official player setup accepts an archive containing one disc and remembers its source', { skip: process.platform !== 'win32' }, async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-official-archive-'));
-  const sevenZip = path.join(__dirname, '..', 'vendor', '7zip', '7z.exe');
+  const sevenZip = sevenZipBinary();
   let received = '';
   const app = createApp({ settingsPath: path.join(root, 'settings.json'),
     adb: { listDevices: async () => [{ serial: 'Q3A', state: 'device', model: 'Quest 3' }], run: async (args) => args.includes('pm') ? 'package:com.liquidazir.animalcrossingquest' : '' },
@@ -261,7 +262,7 @@ test('official player setup accepts an archive containing one disc and remembers
 
 test('AstroQuest setup accepts a ZIP of the extracted game tree', { skip: process.platform !== 'win32' }, async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-astro-archive-'));
-  const sevenZip = path.join(__dirname, '..', 'vendor', '7zip', '7z.exe');
+  const sevenZip = sevenZipBinary();
   let received = '';
   const app = createApp({ settingsPath: path.join(root, 'settings.json'),
     adb: { listDevices: async () => [{ serial: 'Q3A', state: 'device', model: 'Quest 3' }], run: async () => '' },
@@ -285,7 +286,7 @@ test('AstroQuest setup accepts a ZIP of the extracted game tree', { skip: proces
 
 test('GalaxyQuest setup accepts a 7z containing its disc image', { skip: process.platform !== 'win32' }, async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-galaxy-archive-'));
-  const sevenZip = path.join(__dirname, '..', 'vendor', '7zip', '7z.exe');
+  const sevenZip = sevenZipBinary();
   let received = '';
   let workspaceCandidate = '';
   const app = createApp({ settingsPath: path.join(root, 'settings.json'),
@@ -313,7 +314,7 @@ test('GalaxyQuest setup accepts a 7z containing its disc image', { skip: process
 
 test('Descent 3 setup accepts a ZIP of the owned game folder', { skip: process.platform !== 'win32' }, async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-descent-archive-'));
-  const sevenZip = path.join(__dirname, '..', 'vendor', '7zip', '7z.exe');
+  const sevenZip = sevenZipBinary();
   let received = '';
   const app = createApp({ settingsPath: path.join(root, 'settings.json'),
     adb: { listDevices: async () => [{ serial: 'Q3A', state: 'device', model: 'Quest 3' }], run: async () => '' },
@@ -335,7 +336,7 @@ test('Descent 3 setup accepts a ZIP of the owned game folder', { skip: process.p
 
 test('Beef Raider transfers creator-extracted data from a ZIP', { skip: process.platform !== 'win32' }, async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-beef-archive-'));
-  const sevenZip = path.join(__dirname, '..', 'vendor', '7zip', '7z.exe');
+  const sevenZip = sevenZipBinary();
   let received = '';
   const app = createApp({ settingsPath: path.join(root, 'settings.json'),
     adb: { listDevices: async () => [{ serial: 'Q3A', state: 'device', model: 'Quest 3' }], run: async () => '' },
@@ -361,7 +362,7 @@ test('Beef Raider transfers creator-extracted data from a ZIP', { skip: process.
 
 test('Magic Carpet setup accepts an archived owned game folder', { skip: process.platform !== 'win32' }, async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-magic-archive-'));
-  const sevenZip = path.join(__dirname, '..', 'vendor', '7zip', '7z.exe');
+  const sevenZip = sevenZipBinary();
   let received = '';
   const app = createApp({ settingsPath: path.join(root, 'settings.json'),
     adb: { listDevices: async () => [{ serial: 'Q3A', state: 'device', model: 'Quest 3' }], run: async () => '' },
@@ -383,7 +384,7 @@ test('Magic Carpet setup accepts an archived owned game folder', { skip: process
 
 test('JKXR setup passes a ZIP of Jedi game files to the creator installer', { skip: process.platform !== 'win32' }, async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-jkxr-archive-'));
-  const sevenZip = path.join(__dirname, '..', 'vendor', '7zip', '7z.exe');
+  const sevenZip = sevenZipBinary();
   let received = '';
   const app = createApp({ settingsPath: path.join(root, 'settings.json'),
     adb: { listDevices: async () => [{ serial: 'Q3A', state: 'device', model: 'Quest 3' }], run: async () => '' },

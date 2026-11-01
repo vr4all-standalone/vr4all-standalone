@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
+const { sevenZipBinary } = require('./helpers/seven-zip');
 const { EventEmitter } = require('node:events');
 const { PassThrough } = require('node:stream');
 const { validatePersonalBuildInput, buildPowerShellArgs, acquireSourceKit, runAuthorScript, runPersonalBuild, withCompatibleGamePackage } = require('../src/personal-build');
@@ -211,7 +212,7 @@ test('personal builder reports FAILED messages from the author instead of a gene
 test('7z personal game archives reach the builder as ZIP and clean up on failure', { skip: process.platform !== 'win32' }, async (t) => {
   const { promisify } = require('node:util');
   const runFile = promisify(require('node:child_process').execFile);
-  const binary = path.join(__dirname, '..', 'vendor', '7zip', '7z.exe');
+  const binary = sevenZipBinary();
   const root = await fs.mkdtemp(path.join(__dirname, '.personal-7z-'));
   t.after(() => fs.rm(root, { recursive: true, force: true }));
   await fs.writeFile(path.join(root, 'base.apk'), 'owned APK');
