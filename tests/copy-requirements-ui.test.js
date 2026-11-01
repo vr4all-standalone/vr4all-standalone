@@ -5,15 +5,21 @@ const path = require('node:path');
 const vm = require('node:vm');
 const { getCatalog } = require('../src/catalog');
 
-function appContext() {
+function appContext({ desktopCopy, denyBrowserClipboard = false, fallbackCopy } = {}) {
   const listeners = {};
   const copied = [];
   const element = () => ({ hidden: true, value: '', addEventListener() {}, classList: { toggle() {} } });
   const context = vm.createContext({
     document: { querySelector: element, querySelectorAll: () => [], getElementById: element,
-      addEventListener(name, handler) { listeners[name] = handler; }, body: { dataset: {} } },
-    window: { QUESTDESK_TOKEN: 'test', addEventListener() {} },
-    navigator: { clipboard: { async writeText(value) { copied.push(value); } } },
+      addEventListener(name, handler) { listeners[name] = handler; },
+      createElement: () => ({ value: '', select() {}, remove() {} }),
+      execCommand: (name) => { if (name === 'copy' && fallbackCopy) return fallbackCopy(); return false; },
+      body: { dataset: {}, appendChild() {} } },
+    window: { QUESTDESK_TOKEN: 'test', addEventListener() {}, ...(desktopCopy ? { vr4allDesktop: { copyText: desktopCopy } } : {}) },
+    navigator: { clipboard: { async writeText(value) {
+      if (denyBrowserClipboard) throw new Error('Write permission denied');
+      copied.push(value);
+    } } },
     setTimeout() {}, clearTimeout() {}, setInterval() {}, console,
   });
   const script = fs.readFileSync(path.join(__dirname, '..', 'public', 'app.js'), 'utf8').replace(/\nboot\(\);/, '\n');
@@ -41,6 +47,27 @@ test('clicking Copy requirement writes the selected port’s exact arcade set to
   await context.listeners.click({ target: { closest: (selector) => selector === '.copy-requirement'
     ? { dataset: { copyItem: 'timecris' } } : null } });
   assert.match(context.copied[0], /timecris\.zip.*MAME 0\.289/);
+});
+
+test('desktop Copy requirement works when Chromium clipboard permission is denied', async () => {
+  const copied = [];
+  const context = appContext({
+    denyBrowserClipboard: true,
+    desktopCopy: async (value) => copied.push(value),
+  });
+  vm.runInContext('state.selectedId = "time-crisis-vr"', context);
+  await context.listeners.click({ target: { closest: (selector) => selector === '.copy-requirement'
+    ? { dataset: { copyItem: 'timecris' } } : null } });
+  assert.match(copied[0], /timecris\.zip.*MAME 0\.289/);
+});
+
+test('web preview tries the selection fallback after clipboard permission denial', async () => {
+  let fallbackCalls = 0;
+  const context = appContext({ denyBrowserClipboard: true, fallbackCopy: () => { fallbackCalls++; return true; } });
+  vm.runInContext('state.selectedId = "time-crisis-vr"', context);
+  await context.listeners.click({ target: { closest: (selector) => selector === '.copy-requirement'
+    ? { dataset: { copyItem: 'timecris' } } : null } });
+  assert.equal(fallbackCalls, 1);
 });
 
 test('nonarcade and build profiles also show copyable owned-game requirements', () => {

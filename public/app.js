@@ -1792,14 +1792,22 @@ document.addEventListener('click', async (event) => {
     if (!game || !item && copyRequirement.dataset.copyBuild !== 'gamePackage') return;
     const value = item ? requirementCopyText(game, item) : buildRequirementCopyText(game);
     try {
-      if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(value);
+      if (window.vr4allDesktop?.copyText) await window.vr4allDesktop.copyText(value);
       else {
-        const field = document.createElement('textarea');
-        field.value = value;
-        document.body.appendChild(field);
-        field.select();
-        if (!document.execCommand('copy')) throw new Error('Clipboard access unavailable');
-        field.remove();
+        let copied = false;
+        if (navigator.clipboard?.writeText) {
+          try { await navigator.clipboard.writeText(value); copied = true; }
+          catch { /* Try the selection-based browser fallback. */ }
+        }
+        if (!copied) {
+          const field = document.createElement('textarea');
+          field.value = value;
+          document.body.appendChild(field);
+          try {
+            field.select();
+            if (!document.execCommand('copy')) throw new Error('Clipboard access unavailable');
+          } finally { field.remove(); }
+        }
       }
       toast('Game-file requirement copied.');
     } catch (error) { toast(`Could not copy: ${error.message}`, true); }

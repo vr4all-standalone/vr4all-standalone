@@ -1,11 +1,12 @@
 const path = require('node:path');
 const fs = require('node:fs');
-const { app, BrowserWindow, dialog, ipcMain, shell, session } = require('electron');
+const { app, BrowserWindow, clipboard, dialog, ipcMain, shell, session } = require('electron');
 const { createApp } = require('../server');
 const { GitHubReleases } = require('../src/releases');
 const { profilePaths } = require('./profile-paths');
 const { confirmExitWithInstalls } = require('./exit-guard');
 const { AppUpdater, installApprovedUpdate, startReplacement } = require('./app-updater');
+const { createClipboardHandler } = require('./clipboard');
 
 // Keep Windows PowerShell helpers independent of the shell that opened VR4ALL.
 if (process.platform === 'win32') delete process.env.PSModulePath;
@@ -92,6 +93,7 @@ if (!ownsInstanceLock) {
       });
       traceStartup(`server=${server.address().port}`);
       const origin = `http://127.0.0.1:${server.address().port}`;
+      ipcMain.handle('clipboard-write-text', createClipboardHandler({ origin, clipboard }));
       session.defaultSession.setPermissionRequestHandler((_contents, _permission, callback) => callback(false));
       window = new BrowserWindow({
         title: 'VR4ALL',
