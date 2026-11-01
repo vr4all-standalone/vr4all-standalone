@@ -22,6 +22,22 @@ The desktop app checks for a new VR4ALL release as soon as it opens. **Check upd
 
 The installer uses `adb -s SERIAL install -r` and `adb -s SERIAL push` so multiple connected headsets are handled separately. The activity panel shows each command’s result. A completed transfer means the files reached the headset; open the game under **Unknown Sources** to confirm it runs.
 
+## Run on Linux
+
+VR4ALL runs on Linux x64 as a development preview in your browser, as the Electron desktop app, or as an AppImage. Linux uses system tools instead of the Windows binaries bundled with the portable `.exe`; the Linux AppImage does not contain any `.exe` or `.dll` vendor files. No Quest install has been tested end to end on Linux yet, so test each port in the headset.
+
+1. Install the tools VR4ALL looks up on your `PATH` (package names vary by distribution):
+   - `adb` from `android-tools` (or Android SDK Platform Tools): headset detection and installs. VR4ALL also checks `ADB_PATH`, `ANDROID_HOME` and `ANDROID_SDK_ROOT`, and **Connection help** can set another path.
+   - `7z` from `p7zip` (or `7zz`/`7za`): `.7z` and `.rar` conversion.
+   - `chdman` from `mame-tools`: required for Wipeout CHD disc images.
+   - `zenity` or `kdialog`: file and folder choosers for **Browse** in the browser preview. The desktop app and AppImage use Electron's own chooser. Without them, type the path in the field.
+2. Install udev rules for the Quest so `adb` can open the USB device without root, for example the `android-udev` or `android-udev-rules` package, or a rule for Meta's USB vendor ID `2833`. Replug the headset, accept **Allow USB debugging** inside it, and confirm `adb devices` lists it as `device`.
+3. Start the browser preview with `./start.sh` (needs Node.js 20 or newer), or the desktop app with `npm install` then `npm run start:desktop`.
+4. Build the AppImage with `npm run dist:linux`. It writes `dist/VR4ALL-linux-x64.AppImage`; mark it executable with `chmod +x dist/VR4ALL-linux-x64.AppImage` and run it. If your environment sets `CI`, electron-builder tries to publish and asks for a GitHub token; run `env -u CI npm run dist:linux`. Building needs network access the first time to download Electron and the AppImage toolchain.
+5. Ports that install through creator PowerShell kits or Windows `.exe` tools (personal builds, installer and patch kits, and the official-zip, Road Rash, Harry Potter, GalaxyQuest and Magic Carpet installs) are shown as unavailable on Linux and are never run.
+
+The in-app self-update is for the Windows portable `.exe`; update the Linux build by rebuilding or downloading a new AppImage.
+
 ## How profiles work
 
 The built-in catalog has **118 game cards and 125 port profiles**. Alternate developer ports for Time Crisis I and II, Pokémon, Halo, and Virtua Cop share their respective game cards. Virtua Cop selects the VR4ALL port by default; Port0r's Cop VR remains a separate choice with its own APK, game-file rules, and installed status. Browse by console or genre. Each card shows the original game title with real local artwork sourced in [docs/art-sources.md](art-sources.md). Some ports read ZIPs from `/sdcard/Download/`; others read extracted folders at fixed paths. Each card shows the expected format, destination, and first-launch step. Complex ports link to their official preparation guide when VR4ALL cannot perform the complete setup. Project Honeydew uses its creator website as a verified update source; the Deus Ex card tracks an in-development Quest smoke test and has no install action yet.

@@ -36,6 +36,7 @@ Installed standalone ports run on your Quest without PC streaming. VR4ALL does n
 ## Get started
 
 1. Download `VR4ALL-win-x64.exe` from [Releases](https://github.com/vr4all-standalone/vr4all-standalone/releases). Versions through 0.3.51 need this one manual download to repair their self-updater.
+   On Linux, build `VR4ALL-linux-x64.AppImage` with `npm run dist:linux` or run `./start.sh` after installing the tools listed under Requirements; see [Run on Linux](docs/user-guide.md#run-on-linux).
 2. Enable Developer Mode on your Quest, connect it with a USB data cable, and approve **USB debugging** inside the headset.
 3. Open VR4ALL and select your headset above the library.
 4. Choose a game and add the files requested on its card from a copy you own. VR4ALL shows whether it accepts the input and any extra preparation needed.
@@ -48,6 +49,7 @@ RDR requires a complete Android game export and an engine supported by the mod's
 ## Requirements
 
 - Windows x64 PC.
+- Linux x64 with `adb`, `7z` (p7zip), `chdman` (mame-tools) and `zenity` or `kdialog` installed; ports that need Windows-only tools are shown as unavailable.
 - A Meta Quest supported by the chosen port, a USB data cable, Developer Mode, and USB debugging.
 - Your own legally obtained game files for any port that requires them.
 
