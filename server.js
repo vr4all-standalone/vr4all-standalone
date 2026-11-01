@@ -918,12 +918,13 @@ function createApp(options = {}) {
     try {
       const workRoot = input.gamePath ? await galaxyWorkspacePicker(input.gamePath, path.join(buildWorkRoot(), 'galaxyquest')) : null;
       if (workRoot) log(`Using ${workRoot} for temporary GalaxyQuest conversion files.`);
-      log(input.gamePath ? 'Checking the official GalaxyQuest APK and Windows converter...' : 'Checking the official GalaxyQuest APK release...');
+      const win = (options.platform || process.platform) === 'win32';
+      log(input.gamePath ? `Checking the official GalaxyQuest APK and ${win ? 'Windows converter' : 'converter'}...` : 'Checking the official GalaxyQuest APK release...');
       const apkRelease = await releases.latest(sourceFor(game), { force: true });
-      const toolRelease = input.gamePath ? await releases.latest({ repo: 'bigmak94/GalaxyQuest', assetPattern: '^GalaxyQuest-Installer-windows-x86_64\\.exe$' }) : null;
+      const toolRelease = input.gamePath ? await releases.latest({ repo: 'bigmak94/GalaxyQuest', assetPattern: win ? '^GalaxyQuest-Installer-windows-x86_64\\.exe$' : '^GalaxyQuest-converter\\.zip$' }) : null;
       if (!apkRelease || apkRelease.stale || input.gamePath && (!toolRelease || toolRelease.stale)) throw new Error('The required official GalaxyQuest release could not be confirmed');
       const apkPath = await keepDownloadedApk(game, await releases.download(apkRelease));
-      const converterPath = input.gamePath ? await releases.downloadTool(toolRelease) : null;
+      const converterPath = input.gamePath ? await (win ? releases.downloadTool(toolRelease) : releases.downloadPackage(toolRelease)) : null;
       const result = await withSpecialGamePath(game, input.gamePath, (gamePath) => galaxyQuestInstaller({ apkPath, converterPath, gamePath: gamePath || null, serial: input.serial, adb, workRoot, onLog: log }), { tempRoot: workRoot || os.tmpdir() });
       if (input.gamePath && !(await inspectDevice(adb, input.serial, [game]))[game.id]?.dataReady) {
         throw new Error('GalaxyQuest conversion finished, but the game files were not found on the selected headset');

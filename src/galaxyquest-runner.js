@@ -1,10 +1,13 @@
 const fs = require('node:fs/promises');
+const os = require('node:os');
 const path = require('node:path');
 const { spawn } = require('node:child_process');
 const { randomUUID } = require('node:crypto');
 const { inspectDirectory } = require('./archive-conversion');
-const { removeWork } = require('./official-player-runner');
+const { removeWork, extractPlayerZip, findRecipeFile } = require('./official-player-runner');
 const { inspectApkPackage } = require('./apk-verification');
+const { findOnPath } = require('./find-tool');
+const { runLogged } = require('./run-logged');
 
 const packageId = 'com.galaxy.quest';
 const remoteGame = '/sdcard/Android/data/com.galaxy.quest/files/game';
@@ -74,8 +77,47 @@ function convertWithAuthorTool(executable, source, output, onLog) {
   });
 }
 
+// Port of the creator's game_partition (tools/install.py): the folder, or its DATA subfolder, must hold a full GameCube data partition.
+async function gamePartition(folder) {
+  const isFile = async (target) => (await fs.stat(target).catch(() => null))?.isFile() === true;
+  const isDirectory = async (target) => (await fs.stat(target).catch(() => null))?.isDirectory() === true;
+  for (const candidate of [folder, path.join(folder, 'DATA')]) {
+    if (await isFile(path.join(candidate, 'sys', 'fst.bin')) && await isFile(path.join(candidate, 'sys', 'main.dol'))
+      && await isDirectory(path.join(candidate, 'files', 'ObjectData')) && await isDirectory(path.join(candidate, 'files', 'StageData'))) return candidate;
+  }
+  throw new Error('Select the whole extracted disc folder, or its DATA folder.');
+}
+
+// Linux: runs the creator's pure-Python cook.py from GalaxyQuest-converter.zip (Windows runs the packaged installer EXE instead).
+async function convertWithCookScript(zipPath, source, output, onLog, { work, findTool = findOnPath, runner = runLogged } = {}) {
+  await extractPlayerZip(zipPath, path.join(work, 'converter'));
+  const cook = await findRecipeFile(path.join(work, 'converter'), 'tools/cook/cook.py');
+  const python = findTool(['python3', 'python']);
+  const probe = python && await runner(python, ['-c', 'import sys; sys.exit(0 if sys.version_info >= (3, 8) else 1)'], { timeoutMs: 60000 });
+  if (probe?.code !== 0) throw new Error('GalaxyQuest conversion needs Python 3.8 or newer (python3).');
+  let folder = source;
+  if ((await fs.stat(source)).isFile()) {
+    const dolphinTool = findTool(['dolphin-tool', 'DolphinTool']);
+    if (!dolphinTool) throw new Error('Disc images need dolphin-tool on Linux (Arch: pacman -S dolphin-emu-tool). Or choose the disc folder extracted with Dolphin.');
+    folder = path.join(work, 'extracted');
+    onLog('Extracting the disc image with dolphin-tool...');
+    const extracted = await runner(dolphinTool, ['extract', '-i', source, '-o', folder, '--gameonly', '--quiet'], { cwd: work, timeoutMs: 30 * 60 * 1000, onLine: onLog });
+    if (extracted.code !== 0) throw new Error('dolphin-tool could not extract the disc image: ' + extracted.tail.slice(-5).join(' | '));
+  }
+  const dataDir = await gamePartition(folder);
+  const result = await runner(python, [cook, dataDir, output, '--with-movies', '--jobs', String(Math.min(os.cpus().length, 8))], {
+    cwd: path.dirname(cook), timeoutMs: 2 * 60 * 60 * 1000, onLine: onLog, captureStdout: true,
+  });
+  const cooked = result.code === 0 && /^cooked \d+ disc files in [\d.]+s$/m.test(result.stdout)
+    && (await fs.stat(path.join(output, 'sys', 'fst.bin')).catch(() => null))?.isFile();
+  if (!cooked) {
+    const errors = result.tail.filter((line) => /^ERROR\b/.test(line));
+    throw new Error('GalaxyQuest conversion failed: ' + (errors.length ? errors : result.tail.slice(-5)).join(' | '));
+  }
+}
+
 async function installGalaxyQuest(input) {
-  const { apkPath, converterPath, gamePath, serial, adb, workRoot, onLog = () => {}, inspectApk = inspectApkPackage, convert = convertWithAuthorTool } = input || {};
+  const { apkPath, converterPath, gamePath, serial, adb, workRoot, onLog = () => {}, inspectApk = inspectApkPackage, convert } = input || {};
   if (!/^[A-Za-z0-9._:-]+$/.test(serial || '') || !adb?.run) throw new Error('Choose a connected Quest');
   if (!(await fs.stat(apkPath).catch(() => null))?.isFile()) throw new Error('Official GalaxyQuest APK is unavailable');
   if (await inspectApk(apkPath, adb.getPath?.()) !== packageId) throw new Error('APK is not the official GalaxyQuest Quest package');
@@ -85,14 +127,16 @@ async function installGalaxyQuest(input) {
     await adb.run(['-s', serial, 'install', '--no-incremental', '-r', apkPath]);
     return { packageId, updatedOnly: true };
   }
-  if (!(await fs.stat(converterPath).catch(() => null))?.isFile() || path.extname(converterPath).toLowerCase() !== '.exe') throw new Error('Official GalaxyQuest Windows converter is unavailable');
+  const converterKind = (await fs.stat(converterPath).catch(() => null))?.isFile() ? path.extname(converterPath).toLowerCase() : '';
+  if (converterKind !== '.exe' && converterKind !== '.zip') throw new Error('Official GalaxyQuest converter is unavailable');
   if (!workRoot || !path.isAbsolute(workRoot)) throw new Error('Choose a writable conversion workspace');
   await fs.mkdir(workRoot, { recursive: true });
   const work = await fs.mkdtemp(path.join(workRoot, 'vr4all-player-'));
   try {
     const cooked = path.join(work, 'converted');
     onLog('Converting your owned Super Mario Galaxy disc with the official packaged tool...');
-    await convert(converterPath, gamePath, cooked, onLog);
+    const converter = convert || (converterKind === '.zip' ? convertWithCookScript : convertWithAuthorTool);
+    await converter(converterPath, gamePath, cooked, onLog, { work });
     const summary = await inspectDirectory(cooked);
     if (!summary.files) throw new Error('GalaxyQuest converter produced no game files');
     onLog('Installing the official GalaxyQuest Quest APK...');
@@ -132,4 +176,4 @@ async function installGalaxyQuest(input) {
   }
 }
 
-module.exports = { validateGalaxyInput, chooseGalaxyWorkRoot, convertWithAuthorTool, installGalaxyQuest, packageId };
+module.exports = { validateGalaxyInput, chooseGalaxyWorkRoot, convertWithAuthorTool, convertWithCookScript, gamePartition, installGalaxyQuest, packageId };

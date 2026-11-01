@@ -9,10 +9,13 @@ const byId = (id) => getCatalog().find((entry) => entry.id === id);
 
 // Ports without a Linux install path. Each port task removes its id from this list.
 const LINUX_REFUSED = ['gta-sa-vr', 'bioshock-vr', 'vice-city-vr', 'rdr1-vr', 'fzero-x-virtuavr', 'victory-heat-rally-vr',
-  'road-rash-vr', 'harry-potter-vr', 'galaxyquest', 'descent12-vr', 'gothic2-vr', 'animal-crossing-vr', 'gt2-vr'];
+  'road-rash-vr', 'harry-potter-vr', 'descent12-vr', 'gothic2-vr', 'animal-crossing-vr', 'gt2-vr'];
 
 // Ports with a Linux path that needs an x86-64 host. Each port task adds its id.
 const LINUX_EXPERIMENTAL = ['crazy-taxi-vr', 'magic-carpet-vr'];
+
+// Ports with a Linux path that runs on any architecture (Node or Python). Each port task adds its id.
+const LINUX_EXPERIMENTAL_ANY_ARCH = ['galaxyquest'];
 
 test('Windows runs every port', () => {
   for (const game of getCatalog()) assert.equal(platformSupport(game, 'win32').supported, true, game.id);
@@ -34,6 +37,12 @@ test('Linux enables the ports that have a Linux install path, as experimental', 
     const arm = platformSupport(byId(id), 'linux', { arch: 'arm64' });
     assert.equal(arm.supported, false, id);
     assert.match(arm.reason, /x64/, id);
+  }
+});
+
+test('Linux enables the architecture-independent ports as experimental on every host', () => {
+  for (const id of LINUX_EXPERIMENTAL_ANY_ARCH) {
+    for (const arch of ['x64', 'arm64']) assert.deepEqual(platformSupport(byId(id), 'linux', { arch }), { supported: true, experimental: true, note: EXPERIMENTAL_NOTE }, `${id} ${arch}`);
   }
 });
 
@@ -88,7 +97,7 @@ test('Linux server refuses Windows-only installs before any device, download or 
   const attempts = [['/api/personal-build', { gameId: 'gta-sa-vr', serial: 'Q3' }], ['/api/personal-build', { gameId: 'bioshock-vr', serial: 'Q3' }],
     ['/api/install', { gameId: 'bioshock-vr', serial: 'Q3', apkMode: 'github' }], ['/api/install', { gameId: 'gt2-vr', serial: 'Q3', apkMode: 'github' }],
     ['/api/official-player-install', { gameId: 'gt2-vr', serial: 'Q3' }], ['/api/road-rash-install', { gameId: 'road-rash-vr', serial: 'Q3' }],
-    ['/api/harry-potter-install', { gameId: 'harry-potter-vr', serial: 'Q3' }], ['/api/galaxyquest-install', { gameId: 'galaxyquest', serial: 'Q3' }],
+    ['/api/harry-potter-install', { gameId: 'harry-potter-vr', serial: 'Q3' }],
     ['/api/build-tools', { gameId: 'vice-city-vr', downloadLocation: '/tmp' }]];
   for (const [url, payload] of attempts) {
     const response = await request(app, url, payload);
