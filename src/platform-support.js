@@ -28,6 +28,7 @@ const LINUX_PORTS = Object.freeze({
   'vice-city-vr': { x64: true },
   'victory-heat-rally-vr': { x64: true },
   'fzero-x-virtuavr': { x64: true, wine: true },
+  'harry-potter-vr': { x64: true, wine: true },
 });
 
 // personalBuild covers the creator PowerShell kits (GTA SA, RDR, Vice City), the BioShock

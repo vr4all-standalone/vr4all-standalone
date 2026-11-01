@@ -805,7 +805,7 @@ function createApp(options = {}) {
       const release = await releases.latest(sourceFor(game), { force: true });
       if (!release || release.stale) throw new Error('The current official Harry Potter player ZIP could not be confirmed');
       if (['.7z', '.rar'].includes(path.extname(input.gamePath).toLowerCase())) convertedGame = await convertArchiveToZip(input.gamePath);
-      await harryPotterInstaller({ gamePath: convertedGame?.path || input.gamePath, serial: input.serial, adbPath: adb.getPath?.() || settings.adbPath, release, onLog: log });
+      await harryPotterInstaller({ gamePath: convertedGame?.path || input.gamePath, serial: input.serial, adbPath: adb.getPath?.() || settings.adbPath, adb, winePrefix, platform: options.platform, release, onLog: log });
       job.release = { tag: release.tag, url: release.url, assetName: release.assetName };
       log('Official game validation and Quest installation completed. Open the game to confirm it plays.');
       settings.installed[input.serial] ||= {};
