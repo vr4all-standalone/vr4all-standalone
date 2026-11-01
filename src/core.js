@@ -104,7 +104,7 @@ function buildInstallPlan(game, input) {
       if (!copiedEntries.length) throw new Error(`${item.label || item.id} folder has no supported game files`);
       for (const entry of copiedEntries) {
         if (!entry || entry === '.' || entry === '..' || /[\\/]/.test(entry)) throw new Error(`Invalid file in ${item.label || item.id}`);
-        steps.push({ label: `Copy ${item.id}/${entry}`, args: [...prefix, 'push', path.win32.join(source, entry), destination] });
+        steps.push({ label: `Copy ${item.id}/${entry}`, args: [...prefix, 'push', path.join(source, entry), destination] });
       }
     } else {
       steps.push({ label: `Copy ${item.id}`, args: [...prefix, 'push', source, destination] });

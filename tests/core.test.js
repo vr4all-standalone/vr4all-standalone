@@ -1,3 +1,4 @@
+const path = require('node:path');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { parseDevices, selectRelease, buildInstallPlan } = require('../src/core');
@@ -116,9 +117,9 @@ test('18 Wheeler installs the official APK, enables file access, and copies GDI 
     ['-s', 'Q3', 'install', '-r', 'C:\\Games\\18wheeler-vr.apk'],
     ['-s', 'Q3', 'shell', 'appops', 'set', 'com.flycast.emulator.wheeler18', 'MANAGE_EXTERNAL_STORAGE', 'allow'],
     ['-s', 'Q3', 'shell', 'mkdir', '-p', '/sdcard/Download/18Wheeler'],
-    ['-s', 'Q3', 'push', 'C:\\Games\\18 Wheeler\\18wheeler.gdi', '/sdcard/Download/18Wheeler/'],
-    ['-s', 'Q3', 'push', 'C:\\Games\\18 Wheeler\\track01.bin', '/sdcard/Download/18Wheeler/'],
-    ['-s', 'Q3', 'push', 'C:\\Games\\18 Wheeler\\track02.bin', '/sdcard/Download/18Wheeler/'],
+    ['-s', 'Q3', 'push', path.join('C:\\Games\\18 Wheeler', '18wheeler.gdi'), '/sdcard/Download/18Wheeler/'],
+    ['-s', 'Q3', 'push', path.join('C:\\Games\\18 Wheeler', 'track01.bin'), '/sdcard/Download/18Wheeler/'],
+    ['-s', 'Q3', 'push', path.join('C:\\Games\\18 Wheeler', 'track02.bin'), '/sdcard/Download/18Wheeler/'],
   ]);
 });
 
@@ -164,8 +165,8 @@ test('Dark Forces Quest release installs its APK and owned game folder under the
   assert.deepEqual(plan.map(({ args }) => args), [
     ['-s', 'Q3', 'install', '-r', 'C:\\Games\\the-force-engine-quest.apk'],
     ['-s', 'Q3', 'shell', 'mkdir', '-p', "'/sdcard/Android/data/com.tfe.game/files/TheForceEngine/Dark Forces'"],
-    ['-s', 'Q3', 'push', 'C:\\Games\\Dark Forces\\DARK.GOB', '/sdcard/Android/data/com.tfe.game/files/TheForceEngine/Dark Forces/'],
-    ['-s', 'Q3', 'push', 'C:\\Games\\Dark Forces\\SOUNDS.GOB', '/sdcard/Android/data/com.tfe.game/files/TheForceEngine/Dark Forces/'],
+    ['-s', 'Q3', 'push', path.join('C:\\Games\\Dark Forces', 'DARK.GOB'), '/sdcard/Android/data/com.tfe.game/files/TheForceEngine/Dark Forces/'],
+    ['-s', 'Q3', 'push', path.join('C:\\Games\\Dark Forces', 'SOUNDS.GOB'), '/sdcard/Android/data/com.tfe.game/files/TheForceEngine/Dark Forces/'],
   ]);
 });
 
@@ -263,12 +264,23 @@ test('new Quest selectors match author release asset names', () => {
 
 test('directory plans copy its contents into the target folder without nesting the source folder', () => {
   const game = { data: [{ id: 'maps', label: 'Halo maps', kind: 'directory', destination: '/sdcard/Android/data/com.halo.decomp.vr/files/maps/' }] };
-  const plan = buildInstallPlan(game, { serial: 'Q3', apkPath: 'C:\\Halo.apk', files: { maps: 'C:\\HaloDisc\\maps' }, directoryEntries: { maps: ['a.map', 'b.map'] } });
+  const maps = process.platform === 'win32' ? 'C:\\HaloDisc\\maps' : '/tmp/HaloDisc/maps';
+  const plan = buildInstallPlan(game, { serial: 'Q3', apkPath: 'C:\\Halo.apk', files: { maps }, directoryEntries: { maps: ['a.map', 'b.map'] } });
   assert.deepEqual(plan.slice(1), [
     { label: 'Create /sdcard/Android/data/com.halo.decomp.vr/files/maps', args: ['-s', 'Q3', 'shell', 'mkdir', '-p', '/sdcard/Android/data/com.halo.decomp.vr/files/maps'] },
-    { label: 'Copy maps/a.map', args: ['-s', 'Q3', 'push', 'C:\\HaloDisc\\maps\\a.map', '/sdcard/Android/data/com.halo.decomp.vr/files/maps/'] },
-    { label: 'Copy maps/b.map', args: ['-s', 'Q3', 'push', 'C:\\HaloDisc\\maps\\b.map', '/sdcard/Android/data/com.halo.decomp.vr/files/maps/'] },
+    { label: 'Copy maps/a.map', args: ['-s', 'Q3', 'push', path.join(maps, 'a.map'), '/sdcard/Android/data/com.halo.decomp.vr/files/maps/'] },
+    { label: 'Copy maps/b.map', args: ['-s', 'Q3', 'push', path.join(maps, 'b.map'), '/sdcard/Android/data/com.halo.decomp.vr/files/maps/'] },
   ]);
+});
+
+test('directory pushes use the platform path separator for the local source', () => {
+  const game = { id: 'demo', data: [{ id: 'roms', kind: 'directory', destination: '/sdcard/ROMs/' }] };
+  const plan = buildInstallPlan(game, {
+    serial: 'Q3SERIAL', apkPath: path.join(path.sep, 'tmp', 'port.apk'),
+    files: { roms: path.join(path.sep, 'tmp', 'roms') }, directoryEntries: { roms: ['a.bin'] },
+  });
+  const push = plan.find((step) => step.label === 'Copy roms/a.bin');
+  assert.equal(push.args.at(-2), path.join(path.sep, 'tmp', 'roms', 'a.bin'));
 });
 
 test('guided PC ports copy only the creator-documented game archives', () => {
