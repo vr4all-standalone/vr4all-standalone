@@ -77,6 +77,17 @@ test('ZIP field exposes Browse folder and preserves the chosen local folder path
   assert.equal(vm.runInContext("state.staged[game.id].timecris", context), 'C:\\Saved\\timecris');
 });
 
+test('arcade cards show the required set and distinguish checked from unchecked revisions', () => {
+  const { context } = appHarness();
+  const port0r = vm.runInContext('detailHtml(game)', context);
+  assert.match(port0r, /Required ROM set:<\/strong> timecris\.zip · MAME 0\.289 set/);
+  assert.match(port0r, /checks ZIP format; the port checks its MAME revision/);
+  context.hotd2 = getCatalog().find((item) => item.id === 'hotd2-vr');
+  const checked = vm.runInContext('detailHtml(hotd2)', context);
+  assert.match(checked, /Required ROM set:<\/strong> hotd2\.zip · USA arcade cartridge/);
+  assert.match(checked, /checks 21 ROM chips and archive integrity/);
+});
+
 test('a saved shared BIOS choice immediately fills the matching game card', async () => {
   const { context, game } = appHarness();
   context.dirt = getCatalog().find((entry) => entry.id === 'dirt-dash-vr');

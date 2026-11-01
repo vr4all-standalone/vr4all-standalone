@@ -10,6 +10,45 @@ const { verifyGameFile } = require('../src/file-verification');
 
 const id = 'max-payne-nightmare-vr';
 const root = '/sdcard/Android/data/com.MPQ.HaveliSkywalker/files/';
+const mpvrId = 'max-payne-mpvr';
+const mpvrRoot = '/sdcard/Android/data/io.gitlab.gandork.mpvr/files/';
+
+test('mpvr is a second Max Payne port in the same card with its own files and release', () => {
+  const game = getCatalog().find((entry) => entry.id === mpvrId);
+  assert.ok(game);
+  assert.equal(game.variantOf, id);
+  assert.equal(game.gameName, 'Max Payne');
+  assert.equal(game.source.provider, 'gitlab');
+  assert.equal(game.source.repo, 'gandork/mpvr');
+  assert.equal(packages[mpvrId], 'io.gitlab.gandork.mpvr');
+  assert.deepEqual(game.data.map((item) => [item.id, item.destination]), [
+    ['mobileApk', mpvrRoot], ['obb', mpvrRoot],
+  ]);
+  const plan = buildInstallPlan(game, {
+    serial: 'Q3S', apkPath: 'C:\\Downloads\\mpvr-0.2.3.apk',
+    files: { mobileApk: 'C:\\Games\\MaxPayneMobile1.7.apk', obb: 'C:\\Games\\main.3.com.rockstar.maxpayne.obb' },
+  });
+  assert.deepEqual(plan.filter((step) => step.args.includes('push')).map((step) => step.args.at(-1)), [
+    `${mpvrRoot}MaxPayneMobile1.7.apk`, `${mpvrRoot}main.3.com.rockstar.maxpayne.obb`,
+  ]);
+});
+
+test('mpvr scan accepts staged files or the imported game and does not confuse the Nightmare app', async () => {
+  const game = getCatalog().find((entry) => entry.id === mpvrId);
+  const contents = new Map();
+  const adb = { run: async (args) => {
+    if (args.includes('packages')) return 'package:io.gitlab.gandork.mpvr\n';
+    if (args.includes('dumpsys')) return 'versionName=0.2.3\n';
+    if (args.includes('ls')) return (contents.get(args.at(-1)) || []).join('\n');
+    return '';
+  } };
+  assert.equal((await inspectDevice(adb, 'Q3S', [game]))[mpvrId].dataReady, false);
+  contents.set(mpvrRoot.replace(/\/$/, ''), ['MaxPayneMobile1.7.apk', 'main.3.com.rockstar.maxpayne.obb']);
+  assert.equal((await inspectDevice(adb, 'Q3S', [game]))[mpvrId].dataReady, true);
+  contents.set(mpvrRoot.replace(/\/$/, ''), ['maxpayne']);
+  contents.set(`${mpvrRoot}maxpayne`, ['x_data.ras', 'libMaxPayne.so']);
+  assert.equal((await inspectDevice(adb, 'Q3S', [game]))[mpvrId].dataReady, true);
+});
 
 function apkFixture(packageId) {
   const strings = ['manifest', 'package', packageId];

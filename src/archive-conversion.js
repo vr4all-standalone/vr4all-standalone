@@ -73,10 +73,19 @@ function parseListing(listing, allowedEntries = maxEntries) {
     if (total > maxUnpackedBytes) throw new Error('Archive expands beyond the 8 GB conversion limit');
   }
   if (!files) throw new Error('Archive contains no regular files');
-  return { summary: { files, unpackedBytes: Number(total) }, entries: entries.map((entry) => ({ name: entry.Path.replace(/\\/g, '/').replace(/\/$/, ''), directory: entry.Folder === '+' || /^D/.test(entry.Attributes || '') })) };
+  return { summary: { files, unpackedBytes: Number(total) }, entries: entries.map((entry) => ({ name: entry.Path.replace(/\\/g, '/').replace(/\/$/, ''), directory: entry.Folder === '+' || /^D/.test(entry.Attributes || ''), size: Number(entry.Size), crc: (entry.CRC || '').toLowerCase() })) };
 }
 
 function inspectListing(listing) { return parseListing(listing).summary; }
+
+async function inspectRomArchive(source) {
+  const { stdout } = await runSevenZip(await sevenZipPath(), ['l', '-slt', '-p-', source]);
+  return parseListing(stdout).entries.filter((entry) => !entry.directory);
+}
+
+async function testRomArchive(source) {
+  await runSevenZip(await sevenZipPath(), ['t', '-p-', source]);
+}
 
 function directoryRoot(entries, item) {
   const names = entries.map((entry) => entry.name);
@@ -288,4 +297,4 @@ async function convertArchiveToZip(source, options = {}) {
   }
 }
 
-module.exports = { needsZipConversion, acceptsZipContents, convertArchiveToZip, packageDirectoryToZip, inspectDirectory, inspectDirectoryArchive, extractDirectoryArchive, inspectSingleFileArchive, extractSingleFileArchive, removeConversionDirectory, inspectListing, sevenZipPath, runSevenZip };
+module.exports = { needsZipConversion, acceptsZipContents, convertArchiveToZip, packageDirectoryToZip, inspectDirectory, inspectDirectoryArchive, extractDirectoryArchive, inspectSingleFileArchive, extractSingleFileArchive, removeConversionDirectory, inspectListing, inspectRomArchive, testRomArchive, sevenZipPath, runSevenZip };

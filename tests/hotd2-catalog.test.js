@@ -97,7 +97,7 @@ test('generic upstream package never marks either standalone port installed', as
   assert.equal(scan['mok-upstream-vr']?.dataReady, false);
 });
 
-test('library scanning keeps arcade ZIPs and standalone APKs separate from Dreamcast media', async () => {
+test('library scanning rejects a wrong arcade revision and keeps APKs separate from Dreamcast media', async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-hotd2-'));
   try {
     const game = profile('hotd2-vr');
@@ -105,12 +105,10 @@ test('library scanning keeps arcade ZIPs and standalone APKs separate from Dream
     await fs.writeFile(path.join(root, 'hotd2.zip'), zip);
     await fs.writeFile(path.join(root, 'House of the Dead 2.chd'), 'disc');
     await fs.writeFile(path.join(root, 'hotd2-arcade-vr-quest.apk'), 'apk');
-    const verification = await verifyGameFile(game, game.data.find((item) => item.id === 'hotd2'), path.join(root, 'hotd2.zip'));
-    assert.equal(verification.level, 'format');
-    assert.match(verification.message, /contents are not independently verified/);
+    await assert.rejects(() => verifyGameFile(game, game.data.find((item) => item.id === 'hotd2'), path.join(root, 'hotd2.zip')), /epr-21585\.ic22|archive/i);
     const result = await scanLibraryFolder(root, getCatalog(), {}, { inspectApk: async () => 'com.vrlightgunhub.hotd2arcade' });
     const native = result.matches.find((match) => match.gameId === 'hotd2-vr');
-    assert.equal(native?.files.hotd2, path.join(root, 'hotd2.zip'));
+    assert.equal(native?.files.hotd2, undefined, 'a ZIP without the required ROM chips is not installable');
     assert.equal(native?.apkPath, path.join(root, 'hotd2-arcade-vr-quest.apk'));
     assert.equal(Object.values(native.files).some((file) => file.endsWith('.chd')), false);
     const dreamcast = result.matches.find((match) => match.gameId === 'hotd2-dreamcast-vr');

@@ -293,3 +293,9 @@ body[data-theme][data-detail-open="true"][data-detail-layout="docked"] .game-gri
 @media(prefers-reduced-motion:reduce){
   body[data-theme] .game-card,body[data-theme] .card-art img{transition:none}
 }
+body[data-theme] .copy-requirement{
+  display:inline-flex;align-items:center;margin:2px 0 10px;padding:5px 8px;
+  border:1px solid var(--app-line-strong);border-radius:6px;background:var(--app-card);
+  color:var(--app-text);font-size:10px;font-weight:700
+}
+body[data-theme] .copy-requirement:hover{border-color:var(--ui-accent);color:var(--ui-accent)}

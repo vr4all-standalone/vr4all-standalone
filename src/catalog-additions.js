@@ -4,7 +4,7 @@ const download = '/sdcard/Download/';
 
 const additions = [
   {
-    id: 'max-payne-nightmare-vr', title: 'Max Payne VR: Nightmare Edition', gameName: 'Max Payne', series: 'HaveliSkywalker', category: 'Android', color: '#b43130',
+    id: 'max-payne-nightmare-vr', title: 'Max Payne VR: Nightmare Edition', gameName: 'Max Payne', portLabel: 'Nightmare Edition', series: 'HaveliSkywalker', category: 'Android', color: '#b43130',
     description: 'Standalone first-person Quest VR port of the original Max Payne, using your own Max Payne Mobile game files.',
     projectUrl: 'https://drive.google.com/file/d/1_o_Q7EUyWM0OMrTU4itctTIkYyrapCnr/view',
     data: [
@@ -13,6 +13,19 @@ const additions = [
     ],
     guidance: 'Download the creator’s Quest APK from the linked Google Drive page and drop it as a Local APK. VR4ALL cannot check that Drive file for updates automatically. Add your own matching Max Payne Mobile 1.7 APK and OBB; the Quest port imports them on first launch.',
     afterInstall: 'Open MP VR under Unknown Sources. Let it check and unpack your mobile game data, then restart the Quest app when prompted. VR4ALL has not yet verified the import on a headset.',
+  },
+  {
+    id: 'max-payne-mpvr', variantOf: 'max-payne-nightmare-vr', portLabel: 'Gandork (mpvr)',
+    title: 'mpvr', gameName: 'Max Payne', series: 'gandork', category: 'Android', color: '#b43130',
+    description: 'A separate first-person standalone Quest port of Max Payne Mobile. Developed and tested on Quest 3.',
+    projectUrl: 'https://gitlab.com/gandork/mpvr',
+    source: { provider: 'gitlab', repo: 'gandork/mpvr', assetPattern: '^mpvr-[0-9]+\\.[0-9]+\\.[0-9]+\\.apk$' },
+    data: [
+      { id: 'mobileApk', label: 'Owned Max Payne Mobile 1.7 APK (64-bit)', kind: 'file', extensions: ['.apk'], destination: '/sdcard/Android/data/io.gitlab.gandork.mpvr/files/', note: 'Use the original Max Payne Mobile 1.7 APK (version code 14) with the arm64-v8a game library. mpvr checks the exact library build on first launch.' },
+      { id: 'obb', label: 'Matching Max Payne Mobile OBB', kind: 'file', extensions: ['.obb'], destination: '/sdcard/Android/data/io.gitlab.gandork.mpvr/files/', note: 'Use main.<number>.com.rockstar.maxpayne.obb from the same mobile installation.' },
+    ],
+    guidance: 'VR4ALL downloads the creator’s current GitLab Quest APK and transfers your owned Max Payne Mobile 1.7 APK and matching OBB. mpvr checks the exact game-library version and unpacks the files on first launch. Quest 3 is tested; other Quest models are untested.',
+    afterInstall: 'Open MP VR under Unknown Sources. Leave the headset on during its first-run import. Later APK updates keep the imported game data and settings.',
   },
   {
     id: 'project06-vr', title: 'Project 06 VR', gameName: 'Sonic Project 06', series: 'moistman42069', category: 'PC', color: '#5779d8',
@@ -391,6 +404,7 @@ const additions = [
 
 const additionFacets = {
   'max-payne-nightmare-vr': ['Android', 'Shooter'],
+  'max-payne-mpvr': ['Android', 'Shooter'],
   'project06-vr': ['PC', 'Platformer'],
   qualyx: ['PC', 'Shooter'],
   'gt3-revisited': ['PlayStation 2', 'Racing'],

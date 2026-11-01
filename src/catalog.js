@@ -22,7 +22,7 @@ const games = [
     description: 'The original Time Crisis with room-scale cover.',
     source: { repo: 'jacquesdupontd/port0r', assetPattern: '^(Port0r-)?TimeCrisisVR-.*quest.*\\.apk$' },
     data: [
-      { id: 'timecris', label: 'Time Crisis arcade set', kind: 'file', extensions: ['.zip'], destination: `${download}timecris.zip`, note: 'Recent MAME set' },
+      { id: 'timecris', label: 'Time Crisis arcade set', kind: 'file', extensions: ['.zip'], destination: `${download}timecris.zip`, note: 'MAME 0.289 set' },
       { id: 'namcoc71', label: 'Namco board ROM', kind: 'file', extensions: ['.zip'], destination: `${download}namcoc71.zip`, note: 'Required by the Port0r build' },
     ],
     afterInstall: 'Open Port0r: Time Crisis VR; it imports both ZIPs from Download.',
@@ -38,7 +38,7 @@ const games = [
     id: 'hotd-vr', title: 'House of the Dead VR', defaultPortId: 'hotd-model2-vr', preferDefaultPort: true, portLabel: 'Port0r', series: 'Port0r', category: 'Arcade', icon: '✳', color: '#dc766e',
     description: 'The original arcade House of the Dead.',
     source: { repo: 'jacquesdupontd/port0r', assetPattern: '^Port0r-HouseOfTheDeadVR-.*quest3\\.apk$' },
-    data: [{ id: 'hotd', label: 'House of the Dead arcade set', kind: 'file', extensions: ['.zip'], destination: `${download}hotd.zip`, note: 'Recent MAME set' }],
+    data: [{ id: 'hotd', label: 'House of the Dead arcade set', kind: 'file', extensions: ['.zip'], destination: `${download}hotd.zip`, note: 'MAME 0.289 set' }],
     afterInstall: 'Open Port0r: House of the Dead VR; it imports hotd.zip from Download.',
   },
   {
@@ -56,7 +56,7 @@ const games = [
     description: 'Namco Dirt Dash in true stereoscopic VR.',
     source: { repo: 'jacquesdupontd/port0r', assetPattern: '^Port0r-DirtDashVR-.*-quest3\\.apk$' },
     data: [
-      { id: 'dirtdash', label: 'Dirt Dash arcade set', kind: 'file', extensions: ['.zip'], destination: `${download}dirtdash.zip`, note: 'Recent MAME set' },
+      { id: 'dirtdash', label: 'Dirt Dash arcade set', kind: 'file', extensions: ['.zip'], destination: `${download}dirtdash.zip`, note: 'MAME 0.289 set' },
       { id: 'namcoc71', label: 'Namco board ROM', kind: 'file', extensions: ['.zip'], destination: `${download}namcoc71.zip` },
     ],
     afterInstall: 'Open Dirt Dash VR; it imports both ZIPs from Download.',
@@ -133,7 +133,7 @@ const games = [
     source: { repo: 'vr4all-standalone/hotd2-arcade-vr', assetPattern: '^hotd2-arcade-vr-quest\\.apk$' },
     fileAccessPackage: 'com.vrlightgunhub.hotd2arcade',
     data: [
-      { id: 'hotd2', label: 'House of the Dead 2 USA arcade set', kind: 'file', extensions: ['.zip'], destination: `${download}hotd2.zip`, note: 'Keep hotd2.zip packed. USA set only: 2 MiB EPR with CRC32 b23d1a0c and all 20 MPR ROMs. The app checks the payload; VR4ALL checks ZIP structure only.' },
+      { id: 'hotd2', label: 'House of the Dead 2 USA arcade set', kind: 'file', extensions: ['.zip'], destination: `${download}hotd2.zip`, note: 'Keep hotd2.zip packed. USA set only: 2 MiB EPR with CRC32 b23d1a0c and all 20 MPR ROMs. VR4ALL checks the required ROM chips before transfer.' },
       { id: 'hod2bios', label: 'Separate HOTD2 BIOS (if absent from game ZIP)', kind: 'file', extensions: ['.zip'], destination: `${download}hod2bios.zip`, optional: true, note: 'The special HOTD2 BIOS is required, either inside hotd2.zip or in a separate hod2bios.zip. A generic NAOMI BIOS is not a substitute.' },
     ],
     guidance: 'Use the USA NAOMI hotd2.zip with its 2 MiB EPR (CRC32 b23d1a0c), all 20 MPR ROMs and the special HOTD2 BIOS. Keep ZIPs packed. If the BIOS is absent from hotd2.zip, also supply hod2bios.zip; the separate BIOS field is optional only because the BIOS may already be in the game ZIP. VR4ALL checks ZIP structure; the app checks the actual ROM payload before Play. Dreamcast CHD/CDI discs use the Dreamcast port in the picker. No game files are included.',
@@ -387,7 +387,7 @@ const games = [
     source: { repo: 'vr4all-standalone/mok-vr', assetPattern: '^mok-vr-quest\\.apk$' },
     fileAccessPackage: 'com.vrlightgunhub.mok',
     data: [
-      { id: 'mok', label: 'The Maze of the Kings arcade set', kind: 'file', extensions: ['.zip'], destination: `${download}mok.zip`, note: 'Own mok.zip containing 317-0333-com.pic; ZIP contents are not independently checked' },
+      { id: 'mok', label: 'The Maze of the Kings arcade set', kind: 'file', extensions: ['.zip'], destination: `${download}mok.zip`, note: 'Own mok.zip containing 317-0333-com.pic; VR4ALL checks this revision key chip before transfer' },
       { id: 'chd', label: 'The Maze of the Kings GD-ROM', kind: 'file', extensions: ['.chd'], destination: `${download}mok/gds-0022.chd`, note: 'Own gds-0022.chd' },
       { id: 'naomi', label: 'Optional NAOMI BIOS', kind: 'file', extensions: ['.zip'], destination: `${download}naomi.zip`, optional: true },
     ],
@@ -400,7 +400,7 @@ const games = [
     description: 'The Maze of the Kings through the House of the Dead 2 Quest port.',
     source: { repo: 'mikermak/hotd2-vr', assetPattern: '^hotd2-vr-quest\\.apk$' },
     data: [
-      { id: 'mok', label: 'The Maze of the Kings arcade set', kind: 'file', extensions: ['.zip'], destination: `${download}mok.zip`, note: 'Own mok.zip containing 317-0333-com.pic; ZIP contents are not independently checked' },
+      { id: 'mok', label: 'The Maze of the Kings arcade set', kind: 'file', extensions: ['.zip'], destination: `${download}mok.zip`, note: 'Own mok.zip containing 317-0333-com.pic; VR4ALL checks this revision key chip before transfer' },
       { id: 'chd', label: 'The Maze of the Kings GD-ROM', kind: 'file', extensions: ['.chd'], destination: `${download}mok/gds-0022.chd`, note: 'Own gds-0022.chd' },
       { id: 'naomi', label: 'Optional NAOMI BIOS', kind: 'file', extensions: ['.zip'], destination: `${download}naomi.zip`, optional: true },
     ],
@@ -707,9 +707,10 @@ for (const game of [...games, ...additions, ...newPorts, ...questports]) for (co
   const signature = sharedInputSignature(item);
   if (signature) sharedInputCounts.set(signature, (sharedInputCounts.get(signature) || 0) + 1);
 }
-function getCatalog() { return [...games, ...additions, ...newPorts, ...questports].map((game) => ({ ...game, gameName: originalNames[game.id] || game.gameName || game.title, console: (facets[game.id] || additionFacets[game.id] || newPortFacets[game.id] || questportFacets[game.id])[0], genre: (facets[game.id] || additionFacets[game.id] || newPortFacets[game.id] || questportFacets[game.id])[1], art: artFor(game.id === 'fzero-x-virtuavr' ? 'fzero-x-vr' : game.id), data: game.data.map((item) => {
+const { requirements: arcadeRomRequirements } = require('./arcade-rom-requirements');
+function getCatalog() { return [...games, ...additions, ...newPorts, ...questports].map((game) => ({ ...game, gameName: originalNames[game.id] || game.gameName || game.title, console: (facets[game.id] || additionFacets[game.id] || newPortFacets[game.id] || questportFacets[game.id])[0], genre: (facets[game.id] || additionFacets[game.id] || newPortFacets[game.id] || questportFacets[game.id])[1], art: artFor(game.id === 'fzero-x-virtuavr' ? 'fzero-x-vr' : game.id === 'max-payne-mpvr' ? 'max-payne-nightmare-vr' : game.id), data: game.data.map((item) => {
   const signature = sharedInputSignature(item);
-  return { ...item, ...(signature && sharedInputCounts.get(signature) > 1 ? { sharedInput: signature } : {}) };
+  return { ...item, ...(arcadeRomRequirements[game.id]?.[item.id] ? { romRequirement: arcadeRomRequirements[game.id][item.id] } : {}), ...(signature && sharedInputCounts.get(signature) > 1 ? { sharedInput: signature } : {}) };
 }) })); }
 
 module.exports = { getCatalog };

@@ -4,6 +4,7 @@ const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
 const { verifyGameFile } = require('../src/file-verification');
+const { runSevenZip, sevenZipPath } = require('../src/archive-conversion');
 
 test('Super Mario 64 drop rejects a different Nintendo 64 game before install', async () => {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-verify-'));
@@ -62,6 +63,48 @@ test('archive drop checks its signature and does not claim to verify game identi
     end.writeUInt32LE(local.length + name.length + 1, 16);
     await fs.writeFile(file, Buffer.concat([local, name, Buffer.from('x'), central, name, end]));
     assert.equal((await verifyGameFile(game, item, file)).level, 'format');
+  } finally { await fs.rm(dir, { recursive: true, force: true }); }
+});
+
+test('arcade ROM revision check verifies archive payloads and rejects the wrong set', async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-arcade-revision-'));
+  try {
+    const file = path.join(dir, 'owned.zip');
+    const chip = path.join(dir, 'program.ic22');
+    await fs.writeFile(chip, 'correct revision');
+    await runSevenZip(await sevenZipPath(), ['a', '-tzip', file, chip]);
+    const game = { id: 'arcade-test' };
+    const item = { id: 'game', label: 'Arcade set', kind: 'file', extensions: ['.zip'], romRequirement: { set: 'arcade', revision: 'Revision A', chips: [{ name: 'program.ic22', size: 16, crc: '748bbba1' }] } };
+    await assert.rejects(() => verifyGameFile(game, item, file), /program\.ic22.*CRC|program\.ic22.*revision/i);
+    item.romRequirement.chips[0].crc = '37f8ccbc';
+    const verified = await verifyGameFile(game, item, file);
+    assert.equal(verified.level, 'rom-set');
+    assert.match(verified.message, /Revision A/);
+    await fs.writeFile(chip, 'wrong revision!!');
+    await fs.rm(file);
+    await runSevenZip(await sevenZipPath(), ['a', '-tzip', file, chip]);
+    await assert.rejects(() => verifyGameFile(game, item, file), /program\.ic22.*CRC|program\.ic22.*revision/i);
+  } finally { await fs.rm(dir, { recursive: true, force: true }); }
+});
+
+test('arcade CHD check rejects a different disc revision before transfer', async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-arcade-disc-'));
+  try {
+    const file = path.join(dir, 'owned.chd');
+    const sha = '3b7d5dd917b9a2cc9b7b51aad22f8e75383c3301';
+    const bytes = Buffer.alloc(125);
+    bytes.write('MComprHD', 0, 'ascii');
+    bytes.writeUInt32BE(124, 8);
+    bytes.writeUInt32BE(5, 12);
+    bytes.writeBigUInt64BE(123456n, 32);
+    Buffer.from(sha, 'hex').copy(bytes, 84);
+    await fs.writeFile(file, bytes);
+    const item = { id: 'disc', label: 'Original disc', kind: 'file', extensions: ['.chd'], romRequirement: { set: 'gds-0018.chd', revision: 'original GDS-0018', discSha1: sha } };
+    const matched = await verifyGameFile({ id: 'arcade-disc-test' }, item, file);
+    assert.equal(matched.level, 'disc-header');
+    bytes[84] = 0;
+    await fs.writeFile(file, bytes);
+    await assert.rejects(() => verifyGameFile({ id: 'arcade-disc-test' }, item, file), /GDS-0018.*revision/i);
   } finally { await fs.rm(dir, { recursive: true, force: true }); }
 });
 

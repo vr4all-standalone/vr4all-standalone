@@ -2,6 +2,7 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { readManifestPackage } = require('./apk-verification');
+const { inspectRomArchive, testRomArchive } = require('./archive-conversion');
 
 const pokemonGen1Hashes = new Set([
   'ea9bcae617fdf159b045185467ae58b2e4a48b9a', // Pokémon Red US
@@ -53,6 +54,23 @@ async function verifyZipStructure(file) {
   } finally { await handle.close(); }
 }
 
+async function verifyArcadeRomSet(item, file) {
+  const requirement = item.romRequirement;
+  const entries = await inspectRomArchive(file);
+  for (const [index, chip] of requirement.chips.entries()) {
+    const candidates = entries.filter((entry) => !chip.name || path.posix.basename(entry.name).toLowerCase() === chip.name.toLowerCase());
+    const match = candidates.find((entry) => entry.size === chip.size && entry.crc === chip.crc);
+    if (!match) {
+      const detail = chip.name || `ROM chip ${index + 1}`;
+      throw new Error(`${requirement.set} ${requirement.revision} requires ${detail} (size ${chip.size}, CRC ${chip.crc}); the selected archive has a different or missing revision`);
+    }
+  }
+  await testRomArchive(file);
+  return requirement.partial
+    ? { level: 'rom-partial', message: `${requirement.set} ${requirement.revision}: ${requirement.chips.length} required ROM chip${requirement.chips.length === 1 ? '' : 's'} and ZIP payloads verified; other game files, firmware or disc are checked by the port` }
+    : { level: 'rom-set', message: `${requirement.set} ${requirement.revision}: ${requirement.chips.length} required ROM chips and ZIP payloads verified` };
+}
+
 async function verifyGameFile(game, item, file) {
   if (item.kind !== 'file') throw new Error('Choose a regular game file');
   const extension = path.extname(file).toLowerCase();
@@ -60,11 +78,26 @@ async function verifyGameFile(game, item, file) {
   const handle = await fs.open(file, 'r');
   let bytes;
   try {
-    const buffer = Buffer.alloc(game.id === 'wii-compiled' && extension === '.wbfs' ? 520 : 64);
+    const buffer = Buffer.alloc(game.id === 'wii-compiled' && extension === '.wbfs' ? 520 : item.romRequirement?.discSha1 ? 124 : 64);
     const { bytesRead } = await handle.read(buffer, 0, buffer.length, 0);
     bytes = buffer.subarray(0, bytesRead);
   } finally { await handle.close(); }
-  if (game.id === 'max-payne-nightmare-vr') {
+  if (extension === '.chd' && item.romRequirement?.discSha1) {
+    const requirement = item.romRequirement;
+    if (bytes.length < 108 || bytes.toString('ascii', 0, 8) !== 'MComprHD') throw new Error(`${requirement.set} needs a readable CHD header`);
+    const version = bytes.readUInt32BE(12);
+    const length = { 3: 120, 4: 108, 5: 124 }[version];
+    if (!length || bytes.length < length || bytes.readUInt32BE(8) !== length || (await fs.stat(file)).size <= length) throw new Error(`${requirement.set} needs a complete supported CHD header`);
+    const shaOffset = version === 3 ? 80 : version === 4 ? 48 : 84;
+    const expected = version === 3 ? requirement.discRawSha1 : requirement.discSha1;
+    if (!expected || bytes.toString('hex', shaOffset, shaOffset + 20) !== expected) throw new Error(`${requirement.set} does not match the required ${requirement.revision} revision`);
+    if (version === 5 && requirement.checkRawSha1 && bytes.toString('hex', 64, 84) !== requirement.discRawSha1) throw new Error(`${requirement.set} does not match the required ${requirement.revision} raw disc hash`);
+    if (requirement.logicalBytes && bytes.readBigUInt64BE(version < 5 ? 28 : 32) !== BigInt(requirement.logicalBytes)) throw new Error(`${requirement.set} has the wrong disc size for ${requirement.revision}`);
+    const parentOffset = version === 3 ? 100 : version === 4 ? 68 : 104;
+    if (bytes.subarray(parentOffset, parentOffset + 20).some((byte) => byte !== 0)) throw new Error(`${requirement.set} needs a standalone CHD without a parent`);
+    return { level: 'disc-header', message: `${requirement.set} ${requirement.revision}: CHD identity header matches; the port checks the complete disc on launch` };
+  }
+  if (game.id === 'max-payne-nightmare-vr' || game.id === 'max-payne-mpvr') {
     if (item.id === 'mobileApk') {
       const packageId = await readManifestPackage(file);
       if (packageId !== 'com.rockstar.maxpayne') throw new Error('Select the original Max Payne Mobile APK (com.rockstar.maxpayne)');
@@ -132,6 +165,7 @@ async function verifyGameFile(game, item, file) {
   if (extension === '.zip') {
     if (bytes.length < 4 || bytes.toString('hex', 0, 4) !== '504b0304') throw new Error('File is not a readable ZIP archive');
     await verifyZipStructure(file);
+    if (item.romRequirement?.chips?.length) return verifyArcadeRomSet(item, file);
     return { level: 'format', message: 'ZIP structure matches; ROM set contents are not independently verified' };
   }
   if (extension === '.7z') {

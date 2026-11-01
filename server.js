@@ -1190,7 +1190,7 @@ function createApp(options = {}) {
               release = { ...release, verifiedSerial: serial, installedApkMatchesRelease };
             }
           }
-          await logReleaseCheck({ ...logBase, status: release ? release.stale ? 'stale' : 'ok' : 'missing', tag: release?.tag, assetName: release?.assetName, message: release ? release.stale ? 'Using cached release; GitHub refresh failed' : 'Release found' : 'No matching published release asset' }).catch((error) => console.error(`Update log: ${error.message}`));
+          await logReleaseCheck({ ...logBase, status: release ? release.stale ? 'stale' : 'ok' : 'missing', tag: release?.tag, assetName: release?.assetName, message: release ? release.stale ? 'Using cached release; creator refresh failed' : 'Release found' : 'No matching published release asset' }).catch((error) => console.error(`Update log: ${error.message}`));
           return json(res, 200, { release, source });
         } catch (error) {
           await logReleaseCheck({ ...logBase, status: 'error', message: error.message }).catch((logError) => console.error(`Update log: ${logError.message}`));

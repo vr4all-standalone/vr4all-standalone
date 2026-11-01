@@ -8,11 +8,37 @@ const { selectRelease } = require('./core');
 
 function validateSource(source) {
   if (source?.provider === 'project-honeydew') return source;
-  if (!source || !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(source.repo || '')) throw new Error('Enter a GitHub owner/repository');
+  if (!source || !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(source.repo || '')) throw new Error('Enter a release owner/repository');
+  if (source.provider && source.provider !== 'gitlab') throw new Error('Unsupported release provider');
   if (!source.assetPattern || source.assetPattern.length > 180) throw new Error('Enter an APK asset pattern');
   try { new RegExp(source.assetPattern, 'i'); if (source.releasePattern) new RegExp(source.releasePattern, 'i'); }
   catch { throw new Error('Invalid release pattern'); }
   return source;
+}
+
+function gitLabRelease(entry, source) {
+  if (!entry || typeof entry !== 'object' || !/^[A-Za-z0-9_.-]+$/.test(entry.tag_name || '')) throw new Error('GitLab returned invalid release metadata');
+  const pattern = new RegExp(source.assetPattern, 'i');
+  const matching = (entry.assets?.links || []).find((item) => {
+    if (!pattern.test(item.name || '')) return false;
+    try {
+      const url = new URL(item.direct_asset_url);
+      return url.origin === 'https://gitlab.com' && url.search === ''
+        && url.pathname === `/${source.repo}/-/releases/${entry.tag_name}/downloads/${item.name}`;
+    } catch { return false; }
+  });
+  if (!matching) return null;
+  const description = String(entry.description || '');
+  const escapedName = matching.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const hash = description.match(new RegExp(`${escapedName}[^\\r\\n]{0,100}?\\b([a-f0-9]{64})\\b`, 'i'))?.[1];
+  return {
+    tag: entry.tag_name, title: entry.name || entry.tag_name,
+    url: `https://gitlab.com/${source.repo}/-/releases/${entry.tag_name}`,
+    assetName: matching.name, downloadUrl: matching.direct_asset_url,
+    digest: hash ? `sha256:${hash.toLowerCase()}` : null,
+    size: null, downloadCount: null, totalDownloads: null,
+    publishedAt: entry.released_at || null, prerelease: false,
+  };
 }
 
 function honeydewRelease(html) {
@@ -97,6 +123,16 @@ class GitHubReleases {
   async cachedLatest(source) {
     validateSource(source);
     if (source.provider === 'project-honeydew') return this.siteResolved.get(source.provider)?.release || null;
+    if (source.provider === 'gitlab') {
+      const key = `gitlab:${source.repo}:${source.assetPattern}`;
+      const cached = this.siteResolved.get(key);
+      if (cached?.release) return cached.release;
+      const indexPath = path.join(this.cacheDir, 'release-index', `${crypto.createHash('sha256').update(key).digest('hex').slice(0, 20)}.json`);
+      try {
+        const saved = JSON.parse(await fsp.readFile(indexPath, 'utf8'));
+        return saved.release && Number.isFinite(saved.at) ? { ...saved.release, checkedAt: new Date(saved.at).toISOString() } : null;
+      } catch { return null; }
+    }
     const repo = source.repo;
     let cached = this.releaseCache.get(repo);
     if (!cached) {
@@ -185,6 +221,30 @@ class GitHubReleases {
 
   async latest(source, { force = false } = {}) {
     validateSource(source);
+    if (source.provider === 'gitlab') {
+      const key = `gitlab:${source.repo}:${source.assetPattern}`;
+      const indexPath = path.join(this.cacheDir, 'release-index', `${crypto.createHash('sha256').update(key).digest('hex').slice(0, 20)}.json`);
+      let cached = this.siteResolved.get(key);
+      if (!cached) {
+        try { cached = JSON.parse(await fsp.readFile(indexPath, 'utf8')); } catch { /* No cached GitLab release yet. */ }
+      }
+      if (!force && cached?.release && Date.now() - cached.at < 15 * 60 * 1000) return cached.release;
+      try {
+        const url = `https://gitlab.com/api/v4/projects/${encodeURIComponent(source.repo)}/releases/permalink/latest`;
+        const response = await fetch(url, { headers: { 'User-Agent': 'vr4all/0.3' }, signal: AbortSignal.timeout(15000) });
+        if (!response.ok) throw new Error(`GitLab release check failed (${response.status})`);
+        const release = gitLabRelease(await response.json(), source);
+        if (!release) return null;
+        const at = Date.now();
+        const current = { ...release, checkedAt: new Date(at).toISOString(), stale: false };
+        this.siteResolved.set(key, { at, release: current });
+        await fsp.mkdir(path.dirname(indexPath), { recursive: true }).then(() => fsp.writeFile(indexPath, JSON.stringify({ at, release: current }))).catch(() => {});
+        return current;
+      } catch (error) {
+        if (cached?.release) return { ...cached.release, stale: true };
+        throw error;
+      }
+    }
     if (source.provider === 'project-honeydew') {
       const cached = this.siteResolved.get(source.provider);
       if (!force && cached && Date.now() - cached.at < 15 * 60 * 1000) return cached.release;
@@ -288,7 +348,8 @@ class GitHubReleases {
 
   targetFor(release, allowZip = false, allowExe = false) {
     const websiteApk = /^https:\/\/projecthoneydew\.com\/downloads\/ProjectHoneydew-\d+\.\d+\.\d+-quest\.apk$/i.test(release?.downloadUrl || '');
-    if (!/^https:\/\/github\.com\//i.test(release?.downloadUrl || '') && !websiteApk) throw new Error('Untrusted release URL');
+    const gitLabApk = /^https:\/\/gitlab\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+\/-\/releases\/[A-Za-z0-9_.-]+\/downloads\/[A-Za-z0-9_.() -]+\.apk$/i.test(release?.downloadUrl || '');
+    if (!/^https:\/\/github\.com\//i.test(release?.downloadUrl || '') && !websiteApk && !gitLabApk) throw new Error('Untrusted release URL');
     if (websiteApk && !/^sha256:[a-f0-9]{64}$/i.test(release.digest || '')) throw new Error('Honeydew APK needs the creator SHA-256');
     const filename = path.basename(release.assetName || '');
     if (!/^[A-Za-z0-9_.() -]+\.(?:apk|zip|exe)$/i.test(filename)

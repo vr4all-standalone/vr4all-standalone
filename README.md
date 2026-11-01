@@ -10,7 +10,7 @@
 
 ## 🎮 Current catalog: 128 game projects and 5 emulator tools
 
-The catalog has **128 game cards, 5 emulator and runtime cards, and 141 port choices**, including alternate mods for Time Crisis, Pokémon, Halo, Virtua Cop, and The House of the Dead. Each card explains its setup requirements; Quest model support varies by port.
+The catalog has **128 game cards, 5 emulator and runtime cards, and 142 port choices**, including alternate mods for Time Crisis, Pokémon, Halo, Max Payne, Virtua Cop, and The House of the Dead. Each card explains its setup requirements; Quest model support varies by port.
 
 Project Honeydew can be installed from its checksum-verified creator APK with your own Pikmin disc. Deus Ex is listed as an **in-development project**; its creator has not published a playable Quest release, so VR4ALL links the project without offering an install.
 
@@ -18,6 +18,7 @@ Project Honeydew can be installed from its checksum-verified creator APK with yo
 
 - 🧭 **One hub for ALL standalone Quest VR ports.** Browse 128 game projects and 5 emulator tools in VR4ALL, search by game, console, or genre, and find each mod creator's project in one place.
 - ⚡ **Simple, one-click installation.** Bring the game files or creator APK requested on the card, then click **Install**. VR4ALL handles the build, patch, and headset transfer steps in the app, so players do not need to follow a separate build guide.
+- 📋 **Know which game files you need.** Each file requirement has a copy button. Arcade cards show the known ROM set and revision, and VR4ALL checks documented chip identities where the creator provides them.
 - 🔄 **Auto update installed mods.** Scan your connected Quest to find new creator releases, then approve the updates you want VR4ALL to install on the headset.
 - 🖥️ **Update VR4ALL itself.** The desktop app checks for its own release when it opens and after **Check updates**. Approve a newer release to download, restart, and reopen the portable app with your settings intact.
 - 📦 **Bulk install and bulk update.** Choose or drop game files on their individual cards; VR4ALL remembers the original paths. Select saved, ready games in Bulk install, or update eligible installed mods together without supplying files already on the headset.

@@ -64,6 +64,8 @@ if (window.vr4allDesktop?.onAppUpdateProgress) {
 }
 
 function sourceFor(game) { return game.id === 'victory-heat-rally-vr' ? game.source : state.sources[game.id] || game.source; }
+function releaseProviderName(source) { return source?.provider === 'gitlab' ? 'GitLab' : source?.provider === 'project-honeydew' ? 'creator' : 'GitHub'; }
+function releasePageUrl(source, game) { return source?.provider === 'project-honeydew' ? game.projectUrl : source?.provider === 'gitlab' ? `https://gitlab.com/${source.repo}/-/releases` : `https://github.com/${source.repo}/releases`; }
 function acceptedGameExtensions(item) {
   const extensions = item.extensions || [];
   return item.kind === 'file' && extensions.length
@@ -247,20 +249,20 @@ function statusExplanation(game) {
   const status = versionStatus(game);
   if (game.localPlayerInstall === 'sclerosis' && status === 'status-current') return 'Sclerosis APK and required Amnesia game folders found on this Quest. Creator APK updates require a manual download.';
   if (game.id === 'fzero-x-virtuavr' && status === 'status-current') return 'Quest APK and all three prepared F-Zero files found. Ready to play; creator releases are downloaded manually.';
-  if (status === 'status-current') return game.id === 'bioshock-vr' ? 'BioShock APK and game files found; VR4ALL installed the latest checked creator build.' : game.id === 'victory-heat-rally-vr' ? 'Your personal Victory Heat Rally build is installed and matches the latest checked creator builder release.' : 'Port APK and game files found; the installed build matches the latest checked GitHub release.';
+  if (status === 'status-current') return game.id === 'bioshock-vr' ? 'BioShock APK and game files found; VR4ALL installed the latest checked creator build.' : game.id === 'victory-heat-rally-vr' ? 'Your personal Victory Heat Rally build is installed and matches the latest checked creator builder release.' : `Port APK and game files found; the installed build matches the latest checked ${releaseProviderName(sourceFor(game))} release.`;
   if (status === 'status-update') return game.id === 'bioshock-vr' ? 'BioShock is installed; a newer creator installer is available.' : game.id === 'victory-heat-rally-vr' ? 'A newer Victory Heat Rally builder is available. VR4ALL can rebuild your personal APK from the saved game folder.' : 'Port APK and game files found; a newer checked Quest APK is available.';
   if (game.personalBuild) return 'Quest package found and required data checks passed. Ready to play; VR4ALL cannot confirm this build against the author’s latest source.';
   const release = state.releases[game.id];
   if (!sourceFor(game)) return 'Port APK and game files found. No release source is configured, so VR4ALL cannot confirm the version.';
   if (game.manualRelease) return 'Port APK and game files found. The official release is an installer ZIP, so VR4ALL cannot compare its APK automatically.';
   if (state.releaseErrors[game.id]) return `Port APK and game files found. Release check failed: ${state.releaseErrors[game.id]}`;
-  if (!release) return 'Port APK and game files found. GitHub release has not been checked yet.';
+  if (!release) return `Port APK and game files found. ${releaseProviderName(sourceFor(game))} release has not been checked yet.`;
   if (release.stale) return release.installedApkMatchesRelease === true
-    ? 'The installed APK matches the last cached official release, but GitHub could not be refreshed to confirm it is still latest.'
-    : 'Port APK and game files found. GitHub could not be refreshed; the cached release may be old.';
+    ? `The installed APK matches the last cached official release, but ${releaseProviderName(sourceFor(game))} could not be refreshed to confirm it is still latest.`
+    : `Port APK and game files found. ${releaseProviderName(sourceFor(game))} could not be refreshed; the cached release may be old.`;
   if (game.verifyApkHash) return 'Port APK and game files found. The installed APK could not be matched to the release checksum.';
   if (!device.versionComparable) return 'Port APK and game files found. The headset and release use different version formats, so the build cannot be compared.';
-  return 'Port APK and game files found. The installed version could not be matched to the GitHub release.';
+  return `Port APK and game files found. The installed version could not be matched to the ${releaseProviderName(sourceFor(game))} release.`;
 }
 function headsetDisplayStatus(game) {
   const status = versionStatus(game);
@@ -344,6 +346,7 @@ function releaseLabel(game, status = cardStatus(game)) {
   if (release?.stale) return '<span class="status-pill local">CACHED RELEASE</span>';
   if (installType(game) === 'apk-included') return '<span class="status-pill staged">INSTALL AVAILABLE</span>';
   if (source.provider === 'project-honeydew') return `<span class="status-pill">${release ? 'CREATOR RELEASE' : 'CREATOR LINKED'}</span>`;
+  if (source.provider === 'gitlab') return `<span class="status-pill">${release ? 'GITLAB RELEASE' : 'GITLAB LINKED'}</span>`;
   return `<span class="status-pill">${release ? 'GITHUB RELEASE' : 'GITHUB LINKED'}</span>`;
 }
 
@@ -570,13 +573,45 @@ function personalBuildHtml(game) {
   return `<div class="detail-art"><img src="${escapeHtml(game.art)}" alt="Artwork for ${escapeHtml(game.title)}"></div><div class="detail-series">${escapeHtml(game.console)} · ${escapeHtml(game.genre)} · ${escapeHtml(game.series)}</div><h2 class="detail-title">${escapeHtml(game.title)}</h2><p class="detail-description">${escapeHtml(game.description)}</p>${portChoiceHtml(game)}<div class="detail-divider"></div><div class="detail-step"><span class="step-number">1</span> ${escapeHtml(build.inputStep || 'Drop your original game export')}</div>${phoneExportCard}${inputBlock('gamePackage', build.gameLabel, build.gameHint, values.gamePackage)}${build.audioLabel ? `<div class="detail-step build-second-step"><span class="step-number">2</span> ${escapeHtml(build.audioStep || (game.id === 'fzero-x-virtuavr' ? 'Add the creator’s installer package' : 'Add the required audio pack'))}</div>${inputBlock('audioSource', build.audioLabel, build.audioHint, values.audioSource)}` : ''}<div class="guide-note">${escapeHtml(game.guidance)}</div><p class="field-help"><a href="${escapeHtml(game.projectUrl)}" target="_blank" rel="noopener noreferrer">${game.id === 'fzero-x-virtuavr' ? 'Download official Quest R10 package' : "Read the author's requirements"} ↗</a>${build.toolUrl ? ` · <a href="${escapeHtml(build.toolUrl)}" target="_blank" rel="noopener noreferrer">Official DeltaPatcher on GitHub ↗</a>` : ''}${build.decoderUrl ? ` · <a href="${escapeHtml(build.decoderUrl)}" target="_blank" rel="noopener noreferrer">xdelta3 decoder source ↗</a>` : ''}. ${escapeHtml(build.processDescription || 'VR4ALL downloads the author’s current source, validates your files through the official builder, and installs only to the selected Quest. First builds can download several GB of tools.')}</p>${game.releaseKind === 'patch' || game.id === 'bioshock-vr' ? '<div id="releaseCard" class="release-card"></div>' : ''}<div class="detail-divider"></div><div class="detail-step"><span class="step-number">${build.audioLabel ? '3' : '2'}</span> ${escapeHtml(build.actionLabel || 'Build and install')} to your Quest</div><button type="button" id="personalBuildButton" class="primary-button install-button">${escapeHtml(build.actionLabel || 'Build and install')} <span>→</span></button>${game.afterInstall ? `<p class="after-note">${escapeHtml(game.afterInstall)}</p>` : ''}<div id="jobContainer"></div>`;
 }
 
+function romRequirementHelp(game, item) {
+  const requirement = item.romRequirement;
+  const copy = `<button type="button" class="copy-requirement" data-copy-item="${escapeHtml(item.id)}" title="Copy the exact game file requirement">Copy requirement</button>`;
+  if (requirement) {
+    const check = requirement.discSha1
+      ? 'VR4ALL checks the CHD identity header before transfer; the port checks the complete disc on launch.'
+      : requirement.chips?.length
+      ? requirement.partial
+        ? `VR4ALL checks ${requirement.chips.length} required ROM chip${requirement.chips.length === 1 ? '' : 's'}; the port checks remaining files.`
+        : `VR4ALL checks ${requirement.chips.length} ROM chips and archive integrity before install.`
+      : 'VR4ALL checks ZIP format; the port checks its MAME revision after transfer.';
+    return `<p class="field-help"><strong>Required ROM set:</strong> ${escapeHtml(requirement.set)} · ${escapeHtml(requirement.revision)}. ${check}</p>${copy}`;
+  }
+  const warning = game.console === 'Arcade' && item.kind === 'file' && item.extensions?.includes('.zip') && !item.optional
+    ? '<p class="field-help">VR4ALL currently checks archive format only; confirm the required revision on the creator page.</p>'
+    : '';
+  return `${warning}${copy}`;
+}
+
+function requirementCopyText(game, item) {
+  const title = game.gameName || game.title;
+  if (item.romRequirement) return `${title} — ${item.romRequirement.set} — ${item.romRequirement.revision}`;
+  const firstNote = String(item.note || '').split(/\.\s/)[0].trim();
+  return [title, item.label, firstNote].filter(Boolean).join(' — ');
+}
+
+function buildRequirementCopyText(game) {
+  const build = game.personalBuild || {};
+  const firstHint = String(build.gameHint || '').split(/\.\s/)[0].trim();
+  return [game.gameName || game.title, build.gameLabel || 'Original game files', firstHint].filter(Boolean).join(' — ');
+}
+
 function detailHtml(game) {
   const source = sourceFor(game);
   const values = state.inputs[game.id] || {};
   const mode = !source ? 'local' : state.mode[game.id] || (!game.manualRelease || game.playerInstall ? 'github' : 'local');
   state.mode[game.id] = mode;
   if (game.personalBuild) {
-    const html = personalBuildHtml(game);
+    const html = personalBuildHtml(game).replace('<input id="buildGamePath"', '<button type="button" class="copy-requirement" data-copy-build="gamePackage" title="Copy the original game file requirement">Copy requirement</button><input id="buildGamePath"');
     if (!['vice-city-vr', 'rdr1-vr', 'gta-sa-vr'].includes(game.id)) return html;
     const setup = '<div class="sdk-setup-card"><strong>Build tools</strong><p class="field-help">Vice City, RDR and San Andreas reuse tools from the same download folder. Setup checks what is already installed and downloads only missing versions.</p><button id="setupBuildToolsButton" type="button" class="small-button">Set up build tools</button></div>';
     return html.replace('<button type="button" id="personalBuildButton"', `${setup}<button type="button" id="personalBuildButton"`);
@@ -584,14 +619,14 @@ function detailHtml(game) {
   if (game.externalInstaller) return `<div class="detail-art"><img src="${escapeHtml(game.art || '/art/custom.svg')}" alt="Artwork for ${escapeHtml(game.title)}"></div><div class="detail-series">${escapeHtml(game.console)} · ${escapeHtml(game.genre)} · ${escapeHtml(game.series)}</div><h2 class="detail-title">${escapeHtml(game.title)}</h2><p class="detail-description">${escapeHtml(game.description)}</p><div class="detail-divider"></div><div class="guide-note">${escapeHtml(game.guidance)}</div><a class="primary-button install-button" href="${escapeHtml(game.projectUrl)}" target="_blank" rel="noopener noreferrer">${game.developmentPreview ? 'Follow development ↗' : 'Open official setup ↗'}</a>`;
   return `<div class="detail-art"><img src="${escapeHtml(game.art || '/art/custom.svg')}" alt="Artwork for ${escapeHtml(game.title)}"></div><div class="detail-series">${escapeHtml(game.console || 'Other')} · ${escapeHtml(game.genre || 'Other')} · ${escapeHtml(game.series)}</div><h2 class="detail-title">${escapeHtml(game.title)}</h2><p class="detail-description">${escapeHtml(game.description)}</p>${portChoiceHtml(game)}<div class="detail-divider"></div>
     <div class="detail-step"><span class="step-number">1</span> ${game.playerInstall ? 'Use the official player release' : 'Choose the port APK'}</div>
-    ${game.playerInstall ? `<p class="guide-note">${game.playerInstall === 'beef-raider' ? 'VR4ALL installs the official Quest APK for the demo. For the full game, use the author’s extractor on your owned files, then VR4ALL transfers its output after you launch the app once.' : `VR4ALL downloads ${['road-rash', 'harry-potter'].includes(game.playerInstall) ? 'the official player installer ZIP' : game.playerInstall === 'jkxr' ? 'both official Quest APKs' : game.playerInstall === 'official-zip' ? 'the official Quest player ZIP' : 'the official Quest APK'} and prepares your owned game files.`}</p>` : game.manualRelease ? '<p class="guide-note">The official GitHub release is an installer ZIP, not a directly installable APK. Follow its installer instructions to prepare the game, then select a local APK here.</p>' : source ? `<div class="source-toggle"><button type="button" class="source-choice ${mode === 'github' ? 'active' : ''}" data-mode="github">${source.provider === 'project-honeydew' ? 'Latest from creator' : 'Latest on GitHub'}</button><button type="button" class="source-choice ${mode === 'local' ? 'active' : ''}" data-mode="local">Local APK</button></div>` : `<div class="guide-note"><strong>Manual creator APK.</strong> This mod does not publish a verified Quest APK through a GitHub release that VR4ALL can auto-update. Download the APK from the creator, then drop it below. VR4ALL remembers its path for later installs.</div>`}
+    ${game.playerInstall ? `<p class="guide-note">${game.playerInstall === 'beef-raider' ? 'VR4ALL installs the official Quest APK for the demo. For the full game, use the author’s extractor on your owned files, then VR4ALL transfers its output after you launch the app once.' : `VR4ALL downloads ${['road-rash', 'harry-potter'].includes(game.playerInstall) ? 'the official player installer ZIP' : game.playerInstall === 'jkxr' ? 'both official Quest APKs' : game.playerInstall === 'official-zip' ? 'the official Quest player ZIP' : 'the official Quest APK'} and prepares your owned game files.`}</p>` : game.manualRelease ? '<p class="guide-note">The official GitHub release is an installer ZIP, not a directly installable APK. Follow its installer instructions to prepare the game, then select a local APK here.</p>' : source ? `<div class="source-toggle"><button type="button" class="source-choice ${mode === 'github' ? 'active' : ''}" data-mode="github">${source.provider === 'project-honeydew' ? 'Latest from creator' : `Latest on ${releaseProviderName(source)}`}</button><button type="button" class="source-choice ${mode === 'local' ? 'active' : ''}" data-mode="local">Local APK</button></div>` : `<div class="guide-note"><strong>Manual creator APK.</strong> This mod does not publish a verified Quest APK through a GitHub release that VR4ALL can auto-update. Download the APK from the creator, then drop it below. VR4ALL remembers its path for later installs.</div>`}
     <div id="releaseCard" class="release-card" ${mode === 'local' && !game.manualRelease ? 'hidden' : ''}></div>
     ${game.playerInstall ? '' : `<div id="localApkGroup" ${mode === 'github' ? 'hidden' : ''}><label class="field-label" for="apkPath">Quest APK or archive on your computer</label><div class="input-row"><input id="apkPath" class="text-input" value="${escapeHtml(values.apkPath || '')}" placeholder="C:\\Games\\Port.apk"><button type="button" class="small-button browse-btn" data-picker="file" data-target="apkPath">Browse</button></div><div class="drop-zone apk-drop-zone" data-apk="true">Drop APK, ZIP, 7z, or RAR for ${escapeHtml(game.title)} here</div><p id="apkCheck" class="file-check ${state.apkChecks[game.id]?.startsWith('Rejected:') ? 'error' : ''}">${escapeHtml(state.apkChecks[game.id] || '')}</p>${game.projectUrl ? `<p class="field-help"><a href="${escapeHtml(game.projectUrl)}" target="_blank" rel="noopener noreferrer">${game.manualBuild ? 'Open the official build guide' : source ? 'Open the official project release' : 'Open creator download'} ↗</a> — ${game.manualBuild ? 'prepare your own APK with the developer’s steps before selecting it here.' : source ? 'follow its installer instructions to obtain the APK.' : 'download the creator APK once, then VR4ALL remembers its path for future installs.'}</p>` : ''}</div>`}
     ${source && !source.provider ? '<div style="margin-top:11px"><button type="button" id="editSourceButton" class="inline-link">Edit GitHub source</button></div>' : ''}
     <div class="detail-divider"></div><div class="detail-step"><span class="step-number">2</span> ${game.data.length ? 'Add your game files' : 'Review game data'}</div>
     ${game.data.length ? '<p id="existingFilesNote" class="existing-files-note"></p>' : ''}
     ${game.playerInstall === 'jkxr' ? `<label class="field-label" for="jediGameSelect">Your Jedi game</label><select id="jediGameSelect" class="text-input"><option value="jk2" ${values.jediGame === 'jk3' ? '' : 'selected'}>Jedi Outcast</option><option value="jk3" ${values.jediGame === 'jk3' ? 'selected' : ''}>Jedi Academy</option></select>` : ''}
-    ${game.data.map((item) => `<div class="requirement"><div class="requirement-top"><span class="requirement-name">${escapeHtml(item.label)}${item.optional ? ' · optional' : ''}</span><span class="format-chip">${escapeHtml(item.discImages ? 'BIN / CUE / CHD / FOLDER / ARCHIVE' : item.kind === 'directory' ? 'FOLDER / ZIP / 7Z / RAR' : acceptedGameExtensions(item).join(' / '))}</span></div><p class="field-help">${escapeHtml(item.note || '')}${item.sharedInput ? ' · This choice fills the same file field in other ports.' : ''}</p><div class="input-row" style="margin-top:10px"><input id="data-${escapeHtml(item.id)}" class="text-input" value="${escapeHtml(values[item.id] || '')}" placeholder="${item.discImages ? 'Choose your BIN, CUE, CHD, or prepared game files' : item.kind === 'directory' ? 'Choose a game folder or archive' : item.archiveMember ? 'Choose the BIOS file or archive' : item.extensions?.includes('.zip') ? 'Choose a ZIP, archive, or folder' : 'Choose a file'}"><button type="button" class="small-button browse-btn" data-picker="${item.kind}" data-target="data-${escapeHtml(item.id)}">Browse ${item.kind === 'directory' ? 'folder' : 'file'}</button>${item.kind === 'directory' || item.kind === 'file' && item.extensions?.includes('.zip') ? `<button type="button" class="small-button browse-btn" data-picker="${item.kind === 'directory' ? 'file' : 'directory'}" data-target="data-${escapeHtml(item.id)}">Browse ${item.kind === 'directory' ? item.discImages ? 'disc / archive' : 'archive' : 'folder'}</button>` : ''}</div><div class="drop-zone" data-item-id="${escapeHtml(item.id)}">Drop your ${escapeHtml(item.label)} here${item.discImages ? ' · BIN, CUE, CHD, folder, ZIP, 7z, or RAR' : item.kind === 'directory' ? ' · folder, ZIP, 7z, or RAR' : ' · plain file, ZIP, 7z, or RAR'}</div><p id="check-${escapeHtml(item.id)}" class="file-check ${state.fileChecks[game.id]?.[item.id]?.startsWith('Rejected:') ? 'error' : ''}">${escapeHtml(state.fileChecks[game.id]?.[item.id] || '')}</p><p class="field-help">→ ${escapeHtml(item.destination)}</p></div>`).join('')}
+    ${game.data.map((item) => `<div class="requirement"><div class="requirement-top"><span class="requirement-name">${escapeHtml(item.label)}${item.optional ? ' · optional' : ''}</span><span class="format-chip">${escapeHtml(item.discImages ? 'BIN / CUE / CHD / FOLDER / ARCHIVE' : item.kind === 'directory' ? 'FOLDER / ZIP / 7Z / RAR' : acceptedGameExtensions(item).join(' / '))}</span></div><p class="field-help">${escapeHtml(item.note || '')}${item.sharedInput ? ' · This choice fills the same file field in other ports.' : ''}</p>${romRequirementHelp(game, item)}<div class="input-row" style="margin-top:10px"><input id="data-${escapeHtml(item.id)}" class="text-input" value="${escapeHtml(values[item.id] || '')}" placeholder="${item.discImages ? 'Choose your BIN, CUE, CHD, or prepared game files' : item.kind === 'directory' ? 'Choose a game folder or archive' : item.archiveMember ? 'Choose the BIOS file or archive' : item.extensions?.includes('.zip') ? 'Choose a ZIP, archive, or folder' : 'Choose a file'}"><button type="button" class="small-button browse-btn" data-picker="${item.kind}" data-target="data-${escapeHtml(item.id)}">Browse ${item.kind === 'directory' ? 'folder' : 'file'}</button>${item.kind === 'directory' || item.kind === 'file' && item.extensions?.includes('.zip') ? `<button type="button" class="small-button browse-btn" data-picker="${item.kind === 'directory' ? 'file' : 'directory'}" data-target="data-${escapeHtml(item.id)}">Browse ${item.kind === 'directory' ? item.discImages ? 'disc / archive' : 'archive' : 'folder'}</button>` : ''}</div><div class="drop-zone" data-item-id="${escapeHtml(item.id)}">Drop your ${escapeHtml(item.label)} here${item.discImages ? ' · BIN, CUE, CHD, folder, ZIP, 7z, or RAR' : item.kind === 'directory' ? ' · folder, ZIP, 7z, or RAR' : ' · plain file, ZIP, 7z, or RAR'}</div><p id="check-${escapeHtml(item.id)}" class="file-check ${state.fileChecks[game.id]?.[item.id]?.startsWith('Rejected:') ? 'error' : ''}">${escapeHtml(state.fileChecks[game.id]?.[item.id] || '')}</p><p class="field-help">→ ${escapeHtml(item.destination)}</p></div>`).join('')}
     ${game.guidance ? `<div class="guide-note">${escapeHtml(game.guidance)}</div>` : '<p class="field-help">Use game files from a copy you own. VR4ALL checks the selected format before transfer.</p>'}
     ${game.playerInstall === 'beef-raider' ? '<p class="field-help"><a href="https://github.com/DrBeef/BeefRaiderXR/releases/download/1.0.0/BeefRaiderXR-1.0.0.7z" target="_blank" rel="noopener noreferrer">Download the official Beef Raider Extraction Tool ↗</a></p>' : ''}
     <div class="detail-divider"></div><div class="detail-step"><span class="step-number">3</span> Install to your Quest</div><p class="after-note">${escapeHtml(game.afterInstall || 'Open the game under Unknown Sources after installing.')}</p>
@@ -607,8 +642,8 @@ function renderReleaseCard() {
   const release = state.releases[game.id];
   const error = state.releaseErrors[game.id];
   if (!source) { card.textContent = 'This port has no verified release source. Use the creator download above.'; return; }
-  if (error) { card.innerHTML = `Release check failed: ${escapeHtml(error)}<br><a href="${escapeHtml(source.provider === 'project-honeydew' ? game.projectUrl : `https://github.com/${source.repo}/releases`)}" target="_blank" rel="noopener noreferrer">Open releases ↗</a>`; return; }
-  if (!release) { card.textContent = source.provider === 'project-honeydew' ? 'Checking creator release…' : 'Checking GitHub releases…'; return; }
+  if (error) { card.innerHTML = `Release check failed: ${escapeHtml(error)}<br><a href="${escapeHtml(releasePageUrl(source, game))}" target="_blank" rel="noopener noreferrer">Open releases ↗</a>`; return; }
+  if (!release) { card.textContent = `Checking ${releaseProviderName(source)} releases…`; return; }
   const checked = release.checkedAt ? new Date(release.checkedAt).toLocaleString() : 'this session';
   const published = release.publishedAt ? new Date(release.publishedAt).toLocaleDateString() : 'date unknown';
   card.innerHTML = `<strong>${escapeHtml(release.title || release.tag)}</strong>${escapeHtml(release.assetName)}<br>${release.stale ? 'Cached release; source could not be refreshed' : game.releaseKind === 'patch' ? 'Verified supported xdelta patch' : game.id === 'bioshock-vr' ? 'Official Windows Quest installer EXE' : game.sourceArchive === 'single-apk' ? 'Official Quest ZIP containing one APK' : game.manualRelease || game.releaseKind === 'installer' ? 'Latest official Quest installer ZIP' : 'Latest matching Quest APK'} from ${escapeHtml(source.provider === 'project-honeydew' ? 'projecthoneydew.com (SHA-256 verified)' : source.repo)}${release.prerelease ? ' · prerelease' : ''}<br>Published ${escapeHtml(published)} · checked ${escapeHtml(checked)}<br><a href="${escapeHtml(release.url)}" target="_blank" rel="noopener noreferrer">View release ↗</a>`;
@@ -813,8 +848,8 @@ function bulkCandidate(match) {
   if (game.playerInstall === 'jkxr') return { game, reason: 'Open JKXR to choose Jedi Outcast or Jedi Academy' };
   if (!game.playerInstall && !bulkUseLocalApk(game, match) && (!sourceFor(game) || game.manualRelease)) return { game, reason: 'Choose a local APK for this port' };
   if (state.bulkMode === 'update' && !bulkUseLocalApk(game, match) && !game.playerInstall) {
-    if (state.releaseErrors[game.id]) return { game, reason: `GitHub check failed: ${state.releaseErrors[game.id]}` };
-    if (!state.releases[game.id] || state.releases[game.id].stale) return { game, reason: 'Confirm the current GitHub release before updating' };
+    if (state.releaseErrors[game.id]) return { game, reason: `${releaseProviderName(sourceFor(game))} check failed: ${state.releaseErrors[game.id]}` };
+    if (!state.releases[game.id] || state.releases[game.id].stale) return { game, reason: `Confirm the current ${releaseProviderName(sourceFor(game))} release before updating` };
   }
   if (device?.dataReady && versionStatus(game) === 'status-current' && (state.bulkMode === 'update' || !hasLocalInstallFile(game))) return { game, reason: 'Already ready on headset' };
   return { game, reason: '' };
@@ -839,7 +874,7 @@ function renderBulkMatches() {
     if (!game || hidden) return '';
     visible++;
     const files = Object.keys(match.files || {}).length + Object.keys(match.buildInputs || {}).length;
-    const details = `${game.personalBuild ? 'Build from your saved game files' : bulkUseLocalApk(game, match) ? 'Local APK' : sourceFor(game) && (!game.manualRelease || game.playerInstall) ? 'Official GitHub release' : 'APK needed'}${installType(game) === 'apk-included' ? ' · Game files included' : ''}${files ? ` · ${files} saved game file${files > 1 ? 's' : ''}` : ''}${bulkUseLocalApk(game, match) && match.checks?.apk ? ` · ${match.checks.apk}` : ''}`;
+  const details = `${game.personalBuild ? 'Build from your saved game files' : bulkUseLocalApk(game, match) ? 'Local APK' : sourceFor(game) && (!game.manualRelease || game.playerInstall) ? `Official ${releaseProviderName(sourceFor(game))} release` : 'APK needed'}${installType(game) === 'apk-included' ? ' · Game files included' : ''}${files ? ` · ${files} saved game file${files > 1 ? 's' : ''}` : ''}${bulkUseLocalApk(game, match) && match.checks?.apk ? ` · ${match.checks.apk}` : ''}`;
     const placements = (game.data || []).filter((item) => match.files?.[item.id]).map((item) => `${item.label}: ${match.files[item.id].split(/[\\/]/).at(-1)} → ${item.destination}`).join(' · ');
     return `<label class="bulk-match ${reason ? 'unavailable' : ''}"><input type="checkbox" class="bulk-select" value="${escapeHtml(game.id)}" ${reason || state.bulkRunning ? 'disabled' : ''}><span><strong>${escapeHtml(game.title)}</strong><small>${escapeHtml(details)}${reason ? ` · ${escapeHtml(reason)}` : ''}</small>${placements ? `<small>${escapeHtml(placements)}</small>` : ''}</span></label>`;
   }).join('');
@@ -1361,8 +1396,8 @@ async function install() {
     return;
   }
   if (mode === 'local' && !values.apkPath) return toast('Choose a local APK.', true);
-  if (mode === 'github' && !state.releases[game.id]) return toast('No matching GitHub APK is available. Choose a local APK.', true);
-  if (mode === 'github' && state.releases[game.id].stale) return toast('GitHub could not be refreshed. Try again later or choose a local APK.', true);
+  if (mode === 'github' && !state.releases[game.id]) return toast(`No matching ${releaseProviderName(sourceFor(game))} APK is available. Choose a local APK.`, true);
+  if (mode === 'github' && state.releases[game.id].stale) return toast(`${releaseProviderName(sourceFor(game))} could not be refreshed. Try again later or choose a local APK.`, true);
   const files = Object.fromEntries(game.data.map((item) => [item.id, values[item.id] || '']));
   state.installSubmitting = true;
   setActivity('submit', `Preparing ${game.title} installation…`);
@@ -1749,7 +1784,27 @@ async function saveSettings() {
   } catch (error) { toast(error.message, true); }
 }
 
-document.addEventListener('click', (event) => {
+document.addEventListener('click', async (event) => {
+  const copyRequirement = event.target.closest('.copy-requirement');
+  if (copyRequirement) {
+    const game = selectedGame();
+    const item = game?.data.find((entry) => entry.id === copyRequirement.dataset.copyItem);
+    if (!game || !item && copyRequirement.dataset.copyBuild !== 'gamePackage') return;
+    const value = item ? requirementCopyText(game, item) : buildRequirementCopyText(game);
+    try {
+      if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(value);
+      else {
+        const field = document.createElement('textarea');
+        field.value = value;
+        document.body.appendChild(field);
+        field.select();
+        if (!document.execCommand('copy')) throw new Error('Clipboard access unavailable');
+        field.remove();
+      }
+      toast('Game-file requirement copied.');
+    } catch (error) { toast(`Could not copy: ${error.message}`, true); }
+    return;
+  }
   const port = event.target.closest('.port-choice');
   if (port) {
     const chosen = state.games.find((entry) => entry.id === port.dataset.portId);

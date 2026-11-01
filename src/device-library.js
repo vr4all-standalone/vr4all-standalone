@@ -12,6 +12,7 @@ const packages = {
   'behind-enemy-lines-vr': 'com.vrlightgunhub.bel',
   'rail-chase-2-vr': 'com.vrlightgunhub.rchase2',
   'max-payne-nightmare-vr': 'com.MPQ.HaveliSkywalker',
+  'max-payne-mpvr': 'io.gitlab.gandork.mpvr',
   'project06-vr': 'com.p06.quest',
   qualyx: 'org.hlvr.quest',
   'project-honeydew': 'org.projecthoneydew.quest',
@@ -187,6 +188,14 @@ async function inspectDevice(adb, serial, games, knownPackages = {}) {
         if (files.includes('x_data.ras') && files.some((name) => /^x_level\d+\.ras$/i.test(name))) return true;
       }
       return false;
+    }
+    if (game.id === 'max-payne-mpvr') {
+      const base = '/sdcard/Android/data/io.gitlab.gandork.mpvr/files';
+      const staged = await list(base);
+      if (staged.some((name) => /\.apk$/i.test(name))
+        && staged.some((name) => /^main\.\d+\.com\.rockstar\.maxpayne\.obb$/i.test(name))) return true;
+      const imported = await list(`${base}/maxpayne`);
+      return imported.includes('x_data.ras') && imported.includes('libMaxPayne.so');
     }
     if (game.id === 'qualyx') {
       const base = '/sdcard/Qualyx/game';
