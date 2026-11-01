@@ -853,17 +853,18 @@ function createApp(options = {}) {
       const zipPath = await releases.downloadPackage(release, (done, total) => {
         if (total && done === total) log('Official player ZIP downloaded.');
       });
-      await withSpecialGamePath(game, input.gamePath, (gamePath) => officialPlayerInstaller({
+      const result = await withSpecialGamePath(game, input.gamePath, (gamePath) => officialPlayerInstaller({
         gameId: game.id, gamePath: gamePath || null, serial: input.serial,
-        adbPath: adb.getPath?.() || settings.adbPath, adb, zipPath,
+        adbPath: adb.getPath?.() || settings.adbPath, adb, zipPath, platform: options.platform,
         workRoot: buildWorkRoot(), onLog: log,
       }));
       const installed = (await inspectDevice(adb, input.serial, [game]))[game.id];
       if (!installed) throw new Error('Official installer finished, but its Quest package was not found on the selected headset');
-      if (input.gamePath && !installed.dataReady) throw new Error('Official installer finished, but the game disc was not found on the selected headset');
+      if (input.gamePath && !installed.dataReady && !result?.importPending) throw new Error('Official installer finished, but the game disc was not found on the selected headset');
       job.release = { tag: release.tag, url: release.url, assetName: release.assetName };
       job.status = 'success';
       log('Official Quest player installation completed. Open the game in the headset to confirm it runs.');
+      if (result?.importPending) log('Game data is waiting for the in-headset import; VR4ALL marks the port installed.');
       settings.installed[input.serial] ||= {};
       settings.installed[input.serial][game.id] = { at: new Date().toISOString(), tag: release.tag, packageId: installed.packageId, versionName: installed.versionName };
       await saveSettings();

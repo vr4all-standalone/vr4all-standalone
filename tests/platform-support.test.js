@@ -9,13 +9,13 @@ const byId = (id) => getCatalog().find((entry) => entry.id === id);
 
 // Ports without a Linux install path. Each port task removes its id from this list.
 const LINUX_REFUSED = ['gta-sa-vr', 'bioshock-vr', 'vice-city-vr', 'rdr1-vr', 'fzero-x-virtuavr', 'victory-heat-rally-vr',
-  'harry-potter-vr', 'gothic2-vr'];
+  'harry-potter-vr'];
 
 // Ports with a Linux path that needs an x86-64 host. Each port task adds its id.
 const LINUX_EXPERIMENTAL = ['crazy-taxi-vr', 'magic-carpet-vr'];
 
 // Ports with a Linux path that runs on any architecture (Node or Python). Each port task adds its id.
-const LINUX_EXPERIMENTAL_ANY_ARCH = ['galaxyquest', 'gt2-vr', 'descent12-vr', 'animal-crossing-vr', 'road-rash-vr'];
+const LINUX_EXPERIMENTAL_ANY_ARCH = ['galaxyquest', 'gt2-vr', 'descent12-vr', 'animal-crossing-vr', 'road-rash-vr', 'gothic2-vr'];
 
 test('Windows runs every port', () => {
   for (const game of getCatalog()) assert.equal(platformSupport(game, 'win32').supported, true, game.id);
