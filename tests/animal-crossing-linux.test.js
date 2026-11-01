@@ -114,9 +114,13 @@ test('Animal Crossing on Linux installs the APK, pushes the ROM to a staging fil
     assert.equal(adb.staging.size, 0, 'the staging copy is removed');
     const order = scripts(adb);
     const at = (pattern) => order.findIndex((script) => pattern.test(script));
-    assert.ok(at(/^chmod 644 /) < at(/umask 077; cp /) && at(/umask 077; cp /) < at(/sha256sum/), 'chmod, then copy into the app, then verify');
-    assert.ok(at(/rm -f files\/rom\/\.acquest-import-\*\.tmp\n/) < at(/umask 077; cp /), 'leftovers of earlier attempts are cleared first');
-    assert.ok(adb.calls.filter((call) => /umask 077; cp /.test(call.args.at(-1))).every((call) => call.options.timeoutMs === 600000));
+    const [chmod, clear, copy, verify] = [/^chmod 644 /, /rm -f files\/rom\/\.acquest-import-\*\.tmp\n/, /umask 077; cp /, /sha256sum/].map(at);
+    assert.ok(chmod >= 0 && clear >= 0 && copy >= 0 && verify >= 0, 'every step ran');
+    assert.ok(chmod < copy && copy < verify, 'chmod, then copy into the app, then verify');
+    assert.ok(clear < copy, 'leftovers of earlier attempts are cleared first');
+    const copies = adb.calls.filter((call) => /umask 077; cp /.test(call.args.at(-1)));
+    assert.equal(copies.length, 1);
+    assert.equal(copies[0].options.timeoutMs, 600000);
     assert.ok(scripts(adb).filter((script) => /^pidof/.test(script)).length >= 4, 'the game-stopped check runs before install, after install, before upload and before publishing');
     assert.ok(adb.calls.filter((call) => /sha256sum|mv -n/.test(call.args.at(-1))).every((call) => call.options.timeoutMs === 600000));
     assert.ok(!scripts(adb).some((script) => /uninstall|pm clear/.test(script)));
