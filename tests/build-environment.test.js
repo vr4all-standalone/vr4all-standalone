@@ -41,3 +41,38 @@ test('real Windows PowerShell hashes files when launched from an incompatible Po
     assert.equal(stdout.trim().toLowerCase(), crypto.createHash('sha256').update(await fs.readFile(input)).digest('hex'));
   } finally { if (previous === undefined) delete process.env.PSModulePath; else process.env.PSModulePath = previous; }
 });
+
+function withEnv(changes, operation) {
+  const previous = {};
+  for (const [key, value] of Object.entries(changes)) { previous[key] = process.env[key]; if (value === undefined) delete process.env[key]; else process.env[key] = value; }
+  try { return operation(); } finally { for (const [key, value] of Object.entries(previous)) { if (value === undefined) delete process.env[key]; else process.env[key] = value; } }
+}
+
+test('Windows builds relocate the Android user folder and drop the inherited PowerShell module path on any host', () => {
+  withEnv({ PSModulePath: 'C:\\modules', ANDROID_USER_HOME: undefined }, () => {
+    const env = buildEnvironment(path.join(path.sep, 'build'), { platform: 'win32' });
+    assert.equal(env.ANDROID_USER_HOME, path.join(path.sep, 'build', '.android-user'));
+    assert.equal(env.PSModulePath, undefined);
+    assert.equal(env.TMPDIR, undefined);
+  });
+});
+
+test('Linux builds use the shared temp and Gradle folders but leave the Android user folder alone', () => {
+  withEnv({ ANDROID_USER_HOME: '/home/user/.android', APPIMAGE: undefined, LD_LIBRARY_PATH: '/keep' }, () => {
+    const env = buildEnvironment('/work/shared', { platform: 'linux' });
+    for (const key of ['TEMP', 'TMP', 'TMPDIR']) assert.equal(env[key], '/work/shared/.tmp', key);
+    assert.equal(env.GRADLE_USER_HOME, '/work/shared/.gradle');
+    assert.equal(env.ANDROID_USER_HOME, '/home/user/.android');
+    assert.equal(env.LD_LIBRARY_PATH, '/keep');
+  });
+  withEnv({ ANDROID_USER_HOME: undefined }, () => assert.equal('ANDROID_USER_HOME' in buildEnvironment('/work/shared', { platform: 'linux' }), false));
+});
+
+test('inside an AppImage the bundled library paths are not passed to system tools', () => {
+  withEnv({ APPIMAGE: '/opt/VR4ALL.AppImage', LD_LIBRARY_PATH: '/tmp/.mount/lib', LD_PRELOAD: '/tmp/.mount/preload.so' }, () => {
+    const env = buildEnvironment('/work/shared', { platform: 'linux' });
+    assert.equal('LD_LIBRARY_PATH' in env, false);
+    assert.equal('LD_PRELOAD' in env, false);
+    assert.equal(process.env.LD_LIBRARY_PATH, '/tmp/.mount/lib', 'the parent environment is untouched');
+  });
+});

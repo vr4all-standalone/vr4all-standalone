@@ -25,6 +25,7 @@ test('SDK Manager waits for the displayed license decision before sending any in
   const shown = new Promise((resolve) => { presented = resolve; });
   const writes = [];
   const task = runSdkManager(config, () => {}, async (text) => { presented(text); return pending; }, {
+    platform: 'win32',
     spawnImpl: (binary, args, options) => {
       assert.equal(binary, config.javaExe);
       assert.ok(args.includes('--install'));
@@ -155,7 +156,7 @@ function Get-MissingSdkPackages {
 }
 throw 'The game installer entry point must never run during SDK setup'
 `);
-  const metadata = await prepareSdkTools(kit, root, () => {}, { spawnImpl: (binary, args, options) => {
+  const metadata = await prepareSdkTools(kit, root, () => {}, { platform: 'win32', spawnImpl: (binary, args, options) => {
     const helper = args[args.indexOf('-File') + 1];
     assert.ok(helper.startsWith(root + path.sep), 'external PowerShell cannot read a helper inside the packaged app.asar');
     assert.equal(options.env.TEMP, path.join(root, '.tmp'));
@@ -167,7 +168,7 @@ throw 'The game installer entry point must never run during SDK setup'
   assert.equal((await fs.readdir(root)).some((name) => name.startsWith('.vr4all-sdk-helper-')), false);
   await fs.mkdir(path.join(buildTools, 'lib'));
   for (const marker of ['aapt2.exe', 'zipalign.exe', 'lib/apksigner.jar', 'lib/d8.jar', 'source.properties']) await fs.writeFile(path.join(buildTools, marker), 'fixture');
-  const complete = await prepareSdkTools(kit, root, () => {});
+  const complete = await prepareSdkTools(kit, root, () => {}, { platform: 'win32' });
   assert.deepEqual(complete.packages, ['platforms;android-35']);
 });
 
@@ -197,7 +198,7 @@ function Test-AndroidPackages {
 function Invoke-AndroidSdkLicenses { throw 'Bootstrap must never accept terms' }
 throw 'Game installer must not execute during tool preparation'
 `);
-  const result = await prepareSdkTools(kit, root, () => {}, { gameId });
+  const result = await prepareSdkTools(kit, root, () => {}, { gameId, platform: 'win32' });
   assert.equal(result.javaExe, path.join(root, '.tools', 'jdk', 'bin', 'java.exe'));
   assert.equal(result.classpath, cli);
   assert.deepEqual(result.packages, ['platforms;android-35', 'build-tools;35.0.0', 'ndk;27.2.12479018', 'cmake;3.22.1']);
@@ -226,4 +227,26 @@ test('all three setup flows reuse installed SDK packages and only install a diff
     });
   }
   assert.deepEqual(installed, ['platforms;android-35', 'ndk;27.2.12479018', 'cmake;3.22.1', 'build-tools;34.0.0', 'build-tools;35.0.0']);
+});
+
+test('on Linux SDK Manager runs with the shared temp folder and without relocating the Android user folder', async () => {
+  let child;
+  const task = runSdkManager(config, () => {}, async () => true, {
+    platform: 'linux',
+    spawnImpl: (binary, args, options) => {
+      assert.equal(binary, config.javaExe);
+      assert.deepEqual(args.slice(-3), ['--install', ...config.packages]);
+      assert.equal(options.env.TEMP, path.join(tools, '.tmp'));
+      assert.equal(options.env.TMPDIR, path.join(tools, '.tmp'));
+      assert.equal(options.env.GRADLE_USER_HOME, path.join(tools, '.gradle'));
+      assert.equal(options.env.JAVA_HOME, config.javaHome);
+      assert.equal(options.env.ANDROID_USER_HOME, process.env.ANDROID_USER_HOME, 'adb must keep finding the key the Quest already trusts');
+      assert.ok(args.includes(`-Djava.io.tmpdir=${path.join(tools, '.tmp')}`));
+      assert.ok(args.includes(`--sdk_root=${config.sdkRoot}`));
+      child = childProcess();
+      return child;
+    },
+  });
+  child.emit('close', 0);
+  await task;
 });
