@@ -21,6 +21,15 @@ async function finished(app, id) {
   }
   throw new Error('RDR job did not finish');
 }
+// The server saves settings asynchronously after a job finishes; read until the file holds a complete write.
+async function savedSettings(settingsPath, ready = () => true) {
+  for (let attempt = 0; attempt < 200; attempt++) {
+    const saved = await fs.readFile(settingsPath, 'utf8').then(JSON.parse, () => null);
+    if (saved && ready(saved)) return saved;
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  throw new Error('Settings were not saved');
+}
 
 test('RDR API blocks an offline selected Quest before building and permits retry after Wi-Fi connects', async (t) => {
   const root = await fs.mkdtemp(path.join(__dirname, '.rdr-network-api-'));
@@ -43,14 +52,14 @@ test('RDR API blocks an offline selected Quest before building and permits retry
   const offline = await finished(app, response.body.job.id);
   assert.equal(offline.status, 'error'); assert.match(offline.error, /Wi-Fi/);
   assert.equal(builds, 0);
-  assert.deepEqual(JSON.parse(await fs.readFile(settingsPath, 'utf8')).installed, {});
+  assert.deepEqual((await savedSettings(settingsPath)).installed, {});
   online = true;
   response = await request(app, 'POST', '/api/personal-build', input);
   const success = await finished(app, response.body.job.id);
   assert.equal(success.status, 'success', success.error);
   assert.equal(success.internetStatus, 'online'); assert.match(success.afterInstall, /Wi-Fi.*Netflix/);
   assert.equal(builds, 1);
-  const saved = JSON.parse(await fs.readFile(settingsPath, 'utf8'));
+  const saved = await savedSettings(settingsPath, (settings) => settings.jobHistory?.[0]?.afterInstall);
   assert.equal(saved.jobHistory[0].afterInstall, success.afterInstall);
   assert.equal(saved.installed.PRESERVED, undefined);
 });
