@@ -57,6 +57,15 @@ if (!ownsInstanceLock) {
           const error = await shell.openPath(folder);
           if (error) throw new Error(error);
         },
+        ...(process.platform !== 'win32' && {
+          picker: async (kind, defaultPath) => {
+            const { canceled, filePaths } = await dialog.showOpenDialog(window, {
+              properties: [kind === 'directory' ? 'openDirectory' : 'openFile'],
+              ...(defaultPath && { defaultPath }),
+            });
+            return canceled ? null : filePaths[0] || null;
+          },
+        }),
       });
       server = instance.server;
       getActiveInstallJobs = instance.getActiveInstallJobs;
