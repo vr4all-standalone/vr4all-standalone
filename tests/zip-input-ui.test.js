@@ -1281,3 +1281,10 @@ test('Windows-only ports are not offered as ready, bulk-installable or bulk-upda
   assert.equal(vm.runInContext('bulkCandidate({ gameId: vhrGame.id, files: {}, buildInputs: {} }).hidden', context), true);
   assert.equal(vm.runInContext("bulkCandidate({ gameId: rdr.id, files: {}, buildInputs: { gamePackage: '/owned/RDR' } }).reason", context), reason);
 });
+
+test('experimental Linux ports show their note and keep the install button enabled', () => {
+  const { context, game } = appHarness();
+  context.experimental = { ...game, support: { supported: true, experimental: true, note: 'X-NOTE' } };
+  const html = vm.runInContext('detailHtml(experimental)', context);
+  assert.match(html, /<div class="guide-note">X-NOTE<\/div>\s*<button type="button" id="installButton"(?![^>]*disabled)/);
+});

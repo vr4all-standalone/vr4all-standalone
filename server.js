@@ -200,7 +200,7 @@ function createApp(options = {}) {
 
   function catalog() { return [...getCatalog(), ...(settings.customGames || [])]; }
   function gameById(id) { return catalog().find((game) => game.id === id); }
-  function requireSupported(game) { const support = platformSupport(game, options.platform); if (!support.supported) throw new Error(support.reason); }
+  function requireSupported(game) { const support = platformSupport(game, options.platform, { arch: options.arch, findWine: options.findWine }); if (!support.supported) throw new Error(support.reason); }
   function sourceFor(game) { return game.id === 'victory-heat-rally-vr' ? game.source : settings.sources?.[game.id] || game.source; }
   function saveSettings() {
     if (!settingsPath) return Promise.resolve();

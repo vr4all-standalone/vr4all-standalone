@@ -7,19 +7,28 @@ const { createApp } = require('../server');
 
 const byId = (id) => getCatalog().find((entry) => entry.id === id);
 
+// Ports without a Linux install path. Each port task removes its id from this list.
+const LINUX_REFUSED = ['gta-sa-vr', 'bioshock-vr', 'vice-city-vr', 'rdr1-vr', 'crazy-taxi-vr', 'fzero-x-virtuavr', 'victory-heat-rally-vr',
+  'road-rash-vr', 'harry-potter-vr', 'galaxyquest', 'magic-carpet-vr', 'descent12-vr', 'gothic2-vr', 'animal-crossing-vr', 'gt2-vr'];
+
 test('Windows runs every port', () => {
   for (const game of getCatalog()) assert.equal(platformSupport(game, 'win32').supported, true, game.id);
 });
 
 test('Linux refuses ports that need PowerShell kits or Windows executables, with a reason', () => {
-  for (const id of ['gta-sa-vr', 'bioshock-vr', 'vice-city-vr', 'rdr1-vr', 'crazy-taxi-vr', 'fzero-x-virtuavr', 'victory-heat-rally-vr',
-    'road-rash-vr', 'harry-potter-vr', 'galaxyquest', 'magic-carpet-vr', 'descent12-vr', 'gothic2-vr', 'animal-crossing-vr', 'gt2-vr']) {
+  for (const id of LINUX_REFUSED) {
     const game = byId(id);
     assert.ok(game, id);
     const result = platformSupport(game, 'linux');
     assert.equal(result.supported, false, id);
     assert.match(result.reason, /Windows/);
   }
+});
+
+test('BioShock VR stays unsupported on Linux with its own reason', () => {
+  const result = platformSupport(byId('bioshock-vr'), 'linux');
+  assert.equal(result.supported, false);
+  assert.match(result.reason, /BioShock/);
 });
 
 test('Linux accepts a plain creator-APK port', () => {

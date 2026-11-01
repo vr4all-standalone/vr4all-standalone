@@ -620,7 +620,8 @@ function detailHtml(game) {
   if (game.personalBuild) {
     const unsupported = game.support?.supported === false;
     const html = personalBuildHtml(game).replace('<input id="buildGamePath"', '<button type="button" class="copy-requirement" data-copy-build="gamePackage" title="Copy the original game file requirement">Copy requirement</button><input id="buildGamePath"');
-    const gated = unsupported ? html.replace('<button type="button" id="personalBuildButton"', `<div class="guide-note">${escapeHtml(game.support.reason)}</div><button type="button" id="personalBuildButton" disabled`) : html;
+    const gated = unsupported ? html.replace('<button type="button" id="personalBuildButton"', `<div class="guide-note">${escapeHtml(game.support.reason)}</div><button type="button" id="personalBuildButton" disabled`)
+      : game.support?.experimental ? html.replace('<button type="button" id="personalBuildButton"', `<div class="guide-note">${escapeHtml(game.support.note)}</div><button type="button" id="personalBuildButton"`) : html;
     if (!['vice-city-vr', 'rdr1-vr', 'gta-sa-vr'].includes(game.id)) return gated;
     const setup = `<div class="sdk-setup-card"><strong>Build tools</strong><p class="field-help">Vice City, RDR and San Andreas reuse tools from the same download folder. Setup checks what is already installed and downloads only missing versions.</p><button id="setupBuildToolsButton" type="button" class="small-button"${unsupported ? ' disabled' : ''}>Set up build tools</button></div>`;
     return gated.replace('<button type="button" id="personalBuildButton"', `${setup}<button type="button" id="personalBuildButton"`);
@@ -639,7 +640,7 @@ function detailHtml(game) {
     ${game.guidance ? `<div class="guide-note">${escapeHtml(game.guidance)}</div>` : '<p class="field-help">Use game files from a copy you own. VR4ALL checks the selected format before transfer.</p>'}
     ${game.playerInstall === 'beef-raider' ? '<p class="field-help"><a href="https://github.com/DrBeef/BeefRaiderXR/releases/download/1.0.0/BeefRaiderXR-1.0.0.7z" target="_blank" rel="noopener noreferrer">Download the official Beef Raider Extraction Tool ↗</a></p>' : ''}
     <div class="detail-divider"></div><div class="detail-step"><span class="step-number">3</span> Install to your Quest</div><p class="after-note">${escapeHtml(game.afterInstall || 'Open the game under Unknown Sources after installing.')}</p>
-    ${game.support?.supported === false ? `<div class="guide-note">${escapeHtml(game.support.reason)}</div>` : ''}
+    ${game.support?.supported === false ? `<div class="guide-note">${escapeHtml(game.support.reason)}</div>` : game.support?.experimental ? `<div class="guide-note">${escapeHtml(game.support.note)}</div>` : ''}
     <button type="button" id="installButton" class="primary-button install-button" ${game.support?.supported === false ? 'disabled' : ''}>${game.playerInstall ? 'Prepare & install' : mode === 'github' ? 'Download & install' : 'Install port'} <span>→</span></button><div id="jobContainer"></div>`;
 }
 
