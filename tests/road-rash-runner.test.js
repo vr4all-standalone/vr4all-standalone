@@ -8,6 +8,8 @@ const { EventEmitter } = require('node:events');
 const { PassThrough } = require('node:stream');
 const { extractReleaseZip, installRoadRashPlayer } = require('../src/road-rash-runner');
 
+const needsPowerShell = process.platform !== 'win32' && 'Windows PowerShell is required for this flow';
+
 function crc32(bytes) {
   let crc = 0xffffffff;
   for (const byte of bytes) {
@@ -77,7 +79,7 @@ function playerZip() {
   ]);
 }
 
-test('safe extraction places official package files under the staging root', async (t) => {
+test('safe extraction places official package files under the staging root', { skip: needsPowerShell }, async (t) => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-road-rash-zip-test-'));
   t.after(() => fs.rm(root, { recursive: true, force: true }));
   const archive = path.join(root, 'player.zip');
@@ -88,7 +90,7 @@ test('safe extraction places official package files under the staging root', asy
   assert.equal(await fs.readFile(path.join(packageRoot, 'scripts', 'install-player.ps1'), 'utf8'), 'param()');
 });
 
-test('safe extraction rejects a traversal entry before writing any package file', async (t) => {
+test('safe extraction rejects a traversal entry before writing any package file', { skip: needsPowerShell }, async (t) => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-road-rash-zip-test-'));
   t.after(() => fs.rm(root, { recursive: true, force: true }));
   const archive = path.join(root, 'bad.zip');
@@ -103,7 +105,7 @@ test('safe extraction rejects a traversal entry before writing any package file'
   assert.equal(await fs.stat(path.join(output, 'RoadRashJailbreak-0.1.0', 'scripts', 'install-player.ps1')).catch(() => null), null);
 });
 
-test('safe extraction rejects symbolic links and oversized declared files', async (t) => {
+test('safe extraction rejects symbolic links and oversized declared files', { skip: needsPowerShell }, async (t) => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-road-rash-zip-test-'));
   t.after(() => fs.rm(root, { recursive: true, force: true }));
   const archive = path.join(root, 'bad.zip');
@@ -161,7 +163,7 @@ test('runner verifies ZIP digest before invoking the installer', async (t) => {
   assert.deepEqual((await fs.readdir(root)).sort(), ['owned.bin']);
 });
 
-test('runner passes the selected disc, Quest, and ADB to the official script and streams its output', async (t) => {
+test('runner passes the selected disc, Quest, and ADB to the official script and streams its output', { skip: needsPowerShell }, async (t) => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-road-rash-run-test-'));
   t.after(() => fs.rm(root, { recursive: true, force: true }));
   const discImage = path.join(root, 'owned disc.cue');
