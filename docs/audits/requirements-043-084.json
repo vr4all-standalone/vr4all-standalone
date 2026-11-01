@@ -1,0 +1,1281 @@
+{
+  "scope": "getCatalog() filtered to data.length > 0 or personalBuild; stable 1-based indices 43–84 from catalog-baseline.json",
+  "auditedAt": "2026-10-31",
+  "method": "Compared every catalog input with the original creator's current official installation page, repository README, or release. Verdicts describe catalog copy guidance, not runtime verification. MATCH means no material conflict found; UNCLEAR means the accessible creator instructions do not substantiate all catalog detail.",
+  "entries": [
+    {
+      "index": 43,
+      "id": "mok-upstream-vr",
+      "source": "https://github.com/mikermak/hotd2-vr/blob/hotd2-vr/README.md",
+      "inputs": [
+        {
+          "id": "mok",
+          "verdict": "MATCH",
+          "evidence": "Creator requires mok.zip containing 317-0333-com.pic; NAOMI BIOS may be embedded or separate.",
+          "catalog": {
+            "label": "The Maze of the Kings arcade set",
+            "note": "Own mok.zip containing 317-0333-com.pic; VR4ALL checks this revision key chip before transfer",
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "optional": false,
+            "romRequirement": {
+              "set": "mok.zip",
+              "revision": "original GDS-0022 set"
+            },
+            "copyRequirement": null
+          }
+        },
+        {
+          "id": "chd",
+          "verdict": "MISMATCH",
+          "evidence": "Creator accepts gds-0022.chd or a .cue/.gdi disc in a mok folder; catalog limits this field to .chd.",
+          "correctedCopyText": "Own the GDS-0022 disc as gds-0022.chd, or a complete .cue/.gdi image with its companion tracks; place it in the mok folder. Update the picker and transfer path to support the advertised alternatives.",
+          "catalog": {
+            "label": "The Maze of the Kings GD-ROM",
+            "note": "Own gds-0022.chd",
+            "kind": "file",
+            "extensions": [
+              ".chd"
+            ],
+            "optional": false,
+            "romRequirement": {
+              "set": "gds-0022.chd",
+              "revision": "original GDS-0022 disc"
+            },
+            "copyRequirement": null
+          }
+        },
+        {
+          "id": "naomi",
+          "verdict": "MATCH",
+          "evidence": "Creator permits NAOMI BIOS inside mok.zip or as separate naomi.zip.",
+          "catalog": {
+            "label": "Optional NAOMI BIOS",
+            "note": null,
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "optional": true,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "The Maze of the Kings VR (Upstream)",
+      "catalogCreatorUrl": "https://github.com/mikermak/hotd2-vr"
+    },
+    {
+      "index": 44,
+      "id": "pokemon-gen1-vr",
+      "source": "https://github.com/heurazy/1GenPokemonVr",
+      "inputs": [
+        {
+          "id": "rom",
+          "verdict": "MATCH",
+          "evidence": "Creator accepts only canonical 1 MiB US Red or Blue .gb ROMs, SHA-1 verified on import.",
+          "catalog": {
+            "label": "Pokémon Red or Blue US ROM",
+            "note": "Own an unmodified 1 MiB US Red or Blue ROM; select it in the headset",
+            "kind": "file",
+            "extensions": [
+              ".gb"
+            ],
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "Pokémon Gen 1 VR",
+      "catalogCreatorUrl": "https://github.com/heurazy/1GenPokemonVr"
+    },
+    {
+      "index": 45,
+      "id": "rave-racer-vr",
+      "source": "https://virtuavrport.itch.io/rave-racer-vr-quest",
+      "inputs": [
+        {
+          "id": "race",
+          "verdict": "MISMATCH",
+          "evidence": "Creator explicitly accepts raverace.zip OR compatible raveracw.zip and says to retain the shown filenames. Catalog says raveracw.zip must be renamed.",
+          "correctedCopyText": "Own raverace.zip or a compatible raveracw.zip; keep the original filename. Configure transfer to preserve either accepted name.",
+          "catalog": {
+            "label": "Rave Racer arcade set",
+            "note": "Own raverace.zip; a compatible raveracw.zip must be renamed before selection",
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        },
+        {
+          "id": "board",
+          "verdict": "MATCH",
+          "evidence": "Creator requires namcoc74.zip.",
+          "catalog": {
+            "label": "Namco C74 board set",
+            "note": null,
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        },
+        {
+          "id": "bios",
+          "verdict": "MATCH",
+          "evidence": "Creator requires loose c71.bin; VR4ALL's archive extraction may produce that loose file from an archive.",
+          "catalog": {
+            "label": "Namco C71 BIOS",
+            "note": "Select c71.bin directly, or a ZIP, 7z, or RAR containing c71.bin. VR4ALL extracts the BIOS automatically.",
+            "kind": "file",
+            "extensions": [
+              ".bin"
+            ],
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "Rave Racer VR",
+      "catalogCreatorUrl": "https://virtuavrport.itch.io/rave-racer-vr-quest"
+    },
+    {
+      "index": 46,
+      "id": "cnc-generals-xr",
+      "source": "https://github.com/Cesarus85/Generals-Zero-Hour-XR",
+      "inputs": [
+        {
+          "id": "zh",
+          "verdict": "MATCH",
+          "evidence": "Creator requires complete installed Zero Hour data, accepting Steam or extracted CD/ISO layouts and rejecting raw ISO/installers.",
+          "catalog": {
+            "label": "Installed Generals Zero Hour folder",
+            "note": "Complete installed game folder containing INIZH.big; include the nested base game if your edition bundles it",
+            "kind": "directory",
+            "extensions": null,
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        },
+        {
+          "id": "base",
+          "verdict": "MATCH",
+          "evidence": "Creator requests separate base Generals folder when it is not bundled in the Zero Hour install.",
+          "catalog": {
+            "label": "Separate Generals base-game folder",
+            "note": "If separate, include Terrain.big, Textures.big, W3D.big and all game files",
+            "kind": "directory",
+            "extensions": null,
+            "optional": true,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "Generals Zero Hour XR",
+      "catalogCreatorUrl": "https://github.com/Cesarus85/Generals-Zero-Hour-XR"
+    },
+    {
+      "index": 47,
+      "id": "harry-potter-vr",
+      "source": "https://github.com/dubrovskiy-yevhen-stakelogic/harry-potter-vr/blob/main/tools/release/PLAYER-INSTALL.md",
+      "inputs": [
+        {
+          "id": "gamePath",
+          "verdict": "MATCH",
+          "evidence": "Creator's installer asks for the owned US 2001 PC game folder; the release ZIP is a separate player package. VR4ALL's ZIP input is its own unpacking convenience.",
+          "catalog": {
+            "label": "Owned US 2001 PC game",
+            "note": "Drop a ZIP or folder containing the complete original PC game. VR4All runs the author’s installer.",
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "Harry Potter VR",
+      "catalogCreatorUrl": "https://github.com/dubrovskiy-yevhen-stakelogic/harry-potter-vr/blob/main/tools/release/PLAYER-INSTALL.md"
+    },
+    {
+      "index": 48,
+      "id": "beef-raider-xr",
+      "source": "https://sidequestvr.com/app/38086/beef-raider-xr-tomb-raider-in-vr",
+      "inputs": [
+        {
+          "id": "gamePath",
+          "verdict": "MATCH",
+          "evidence": "Demo needs no retail data; full game uses creator's extraction tool and its Audio, FMV, DATA folders. Soundtrack download is mandatory only for music.",
+          "catalog": {
+            "label": "Extracted Tomb Raider game data",
+            "note": "For the full game, run the official Beef Raider Extraction Tool on your owned Tomb Raider files, then drop its mod folder containing Audio, FMV and DATA. The demo needs no game data.",
+            "kind": "directory",
+            "extensions": null,
+            "optional": true,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "Beef Raider XR",
+      "catalogCreatorUrl": "https://sidequestvr.com/app/38086/beef-raider-xr-tomb-raider-in-vr"
+    },
+    {
+      "index": 49,
+      "id": "jkxr",
+      "source": "https://github.com/Team-Beef-Studios/JKXR/blob/main/README.md",
+      "inputs": [
+        {
+          "id": "gamePath",
+          "verdict": "UNCLEAR",
+          "evidence": "Creator describes Jedi Outcast assets0.pk3, assets1.pk3, assets2.pk3 and assets5.pk3 in JKXR/JK2/base and separately notes Jedi Academy support; the catalog's combined folder guidance does not name the exact files for each game. Demo can run without full assets.",
+          "correctedCopyText": "For Jedi Outcast, supply assets0.pk3, assets1.pk3, assets2.pk3 and assets5.pk3 from GameData/base. Jedi Academy uses its own GameData/base assets. The Jedi Knight demo needs no retail data.",
+          "catalog": {
+            "label": "Owned Jedi Outcast or Jedi Academy game folder",
+            "note": "Choose the original game folder, GameData folder, or base folder. VR4All checks the required PK3 files for the selected game.",
+            "kind": "directory",
+            "extensions": null,
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "JKXR",
+      "catalogCreatorUrl": "https://github.com/Team-Beef-Studios/JKXR/blob/main/README.md"
+    },
+    {
+      "index": 50,
+      "id": "dark-forces-vr",
+      "source": "https://github.com/SoVRHere/TheForceEngineVR/releases",
+      "inputs": [
+        {
+          "id": "game",
+          "verdict": "UNCLEAR",
+          "evidence": "Creator's Quest release and setup use owned Dark Forces data. Accessible release text did not establish the catalog's Remastered compatibility recommendation or that DARK.GOB alone is sufficient.",
+          "catalog": {
+            "label": "Owned Dark Forces game folder",
+            "note": "Choose the folder containing DARK.GOB from an owned original or Remastered copy. The author recommends Remastered data.",
+            "kind": "directory",
+            "extensions": null,
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "The Force Engine VR",
+      "catalogCreatorUrl": "https://github.com/SoVRHere/TheForceEngineVR/releases"
+    },
+    {
+      "index": 51,
+      "id": "openxwa-vr",
+      "source": "https://github.com/SgtBilko76/OpenXWA-VR/blob/main/README-QUEST.md",
+      "inputs": [
+        {
+          "id": "game",
+          "verdict": "MATCH",
+          "evidence": "Creator requires whole X-Wing Alliance folder containing STRINGS.TXT, FRONTRES, MISSIONS, copied as /sdcard/OpenXWA.",
+          "catalog": {
+            "label": "Owned X-Wing Alliance installed folder",
+            "note": "The selected folder should contain STRINGS.TXT",
+            "kind": "directory",
+            "extensions": null,
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "OpenXWA VR",
+      "catalogCreatorUrl": "https://github.com/SgtBilko76/OpenXWA-VR"
+    },
+    {
+      "index": 52,
+      "id": "opentie-vr",
+      "source": "https://portroyale.online/opentie.html",
+      "inputs": [
+        {
+          "id": "cd",
+          "verdict": "MATCH",
+          "evidence": "Creator copies Steam collectors_cd to OpenTIE/TIE95.",
+          "catalog": {
+            "label": "TIE Fighter collectors_cd folder",
+            "note": null,
+            "kind": "directory",
+            "extensions": null,
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        },
+        {
+          "id": "remastered",
+          "verdict": "MATCH",
+          "evidence": "Creator copies Steam remastered to OpenTIE/TIE98. Optional X-Wing Alliance cockpit data is separate and currently absent from catalog guidance.",
+          "catalog": {
+            "label": "TIE Fighter remastered folder",
+            "note": null,
+            "kind": "directory",
+            "extensions": null,
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "OpenTIE VR",
+      "catalogCreatorUrl": "https://github.com/SgtBilko76/OpenTIE-VR"
+    },
+    {
+      "index": 53,
+      "id": "openxw-vr",
+      "source": "https://github.com/SgtBilko76/OpenXW-VR/blob/main/README-QUEST.md",
+      "inputs": [
+        {
+          "id": "cd",
+          "verdict": "MATCH",
+          "evidence": "Creator copies collectors_cd to OpenXW/XW94.",
+          "catalog": {
+            "label": "X-Wing collectors_cd folder",
+            "note": null,
+            "kind": "directory",
+            "extensions": null,
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        },
+        {
+          "id": "remastered",
+          "verdict": "MATCH",
+          "evidence": "Creator copies remastered to OpenXW/XW98.",
+          "catalog": {
+            "label": "X-Wing remastered folder",
+            "note": null,
+            "kind": "directory",
+            "extensions": null,
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "OpenXW VR",
+      "catalogCreatorUrl": "https://github.com/SgtBilko76/OpenXW-VR"
+    },
+    {
+      "index": 54,
+      "id": "openxvt-vr",
+      "source": "https://github.com/SgtBilko76/OpenXvT-VR/blob/main/README-QUEST.md",
+      "inputs": [
+        {
+          "id": "game",
+          "verdict": "MATCH",
+          "evidence": "Creator requires the whole Steam X-Wing vs TIE Fighter folder, including Balance of Power, under /sdcard/OpenXvT.",
+          "catalog": {
+            "label": "Owned X-Wing vs. TIE Fighter folder",
+            "note": "Include Balance of Power files from the complete PC install",
+            "kind": "directory",
+            "extensions": null,
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "OpenXvT VR",
+      "catalogCreatorUrl": "https://github.com/SgtBilko76/OpenXvT-VR"
+    },
+    {
+      "index": 55,
+      "id": "smash-remix-vr",
+      "source": "https://github.com/VistaLargaGames/Smash-Remix-VR",
+      "inputs": [
+        {
+          "id": "rom",
+          "verdict": "MISMATCH",
+          "evidence": "Creator accepts either the owned USA Super Smash Bros. ROM and/or a separately patched Smash Remix 2.0.1 ROM. Catalog only names the original ROM, omitting the Remix input pathway.",
+          "correctedCopyText": "Choose your owned Super Smash Bros. (USA) ROM for the original game. To play Smash Remix, also choose a ROM you patched yourself with the official Smash Remix 2.0.1 patch in the headset start window.",
+          "catalog": {
+            "label": "Super Smash Bros. US ROM",
+            "note": "Own the USA ROM; the port checks and remembers the ROM selected in the headset",
+            "kind": "file",
+            "extensions": [
+              ".z64",
+              ".n64",
+              ".v64"
+            ],
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "Smash Remix VR",
+      "catalogCreatorUrl": "https://github.com/VistaLargaGames/Smash-Remix-VR"
+    },
+    {
+      "index": 56,
+      "id": "wave-race-vr",
+      "source": "https://github.com/VistaLargaGames/WaveRace64-QuestVR",
+      "inputs": [
+        {
+          "id": "rom",
+          "verdict": "MATCH",
+          "evidence": "Creator requires USA Rev A/v1.1 and explicitly accepts .z64, .n64, .v64.",
+          "catalog": {
+            "label": "Wave Race 64 USA Rev A ROM",
+            "note": "Own USA Rev A / v1.1; the port checks the revision when you select it",
+            "kind": "file",
+            "extensions": [
+              ".z64",
+              ".n64",
+              ".v64"
+            ],
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "Wave Race 64 VR",
+      "catalogCreatorUrl": "https://github.com/VistaLargaGames/WaveRace64-QuestVR"
+    },
+    {
+      "index": 57,
+      "id": "mega-man-64-vr",
+      "source": "https://github.com/randygil/MegaMan64RecompiledVR/blob/main/android/README.md",
+      "inputs": [
+        {
+          "id": "rom",
+          "verdict": "MISMATCH",
+          "evidence": "Creator accepts US Rev 1 .z64, .n64 or .v64, while catalog picker only accepts .z64. Creator's staged filename is MegaMan64.us.rev1.z64.",
+          "correctedCopyText": "Own Mega Man 64 US Rev 1 ROM. The creator accepts .z64, .n64 and .v64; VR4ALL should accept all three byte orders, normalize the staged file to MegaMan64.us.rev1.z64 and state that local title checks do not establish revision.",
+          "catalog": {
+            "label": "Mega Man 64 US Rev 1 ROM",
+            "note": "Own US Rev 1; local N64 title check does not establish revision",
+            "kind": "file",
+            "extensions": [
+              ".z64"
+            ],
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "Mega Man 64 VR",
+      "catalogCreatorUrl": "https://github.com/randygil/MegaMan64RecompiledVR"
+    },
+    {
+      "index": 58,
+      "id": "doom3quest",
+      "source": "https://www.doom3quest.com/",
+      "inputs": [
+        {
+          "id": "base",
+          "verdict": "MATCH",
+          "evidence": "Creator rejects BFG Edition and lists game00–03.pk4 plus pak000–008.pk4, thirteen files in original Doom 3 base.",
+          "catalog": {
+            "label": "Original Doom 3 base folder",
+            "note": "Select base from original Doom 3, not BFG Edition. All 13 PK4 files are required.",
+            "kind": "directory",
+            "extensions": null,
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "Doom3Quest",
+      "catalogCreatorUrl": "https://www.doom3quest.com/"
+    },
+    {
+      "index": 59,
+      "id": "quake3quest",
+      "source": "https://quake3.quakevr.com/",
+      "inputs": [
+        {
+          "id": "baseq3",
+          "verdict": "MISMATCH",
+          "evidence": "Creator's APK includes official Quake III demo data and plays without retail input. Full game is optional and creator instructs copying all PK3 files, not only pak0.pk3.",
+          "correctedCopyText": "Optional for the full game: choose your owned Quake III Arena baseq3 folder and copy all its .pk3 files. The included official demo works without this folder; Team Arena additionally needs the missionpack folder.",
+          "catalog": {
+            "label": "Quake III Arena baseq3 folder",
+            "note": "Select baseq3 from an owned full Quake III Arena installation; pak0.pk3 is required.",
+            "kind": "directory",
+            "extensions": null,
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "Quake3Quest",
+      "catalogCreatorUrl": "https://quake3.quakevr.com/"
+    },
+    {
+      "index": 60,
+      "id": "descent3-vr",
+      "source": "https://github.com/SgtBilko76/Descent3-VR/releases",
+      "inputs": [
+        {
+          "id": "gamePath",
+          "verdict": "UNCLEAR",
+          "evidence": "Creator release requires owned Descent 3 and points to quest/README.md and extraction tools. The accessible release text did not confirm the catalog's exact HOG/missions/movies sufficiency or mandatory status.",
+          "catalog": {
+            "label": "Installed Descent 3 game folder",
+            "note": "Own the installed PC game. Include all HOG files plus missions and movies folders; VR4All copies them and sets the required Quest permissions.",
+            "kind": "directory",
+            "extensions": null,
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "Descent 3 VR",
+      "catalogCreatorUrl": "https://github.com/SgtBilko76/Descent3-VR/blob/quest-vr-port/quest/README.md"
+    },
+    {
+      "index": 61,
+      "id": "ut99-portroyale",
+      "source": "https://github.com/SgtBilko76/Unreal-Tournament-VR/releases/tag/v1.0.0-beta12-ut99",
+      "inputs": [
+        {
+          "id": "game",
+          "verdict": "MISMATCH",
+          "evidence": "Creator offers an in-headset approved OldUnreal disc download on first launch, so a local installed folder is optional. For manual copy creator lists System, Maps, Textures, Sounds, Music and Help.",
+          "correctedCopyText": "Optional manual setup: choose an owned Unreal Tournament GOTY/OldUnreal install and copy System, Maps, Textures, Sounds, Music and Help. The app can also download the approved original disc and set up UT 436 on first launch.",
+          "catalog": {
+            "label": "Unreal Tournament GOTY installed folder",
+            "note": "Own complete installed game including System, Maps, Textures and Sounds",
+            "kind": "directory",
+            "extensions": null,
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "Unreal Tournament VR",
+      "catalogCreatorUrl": "https://github.com/SgtBilko76/Unreal-Tournament-VR"
+    },
+    {
+      "index": 62,
+      "id": "homeworld-unbound",
+      "source": "https://github.com/bearstonem/Homeworld/releases/tag/unbound-0.14",
+      "inputs": [
+        {
+          "id": "homeworld",
+          "verdict": "MATCH",
+          "evidence": "The latest 0.14 release says the demo needs no game data. Full campaign reads homeworld.big from Downloads (or a child folder), case-insensitively. Catalog destination is correct and this input is optional for demo.",
+          "catalog": {
+            "label": "Homeworld main data",
+            "note": null,
+            "kind": "file",
+            "extensions": [
+              ".big"
+            ],
+            "optional": true,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        },
+        {
+          "id": "music",
+          "verdict": "MATCH",
+          "evidence": "The latest 0.14 release names HW_Music.wxd for full campaign; catalog destination matches. It is optional for the included demo.",
+          "catalog": {
+            "label": "Homeworld music",
+            "note": null,
+            "kind": "file",
+            "extensions": [
+              ".wxd"
+            ],
+            "optional": true,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        },
+        {
+          "id": "voices",
+          "verdict": "MATCH",
+          "evidence": "The latest 0.14 release names HW_Comp.vce for full campaign; catalog destination matches. The game reads filenames case-insensitively, so no manual case-specific rename is needed; it is optional for demo.",
+          "catalog": {
+            "label": "Homeworld voices",
+            "note": null,
+            "kind": "file",
+            "extensions": [
+              ".vce"
+            ],
+            "optional": true,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "Homeworld: Unbound",
+      "catalogCreatorUrl": "https://github.com/bearstonem/Homeworld"
+    },
+    {
+      "index": 63,
+      "id": "no-one-lives-forevr",
+      "source": "https://github.com/alex-nax/relith/blob/main/INSTALL-QUEST.md",
+      "inputs": [
+        {
+          "id": "nolf",
+          "verdict": "MATCH",
+          "evidence": "Creator requires NOLF.REZ.",
+          "catalog": {
+            "label": "NOLF.REZ",
+            "note": null,
+            "kind": "file",
+            "extensions": [
+              ".rez"
+            ],
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        },
+        {
+          "id": "nolf2",
+          "verdict": "MATCH",
+          "evidence": "Creator requires NOLF2.REZ.",
+          "catalog": {
+            "label": "NOLF2.REZ",
+            "note": null,
+            "kind": "file",
+            "extensions": [
+              ".rez"
+            ],
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        },
+        {
+          "id": "patch",
+          "verdict": "MATCH",
+          "evidence": "Creator requires nolfu003.rez.",
+          "catalog": {
+            "label": "nolfu003.rez",
+            "note": null,
+            "kind": "file",
+            "extensions": [
+              ".rez"
+            ],
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        },
+        {
+          "id": "patchcres",
+          "verdict": "MATCH",
+          "evidence": "Creator requires nolfu003cres.rez for menu text; creator also documents alternate cres naming.",
+          "catalog": {
+            "label": "nolfu003cres.rez",
+            "note": null,
+            "kind": "file",
+            "extensions": [
+              ".rez"
+            ],
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        },
+        {
+          "id": "goty",
+          "verdict": "MATCH",
+          "evidence": "Creator marks NOLFGOTY.REZ optional bonus chapter. FontData.fnt is another optional file absent from catalog.",
+          "catalog": {
+            "label": "Optional NOLFGOTY.REZ",
+            "note": null,
+            "kind": "file",
+            "extensions": [
+              ".rez"
+            ],
+            "optional": true,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "No One Lives ForeVR",
+      "catalogCreatorUrl": "https://github.com/alex-nax/relith"
+    },
+    {
+      "index": 64,
+      "id": "starship-vr",
+      "source": "https://github.com/SgtBilko76/Starship-VR",
+      "inputs": [
+        {
+          "id": "assets",
+          "verdict": "MATCH",
+          "evidence": "Creator requires sf64.o2r generated with Starship PC release from owned US 1.0 or 1.1 .z64 ROM; raw ROM is not the Quest input.",
+          "catalog": {
+            "label": "Star Fox 64 converted sf64.o2r assets",
+            "note": "Create sf64.o2r from your owned US 1.0 or 1.1 ROM using the author-linked Starship PC tool.",
+            "kind": "file",
+            "extensions": [
+              ".o2r"
+            ],
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "Starship-VR",
+      "catalogCreatorUrl": "https://github.com/SgtBilko76/Starship-VR"
+    },
+    {
+      "index": 65,
+      "id": "crash-bandicoot-vr",
+      "source": "https://github.com/SgtBilko76/CrashBandicoot-Launcher/releases",
+      "inputs": [
+        {
+          "id": "disc",
+          "verdict": "MATCH",
+          "evidence": "Quest port supports owned NTSC-U SCUS-94900 .chd; creator also supports .cue plus .bin, for which catalog explicitly directs manual copy.",
+          "catalog": {
+            "label": "Crash Bandicoot NTSC-U disc image",
+            "note": "Own SCUS-94900. For a CUE/BIN dump, use the author’s manual copy instructions.",
+            "kind": "file",
+            "extensions": [
+              ".chd"
+            ],
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "Crash Bandicoot Launcher",
+      "catalogCreatorUrl": "https://github.com/SgtBilko76/CrashBandicoot-Launcher"
+    },
+    {
+      "index": 66,
+      "id": "max-payne-nightmare-vr",
+      "source": "https://drive.google.com/file/d/1_o_Q7EUyWM0OMrTU4itctTIkYyrapCnr/view",
+      "inputs": [
+        {
+          "id": "mobileApk",
+          "verdict": "UNREACHABLE",
+          "evidence": "The provided creator distribution is a Drive file; no accessible original installation text established the 1.7/64-bit APK requirement.",
+          "catalog": {
+            "label": "Owned Max Payne Mobile 1.7 APK (64-bit)",
+            "note": "Use your original Rockstar Max Payne Mobile 1.7 (64-bit) APK. The port checks the APK during its first-launch import.",
+            "kind": "file",
+            "extensions": [
+              ".apk"
+            ],
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        },
+        {
+          "id": "obb",
+          "verdict": "UNREACHABLE",
+          "evidence": "No accessible original installation text established the matching OBB naming or mandatory status.",
+          "catalog": {
+            "label": "Matching Max Payne Mobile OBB",
+            "note": "Use main.<number>.com.rockstar.maxpayne.obb from the same Max Payne Mobile installation.",
+            "kind": "file",
+            "extensions": [
+              ".obb"
+            ],
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "Max Payne VR: Nightmare Edition",
+      "catalogCreatorUrl": "https://drive.google.com/file/d/1_o_Q7EUyWM0OMrTU4itctTIkYyrapCnr/view"
+    },
+    {
+      "index": 67,
+      "id": "max-payne-mpvr",
+      "source": "https://gitlab.com/gandork/mpvr",
+      "inputs": [
+        {
+          "id": "mobileApk",
+          "verdict": "UNCLEAR",
+          "evidence": "Creator GitLab project/tags were accessible, but indexed original setup text did not substantiate exact version code 14 and arm64 library criteria.",
+          "catalog": {
+            "label": "Owned Max Payne Mobile 1.7 APK (64-bit)",
+            "note": "Use the original Max Payne Mobile 1.7 APK (version code 14) with the arm64-v8a game library. mpvr checks the exact library build on first launch.",
+            "kind": "file",
+            "extensions": [
+              ".apk"
+            ],
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        },
+        {
+          "id": "obb",
+          "verdict": "UNCLEAR",
+          "evidence": "Creator setup text was not accessible enough to verify exact OBB name or matching-version requirement.",
+          "catalog": {
+            "label": "Matching Max Payne Mobile OBB",
+            "note": "Use main.<number>.com.rockstar.maxpayne.obb from the same mobile installation.",
+            "kind": "file",
+            "extensions": [
+              ".obb"
+            ],
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "mpvr",
+      "catalogCreatorUrl": "https://gitlab.com/gandork/mpvr"
+    },
+    {
+      "index": 68,
+      "id": "qualyx",
+      "source": "https://github.com/tinsarfal/Qualyx/releases/tag/1.0.85",
+      "inputs": [
+        {
+          "id": "game",
+          "verdict": "MISMATCH",
+          "evidence": "Creator requires hlvr and core, but current 1.0.85 also offers an optional in-app Steam download of the user's owned copy, so manual folder selection is no longer strictly mandatory.",
+          "correctedCopyText": "To copy local Half-Life: Alyx data, choose the Steam game folder with hlvr/pak01_dir.vpk and core/pak01_dir.vpk; only hlvr and core need transfer. Qualyx 1.0.85 also offers an in-app Steam download of your owned game (creator says full-download acceptance testing remains).",
+          "catalog": {
+            "label": "Owned Half-Life: Alyx game folder",
+            "note": "Choose the game folder from your Steam Half-Life: Alyx installation. It must contain hlvr/pak01_dir.vpk and core/pak01_dir.vpk. VR4ALL copies only hlvr and core; allow substantial headset space and transfer time. Use the extracted folder rather than a game archive larger than 8 GB.",
+            "kind": "directory",
+            "extensions": null,
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "Qualyx",
+      "catalogCreatorUrl": "https://github.com/tinsarfal/Qualyx"
+    },
+    {
+      "index": 69,
+      "id": "bioshock-vr",
+      "source": "https://github.com/terx1232/BioShock-Quest-VR",
+      "inputs": [
+        {
+          "id": "gamePackage",
+          "verdict": "UNCLEAR",
+          "evidence": "Creator repository was identifiable, but accessible original instructions did not verify the catalog's original-2007-only, Builds/Release/Bioshock.exe and Content requirements.",
+          "catalog": {
+            "label": "Owned original BioShock 2007 PC folder",
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "BioShock VR",
+      "catalogCreatorUrl": "https://github.com/terx1232/BioShock-Quest-VR"
+    },
+    {
+      "index": 70,
+      "id": "questzdoom",
+      "source": "https://github.com/Team-Beef-Studios/QuestZDoom",
+      "inputs": [
+        {
+          "id": "wad",
+          "verdict": "MATCH",
+          "evidence": "Commercial IWADs require ownership; optional FreeDoom is available through the creator's launcher, so owned WAD input is optional.",
+          "catalog": {
+            "label": "Owned Doom-family WAD",
+            "note": "Drop a Doom, Doom II, Heretic or Hexen IWAD you own. The launcher also offers free content.",
+            "kind": "file",
+            "extensions": [
+              ".wad"
+            ],
+            "optional": true,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "QuestZDoom",
+      "catalogCreatorUrl": "https://github.com/Team-Beef-Studios/QuestZDoom/releases"
+    },
+    {
+      "index": 71,
+      "id": "csvr",
+      "source": "https://www.csvr.online/install-csvr/",
+      "inputs": [
+        {
+          "id": "game",
+          "verdict": "MATCH",
+          "evidence": "Creator requires owned Counter-Strike 1.6 with cstrike and valve folders, unless valve already exists from Lambda1VR.",
+          "catalog": {
+            "label": "Counter-Strike game folder",
+            "note": "Choose a folder containing your owned cstrike and valve directories.",
+            "kind": "directory",
+            "extensions": null,
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "CSVR",
+      "catalogCreatorUrl": "https://www.csvr.online/install-csvr/"
+    },
+    {
+      "index": 72,
+      "id": "preyvr",
+      "source": "https://github.com/Team-Beef-Studios/PreyVR",
+      "inputs": [
+        {
+          "id": "preybase",
+          "verdict": "MISMATCH",
+          "evidence": "Creator supports a demo that downloads data in-headset without retail files; Prey 1.4 .pk4 input is mandatory only for full game.",
+          "correctedCopyText": "For the full game, supply all .pk4 files from the prey/base folder of an owned Prey (2006) install patched to 1.4. The demo uses the creator's in-headset data download and does not require retail files.",
+          "catalog": {
+            "label": "Prey 1.4 preybase folder",
+            "note": "Use the .pk4 archives from an owned, patched Prey install.",
+            "kind": "directory",
+            "extensions": null,
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "PreyVR",
+      "catalogCreatorUrl": "https://github.com/Team-Beef-Studios/PreyVR"
+    },
+    {
+      "index": 73,
+      "id": "razexr",
+      "source": "https://github.com/Team-Beef-Studios/RazeXR/releases",
+      "inputs": [
+        {
+          "id": "duke",
+          "verdict": "UNCLEAR",
+          "evidence": "Creator release source was reachable, but accessible original Quest setup text did not establish the exact DUKE3D.GRP requirement or whether shareware data ships with the APK. Catalog correctly marks a retail Duke file optional for a multi-game engine.",
+          "catalog": {
+            "label": "Duke Nukem 3D DUKE3D.GRP",
+            "note": "Drop your owned DUKE3D.GRP for the full Duke Nukem 3D campaign.",
+            "kind": "file",
+            "extensions": [
+              ".grp"
+            ],
+            "optional": true,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "RazeXR",
+      "catalogCreatorUrl": "https://github.com/Team-Beef-Studios/RazeXR/releases"
+    },
+    {
+      "index": 74,
+      "id": "hexen2-vr",
+      "source": "https://sidequestvr.com/app/54816/hexen-ii-vr",
+      "inputs": [
+        {
+          "id": "game",
+          "verdict": "UNCLEAR",
+          "evidence": "Creator SideQuest listing is the stated source, but accessible installation text did not verify both pak0.pak and pak1.pak or the specific data1 transfer layout.",
+          "catalog": {
+            "label": "Owned Hexen II data1 folder",
+            "note": "Download the creator APK from SideQuest once, then drop your data1 folder with pak0.pak and pak1.pak.",
+            "kind": "directory",
+            "extensions": null,
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "Hexen II VR",
+      "catalogCreatorUrl": "https://sidequestvr.com/app/54816/hexen-ii-vr"
+    },
+    {
+      "index": 75,
+      "id": "questsam",
+      "source": "https://github.com/maranone/QuestSam",
+      "inputs": [
+        {
+          "id": "game",
+          "verdict": "MISMATCH",
+          "evidence": "Creator's manual path scans .gro archives, but its ADB install scripts also copy First Encounter Levels; catalog says only .gro archives, omitting those level files.",
+          "correctedCopyText": "Choose an owned Serious Sam Classic First or Second Encounter install. Copy root .gro archives; for First Encounter also copy its Levels directory. The creator supports separate folders and searches internal storage recursively.",
+          "catalog": {
+            "label": "Serious Sam game folder",
+            "note": "Transfer the original .gro archives according to the author guide.",
+            "kind": "directory",
+            "extensions": null,
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "QuestSam",
+      "catalogCreatorUrl": "https://github.com/maranone/QuestSam"
+    },
+    {
+      "index": 76,
+      "id": "descent12-vr",
+      "source": "https://github.com/GameOrDie007/Descent-1-and-2-VR/releases",
+      "inputs": [
+        {
+          "id": "gamePath",
+          "verdict": "UNCLEAR",
+          "evidence": "Creator release supplies a Quest ZIP and PC installer, but accessible release text did not expose exact Descent 1/2 file list or establish that one arbitrary installed-folder selection suffices.",
+          "catalog": {
+            "label": "Owned Descent 1 or 2 game folder",
+            "note": "Drop your installed Descent folder. The author installer finds and transfers the required files.",
+            "kind": "directory",
+            "extensions": null,
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "Descent 1 & 2 VR",
+      "catalogCreatorUrl": "https://github.com/GameOrDie007/Descent-1-and-2-VR/releases"
+    },
+    {
+      "index": 77,
+      "id": "wolfsharp",
+      "source": "https://benmclean.itch.io/wolfsharp",
+      "inputs": [
+        {
+          "id": "retail",
+          "verdict": "MATCH",
+          "evidence": "Creator includes Wolfenstein 3-D shareware; optional owned MS-DOS retail, Spear and Super 3D Noah's Ark data can extend it. Non-DOS versions unsupported.",
+          "catalog": {
+            "label": "Optional Wolfenstein / Spear DOS game folder",
+            "note": "Optional. Shareware is already included. For owned retail episodes, drop the parent folder containing WL6, M1, M2, M3, or N3D; ZIP, 7z, and RAR work too.",
+            "kind": "directory",
+            "extensions": null,
+            "optional": true,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "WolfSharp",
+      "catalogCreatorUrl": "https://benmclean.itch.io/wolfsharp"
+    },
+    {
+      "index": 78,
+      "id": "sclerosis-vr",
+      "source": "https://createam.itch.io/sclerosis-an-amnesia-vr-remake",
+      "inputs": [
+        {
+          "id": "gamePath",
+          "verdict": "UNCLEAR",
+          "evidence": "Creator requires owned Amnesia: The Dark Descent files copied to Quest storage. Official itch instructions do not specify the catalog's config/maps/entities subset or archive acceptance; those appear to be VR4ALL-specific handling.",
+          "catalog": {
+            "label": "Installed Amnesia: The Dark Descent folder",
+            "note": "Drop your owned installed game folder or a ZIP, 7z, or RAR containing config, maps, and entities. An installer archive alone is not game data.",
+            "kind": "directory",
+            "extensions": null,
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "Sclerosis",
+      "catalogCreatorUrl": "https://createam.itch.io/sclerosis-an-amnesia-vr-remake"
+    },
+    {
+      "index": 79,
+      "id": "wing-commander-1-vr",
+      "source": "https://portroyale.online/wingcommander.html",
+      "inputs": [
+        {
+          "id": "game",
+          "verdict": "MATCH",
+          "evidence": "Creator requires WC.EXE, SM2.EXE and GAMEDAT from owned GOG Wing Commander game folder.",
+          "catalog": {
+            "label": "Wing Commander game folder",
+            "note": "Choose the original game root containing WC.EXE, SM2.EXE and GAMEDAT.",
+            "kind": "directory",
+            "extensions": null,
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "Wing Commander VR",
+      "catalogCreatorUrl": "https://portroyale.online/wingcommander.html"
+    },
+    {
+      "index": 80,
+      "id": "wing-commander-2-vr",
+      "source": "https://portroyale.online/wingcommander2.html",
+      "inputs": [
+        {
+          "id": "game",
+          "verdict": "MATCH",
+          "evidence": "Creator requires WC2.EXE and GAMEDAT from WING2 CD folder or installed game.",
+          "catalog": {
+            "label": "Wing Commander II game folder",
+            "note": "Choose the original game root containing WC2.EXE and GAMEDAT.",
+            "kind": "directory",
+            "extensions": null,
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "Wing Commander II VR",
+      "catalogCreatorUrl": "https://portroyale.online/wingcommander2.html"
+    },
+    {
+      "index": 81,
+      "id": "freespace2-vr",
+      "source": "https://portroyale.online/freespace2.html",
+      "inputs": [
+        {
+          "id": "game",
+          "verdict": "MISMATCH",
+          "evidence": "Creator specifically requires nine original .vp files, root_fs2.vp through warble_fs2.vp, plus data2 and data3 cutscene folders. Catalog's 'original .vp archives and data folders' is too broad to identify the required files.",
+          "correctedCopyText": "From your owned GOG or Steam FreeSpace 2 install, provide the nine original .vp files (root_fs2.vp through warble_fs2.vp) plus data2 and data3 cutscene folders. Transfer to /sdcard/FS2.",
+          "catalog": {
+            "label": "FreeSpace 2 installed game folder",
+            "note": "Choose your installed FreeSpace 2 directory with the original .vp archives and data folders.",
+            "kind": "directory",
+            "extensions": null,
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "FreeSpace 2 VR",
+      "catalogCreatorUrl": "https://portroyale.online/freespace2.html"
+    },
+    {
+      "index": 82,
+      "id": "tiberian-dawn-mr",
+      "source": "https://github.com/Cesarus85/Tiberian-Dawn-for-Android-and-Meta-Quest",
+      "inputs": [
+        {
+          "id": "gdi",
+          "verdict": "MATCH",
+          "evidence": "Creator requires legally owned C&C Gold GDI ISO; guided importer validates disc label.",
+          "catalog": {
+            "label": "C&C Gold GDI disc ISO",
+            "note": "Drop the original GDI disc ISO; the in-headset importer checks its disc label.",
+            "kind": "file",
+            "extensions": [
+              ".iso"
+            ],
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        },
+        {
+          "id": "nod",
+          "verdict": "MATCH",
+          "evidence": "Creator requires legally owned C&C Gold Nod ISO; importer accepts either selection order and validates labels.",
+          "catalog": {
+            "label": "C&C Gold Nod disc ISO",
+            "note": "Drop the original Nod disc ISO; the in-headset importer checks its disc label.",
+            "kind": "file",
+            "extensions": [
+              ".iso"
+            ],
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "Tiberian Dawn MR",
+      "catalogCreatorUrl": "https://github.com/Cesarus85/Tiberian-Dawn-for-Android-and-Meta-Quest/releases"
+    },
+    {
+      "index": 83,
+      "id": "magic-carpet-vr",
+      "source": "https://github.com/NathanaelA/mgcarpet-vr/releases",
+      "inputs": [
+        {
+          "id": "gamePath",
+          "verdict": "UNCLEAR",
+          "evidence": "Fork release is the creator source, but accessible documentation mainly covers upstream desktop gamedata layout. It confirms owned GOG game directories and subset support but not the Quest APK's exact folder import arrangement.",
+          "catalog": {
+            "label": "Installed Magic Carpet game folder",
+            "note": "Drop the GOG Magic Carpet Plus or Magic Carpet 2 install folder, or a folder containing both.",
+            "kind": "directory",
+            "extensions": null,
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "Magic Carpet VR",
+      "catalogCreatorUrl": "https://github.com/NathanaelA/mgcarpet-vr/releases"
+    },
+    {
+      "index": 84,
+      "id": "tes3mp-vr",
+      "source": "https://github.com/Nikman17/tes3mp-vr-quest",
+      "inputs": [
+        {
+          "id": "game",
+          "verdict": "MATCH",
+          "evidence": "Creator requires owned Morrowind.ini and Data Files under /sdcard/Morrowind, then selection of that folder in the launcher.",
+          "catalog": {
+            "label": "Morrowind game folder",
+            "note": "Choose your installed Morrowind root with Morrowind.ini and Data Files.",
+            "kind": "directory",
+            "extensions": null,
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          }
+        }
+      ],
+      "catalogTitle": "TES3MP VR",
+      "catalogCreatorUrl": "https://github.com/Nikman17/tes3mp-vr-quest/releases/tag/v0.9.0"
+    }
+  ],
+  "totals": {
+    "profiles": 42,
+    "inputs": 58,
+    "verdicts": {
+      "MATCH": 35,
+      "MISMATCH": 10,
+      "UNCLEAR": 11,
+      "UNREACHABLE": 2
+    }
+  }
+}

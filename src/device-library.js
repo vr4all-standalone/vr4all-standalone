@@ -257,8 +257,11 @@ async function inspectDevice(adb, serial, games, knownPackages = {}) {
       return files.includes('vr4all-transfer.complete') && files.some((name) => name !== 'vr4all-transfer.complete');
     }
     if (game.id === 'astroquest') {
-      const root = await list('/data/local/tmp/astro/games/CUSA12392');
-      return ['eboot.bin', 'sce_sys', 'sce_module', 'vr4all-transfer.complete'].every((name) => root.includes(name));
+      for (const id of ['CUSA12392', 'CUSA12431']) {
+        const root = await list(`/data/local/tmp/astro/games/${id}`);
+        if (['eboot.bin', 'sce_sys', 'sce_module', 'vr4all-transfer.complete'].every((name) => root.includes(name))) return true;
+      }
+      return false;
     }
     if (game.id === 'sclerosis-vr') {
       const root = await list('/sdcard/Amnesia The Dark Descent');

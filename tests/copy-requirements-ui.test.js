@@ -68,6 +68,59 @@ test('generic copied requirements retain all documented version and format detai
   assert.match(maxPayne, /mpvr checks the exact library build/);
 });
 
+test('official converter requirements do not advertise unsupported disc formats', () => {
+  const context = appContext();
+  const galaxy = context.games.find((game) => game.id === 'galaxyquest');
+  const gt2 = context.games.find((game) => game.id === 'gt2-vr');
+  const galaxyCopy = vm.runInContext('requirementCopyText(games.find(g => g.id === "galaxyquest"), games.find(g => g.id === "galaxyquest").data[0])', context);
+  const gt2Copy = vm.runInContext('requirementCopyText(games.find(g => g.id === "gt2-vr"), games.find(g => g.id === "gt2-vr").data[0])', context);
+  assert.match(galaxyCopy, /ISO.*RVZ.*WBFS/i);
+  assert.doesNotMatch(galaxyCopy, /GCZ|WIA|CISO/i);
+  assert.deepEqual(galaxy.data[0].extensions, ['.iso', '.rvz', '.wbfs']);
+  assert.match(gt2Copy, /2352-byte.*BIN\/CUE/i);
+  assert.doesNotMatch(gt2Copy, /(?:plain|2048-byte) ISO.*(?:supported|works)/i);
+  assert.ok(!gt2.data[0].extensions.includes('.iso'));
+});
+
+test('creator-specific arcade requirements include documented revisions', () => {
+  const context = appContext();
+  const gunblade = vm.runInContext('requirementCopyText(games.find(g => g.id === "gunblade-ny-vr"), games.find(g => g.id === "gunblade-ny-vr").data[0])', context);
+  assert.match(gunblade, /Gunblade NY.*gunblade\.zip.*Revision A/i);
+});
+
+test('copied game requirements include the creator documented edition and companion files', () => {
+  const context = appContext();
+  const copy = (gameId, itemId) => vm.runInContext(`requirementCopyText(games.find(g => g.id === ${JSON.stringify(gameId)}), games.find(g => g.id === ${JSON.stringify(gameId)}).data.find(i => i.id === ${JSON.stringify(itemId)}))`, context);
+  assert.match(copy('oot-vr', 'rom'), /PAL 1\.0.*US.*1\.2.*GameCube/i);
+  assert.match(copy('nfsu2-vr', 'disc'), /USA.*NFSUNDER.*ZDIR\.BIN.*ZZDATA0/i);
+  assert.match(copy('road-rash-vr', 'discImage'), /SLUS_01053.*2352.*BIN/i);
+  assert.match(copy('sourcevr', 'entropy'), /episodic.*ep2/i);
+  assert.match(copy('questsam', 'game'), /\.gro.*Levels/i);
+  assert.match(copy('freespace2-vr', 'game'), /nine.*\.vp.*data2.*data3/i);
+});
+
+test('copied arcade requirements describe conditional firmware and accepted set names', () => {
+  const context = appContext();
+  const copy = (gameId, itemId) => vm.runInContext(`requirementCopyText(games.find(g => g.id === ${JSON.stringify(gameId)}), games.find(g => g.id === ${JSON.stringify(gameId)}).data.find(i => i.id === ${JSON.stringify(itemId)}))`, context);
+  assert.match(copy('rally-vr', 'segabill'), /segabill\.zip.*only.*srallyc\.zip/i);
+  assert.match(copy('rave-racer-vr', 'race'), /raverace\.zip.*raveracw\.zip.*original filename/i);
+  assert.match(copy('mok-vr', 'naomi'), /naomi\.zip.*only.*mok\.zip/i);
+});
+
+test('creator alternatives and full-game requirements are described without promising unsupported imports', () => {
+  const context = appContext();
+  const copy = (gameId, itemId) => vm.runInContext(`requirementCopyText(games.find(g => g.id === ${JSON.stringify(gameId)}), games.find(g => g.id === ${JSON.stringify(gameId)}).data.find(i => i.id === ${JSON.stringify(itemId)}))`, context);
+  assert.match(copy('quest-strikers', 'disc'), /G4QE01.*tested.*G4QP01.*G4QJ01.*untested/i);
+  assert.match(copy('hotd2-dreamcast-vr', 'disc'), /CHD.*CDI.*GDI.*CUE.*VR4ALL.*CHD\/CDI/i);
+  assert.match(copy('primedgun-2', 'disc'), /GM8E01.*0–2.*VR4ALL.*ISO/i);
+  assert.match(copy('smash-remix-vr', 'rom'), /USA.*Smash Remix 2\.0\.1/i);
+  assert.match(copy('mega-man-64-vr', 'rom'), /US Rev 1.*\.z64.*\.n64.*\.v64.*VR4ALL.*\.z64/i);
+  assert.match(copy('quake3quest', 'baseq3'), /full game.*all.*\.pk3.*demo/i);
+  assert.match(copy('ut99-portroyale', 'game'), /System.*Maps.*Textures.*Sounds.*Music.*Help.*in.headset/i);
+  assert.match(copy('preyvr', 'preybase'), /full game.*\.pk4.*1\.4.*demo/i);
+  assert.match(copy('confidential-mission-vr', 'chd'), /gds-0001\.chd.*GDI.*CUE.*VR4ALL.*CHD/i);
+});
+
 test('clicking Copy requirement writes the selected port’s exact arcade set to the clipboard', async () => {
   const context = appContext();
   vm.runInContext('state.selectedId = "time-crisis-vr"', context);

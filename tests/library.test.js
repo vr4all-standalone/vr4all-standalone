@@ -213,7 +213,7 @@ test('GTA SA and RDR expose their exact personal build inputs on their cards', (
   const rdr = games.find((game) => game.id === 'rdr1-vr');
   assert.equal(gta.personalBuild.gameLabel, 'Google Play GTA SA export');
   assert.match(gta.personalBuild.audioLabel, /PS2-style audio/i);
-  assert.equal(rdr.personalBuild.gameLabel, 'Android RDR APKs or complete export');
+  assert.equal(rdr.personalBuild.gameLabel, 'Complete Android RDR 1.58.63226194 export');
   assert.match(rdr.personalBuild.audioLabel, /Additional RDR game data/);
   assert.equal(rdr.personalBuild.audioOptional, true);
   assert.notEqual(gta.personalBuild.audioOptional, true);

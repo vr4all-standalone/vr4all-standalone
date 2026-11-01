@@ -23,7 +23,7 @@ const newPorts = [
     source: { repo: 'vr4all-standalone/gunblade-ny-vr', assetPattern: '^gunblade-ny-vr-quest\\.apk$' },
     verifyApkHash: true,
     data: [
-      { id: 'game', label: 'Owned Gunblade NY arcade set', kind: 'file', extensions: ['.zip'], destination: '/sdcard/Android/data/com.vrlightgunhub.gunbladeny/files/roms/gunblade.zip', note: 'Complete original Model 2 gunblade set. The game checks every required ROM payload.' },
+      { id: 'game', label: 'Owned Gunblade NY arcade set', kind: 'file', extensions: ['.zip'], destination: '/sdcard/Android/data/com.vrlightgunhub.gunbladeny/files/roms/gunblade.zip', note: 'Complete original Model 2B Revision A gunblade.zip set. The game checks every required ROM payload.' },
       { id: 'segabill', label: 'Optional separate Sega billboard firmware', kind: 'file', extensions: ['.zip'], destination: '/sdcard/Android/data/com.vrlightgunhub.gunbladeny/files/roms/segabill.zip', optional: true, note: 'Needed only when the required billboard ROM is absent from gunblade.zip.' },
     ],
     guidance: 'VR4ALL installs the signed Quest port and copies your owned arcade ZIP into the app game folder. A complete combined ZIP needs no separate firmware file.',

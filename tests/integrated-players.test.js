@@ -27,6 +27,7 @@ test('AstroQuest validates an extracted owned game tree and transfers only to th
     await fs.mkdir(path.join(game, 'sce_sys'), { recursive: true });
     await fs.mkdir(path.join(game, 'sce_module'));
     await fs.writeFile(path.join(game, 'eboot.bin'), 'owned fixture');
+    await fs.writeFile(path.join(game, 'sce_sys', 'param.sfo'), 'TITLE_ID\0CUSA12392\0');
     const result = await installAstroQuest({ apkPath: f.apk, gamePath: game, serial: 'Q3', adb: f.adb,
       inspectApk: async () => 'com.astrobotquest.vrhost' });
     assert.equal(result.updatedOnly, false);
@@ -38,6 +39,35 @@ test('AstroQuest validates an extracted owned game tree and transfers only to th
     await installAstroQuest({ apkPath: f.apk, serial: 'Q3', adb: f.adb,
       inspectApk: async () => 'com.astrobotquest.vrhost' });
     assert.ok(f.calls.every((args) => args[2] !== 'push'));
+  } finally { await f.cleanup(); }
+});
+
+test('AstroQuest keeps an owned US CUSA12431 game in its own headset folder', async () => {
+  const f = await fixture();
+  try {
+    const game = path.join(f.root, 'CUSA12431');
+    await fs.mkdir(path.join(game, 'sce_sys'), { recursive: true });
+    await fs.mkdir(path.join(game, 'sce_module'));
+    await fs.writeFile(path.join(game, 'eboot.bin'), 'owned fixture');
+    await fs.writeFile(path.join(game, 'sce_sys', 'param.sfo'), 'TITLE_ID\0CUSA12431\0');
+    await installAstroQuest({ apkPath: f.apk, gamePath: game, serial: 'Q3', adb: f.adb,
+      inspectApk: async () => 'com.astrobotquest.vrhost' });
+    assert.ok(f.calls.some((args) => args[2] === 'push' && args.at(-1) === '/data/local/tmp/astro/games/CUSA12431/'));
+    assert.ok(f.calls.some((args) => args[2] === 'shell' && args[3] === 'touch' && args[4].includes('CUSA12431')));
+  } finally { await f.cleanup(); }
+});
+
+test('AstroQuest rejects a game tree whose supported title ID cannot be verified', async () => {
+  const f = await fixture();
+  try {
+    const game = path.join(f.root, 'unknown-game');
+    await fs.mkdir(path.join(game, 'sce_sys'), { recursive: true });
+    await fs.mkdir(path.join(game, 'sce_module'));
+    await fs.writeFile(path.join(game, 'eboot.bin'), 'owned fixture');
+    await fs.writeFile(path.join(game, 'sce_sys', 'param.sfo'), 'TITLE_ID\0CUSA99999\0');
+    await assert.rejects(installAstroQuest({ apkPath: f.apk, gamePath: game, serial: 'Q3', adb: f.adb,
+      inspectApk: async () => 'com.astrobotquest.vrhost' }), /CUSA12392 or American CUSA12431/);
+    assert.equal(f.calls.length, 0, 'reject unsupported input before installing the APK');
   } finally { await f.cleanup(); }
 });
 

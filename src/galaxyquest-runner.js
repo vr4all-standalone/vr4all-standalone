@@ -8,7 +8,7 @@ const { inspectApkPackage } = require('./apk-verification');
 
 const packageId = 'com.galaxy.quest';
 const remoteGame = '/sdcard/Android/data/com.galaxy.quest/files/game';
-const discExtensions = new Set(['.iso', '.rvz', '.wbfs', '.gcz', '.wia', '.ciso']);
+const discExtensions = new Set(['.iso', '.rvz', '.wbfs']);
 const gib = 1024n ** 3n;
 const retryableTransfer = /broken pipe|no response|device offline|connection reset|transport.*error|protocol fault|timed? out/i;
 
@@ -48,7 +48,7 @@ async function validateGalaxyInput(gamePath, updateOnly = false) {
   if (typeof gamePath !== 'string' || !path.isAbsolute(gamePath)) throw new Error('Drop your Super Mario Galaxy disc image or extracted folder');
   const stat = await fs.lstat(gamePath).catch(() => null);
   if (!stat || stat.isSymbolicLink() || !stat.isFile() && !stat.isDirectory()) throw new Error('Choose a regular disc image or extracted folder');
-  if (stat.isFile() && (!discExtensions.has(path.extname(gamePath).toLowerCase()) || !stat.size)) throw new Error('Supported Galaxy disc formats: ISO, RVZ, WBFS, GCZ, WIA, CISO');
+  if (stat.isFile() && (!discExtensions.has(path.extname(gamePath).toLowerCase()) || !stat.size)) throw new Error('Creator-supported Galaxy disc formats: ISO, RVZ, WBFS, or an extracted disc folder');
   if (stat.isDirectory() && !(await fs.readdir(gamePath)).length) throw new Error('Extracted disc folder is empty');
   return gamePath;
 }

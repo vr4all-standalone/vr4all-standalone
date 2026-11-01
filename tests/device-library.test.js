@@ -215,6 +215,12 @@ test('new integrated ports become ready only when their converted headset data e
   const games = getCatalog().filter((game) => ids.includes(game.id));
   const ready = await inspectDevice(adb, 'Q3', games);
   for (const id of ids) assert.equal(ready[id]?.dataReady, true, id);
+  names['/data/local/tmp/astro/games/CUSA12431'] = names['/data/local/tmp/astro/games/CUSA12392'];
+  delete names['/data/local/tmp/astro/games/CUSA12392'];
+  assert.equal((await inspectDevice(adb, 'Q3', games)).astroquest?.dataReady, true,
+    'US CUSA12431 transfer is ready without an EU folder');
+  names['/data/local/tmp/astro/games/CUSA12392'] = names['/data/local/tmp/astro/games/CUSA12431'];
+  delete names['/data/local/tmp/astro/games/CUSA12431'];
   for (const [id, folder] of [['magic-carpet-vr', '/sdcard/mgcarpet/baked'],
     ['galaxyquest', '/sdcard/Android/data/com.galaxy.quest/files/game'],
     ['astroquest', '/data/local/tmp/astro/games/CUSA12392']]) {

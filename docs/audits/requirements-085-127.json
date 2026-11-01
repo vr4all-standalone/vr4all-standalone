@@ -1,0 +1,1515 @@
+{
+  "scope": "catalog-baseline.json indices 85-127 inclusive",
+  "checkedAt": "2026-10-31",
+  "profiles": 43,
+  "inputs": 58,
+  "summary": {
+    "MATCH": 47,
+    "MISMATCH": 5,
+    "UNCLEAR": 5,
+    "UNREACHABLE": 1
+  },
+  "entries": [
+    {
+      "index": 85,
+      "id": "gothic2-vr",
+      "title": "Gothic II VR",
+      "creatorUrl": "https://github.com/dubrovskiy-yevhen-stakelogic/gothic2-vr/releases",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "gamePath",
+            "label": "Gothic II Gold / Night of the Raven folder",
+            "note": "Drop your installed game folder containing Data and System.",
+            "kind": "directory",
+            "extensions": null,
+            "destination": "/sdcard/Android/data/com.gothic2vr.quest/files/Gothic2/",
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/dubrovskiy-yevhen-stakelogic/gothic2-vr/blob/main/INSTALL.md",
+          "evidence": "The Quest installer prepares purchased Gothic II Gold/Night of the Raven data; the source root contains Data and System.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 86,
+      "id": "questcarnage",
+      "title": "QuestCarNage",
+      "creatorUrl": "https://github.com/maranone/carnage",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "game",
+            "label": "Carmageddon game folder",
+            "note": "Prepare the original files listed in the author’s files_needed.txt.",
+            "kind": "directory",
+            "extensions": null,
+            "destination": "/sdcard/Android/data/com.github.maranone.questcarnage/files/",
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/maranone/carnage",
+          "evidence": "The Quest data path is the app files directory; the author points to files_needed.txt for the exact copied subset.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 87,
+      "id": "galaxyquest",
+      "title": "GalaxyQuest",
+      "creatorUrl": "https://github.com/bigmak94/GalaxyQuest/releases",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "gamePath",
+            "label": "Super Mario Galaxy disc image",
+            "note": "Drop your owned Wii ISO, RVZ, WBFS, GCZ, WIA or CISO disc image.",
+            "kind": "file",
+            "extensions": [
+              ".iso",
+              ".rvz",
+              ".wbfs",
+              ".gcz",
+              ".wia",
+              ".ciso"
+            ],
+            "destination": "/sdcard/Android/data/com.galaxy.quest/files/game/",
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/bigmak94/GalaxyQuest",
+          "evidence": "The author installer explicitly offers ISO, RVZ, WBFS, or an already extracted disc folder; it cooks data before headset transfer. GCZ, WIA, and CISO are not listed as accepted installer inputs.",
+          "verdict": "MISMATCH",
+          "proposedCopyText": "Select your owned Super Mario Galaxy ISO, RVZ or WBFS image, or an already extracted game folder. The creator installer converts and copies cooked data; do not copy the raw image to the app game folder."
+        }
+      ]
+    },
+    {
+      "index": 88,
+      "id": "animal-crossing-vr",
+      "title": "Animal Crossing VR",
+      "creatorUrl": "https://github.com/LiquidAzir/animal-crossing-vr/releases",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "gamePath",
+            "label": "Animal Crossing USA Rev 0 disc",
+            "note": "Own GAFE01_00 USA Rev 0. The author installer checks the disc header and transfers it privately.",
+            "kind": "file",
+            "extensions": [
+              ".iso",
+              ".gcm",
+              ".ciso"
+            ],
+            "destination": "/sdcard/Download/",
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/LiquidAzir/animal-crossing-vr",
+          "evidence": "The current Quest package requires USA Rev 0 GAFE01_00 in ISO, GCM or CISO form; its installer validates and transfers the disc.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 89,
+      "id": "strikers-charged-vr",
+      "title": "Strikers CHARGED VR",
+      "creatorUrl": "https://github.com/LanceSweatpants/Quest-3-Strikers-CHARGED",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "disc",
+            "label": "Mario Strikers Charged USA Rev 1 disc",
+            "note": "Own USA R4QE01 revision 1; other revisions are not documented.",
+            "kind": "file",
+            "extensions": [
+              ".iso",
+              ".rvz",
+              ".wia"
+            ],
+            "destination": "/sdcard/Download/",
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/LanceSweatpants/Quest-3-Strikers-CHARGED",
+          "evidence": "The author specifies USA R4QE01 revision 1 and ISO, RVZ, or WIA; other regions and revisions fail.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 90,
+      "id": "gt2-vr",
+      "title": "GT2 VR",
+      "creatorUrl": "https://github.com/dubrovskiy-yevhen-stakelogic/gt-2-pc/releases",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "gamePath",
+            "label": "Owned GT2 Arcade or Simulation disc",
+            "note": "Drop one owned US or European BIN or ISO disc image. For a CUE/BIN set, drop a ZIP containing both files so the references stay together.",
+            "kind": "file",
+            "extensions": [
+              ".bin",
+              ".iso",
+              ".zip"
+            ],
+            "destination": "/sdcard/Download/",
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/dubrovskiy-yevhen-stakelogic/gt-2-pc/blob/main/docs/PLAYER-INSTALL.md",
+          "evidence": "The Quest installer requires a complete 2352-byte-sector BIN/CUE image. The author warns that ordinary 2048-byte ISO files omit required XA sectors.",
+          "verdict": "MISMATCH",
+          "proposedCopyText": "Provide a complete owned GT2 Arcade or Simulation raw 2352-byte-sector BIN/CUE image from a supported revision. A plain 2048-byte ISO is not suitable. Select one image per disc; keep the CUE and referenced BIN together."
+        }
+      ]
+    },
+    {
+      "index": 91,
+      "id": "astroquest",
+      "title": "AstroQuest",
+      "creatorUrl": "https://github.com/bigmak94/AstroQuest/releases",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "gamePath",
+            "label": "Extracted CUSA12392 game folder",
+            "note": "Drop your own decrypted European CUSA12392 game tree containing eboot.bin, sce_sys and sce_module. Raw disc images and encrypted PS Store packages cannot be used.",
+            "kind": "directory",
+            "extensions": null,
+            "destination": "/data/local/tmp/astro/games/CUSA12392/",
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/bigmak94/AstroQuest",
+          "evidence": "The current author guide accepts European CUSA12392 v1.00/1.04 and American CUSA12431; the Quest needs a decrypted extracted game folder with eboot.bin, sce_sys, sce_module, including param.sfo.",
+          "verdict": "MISMATCH",
+          "proposedCopyText": "Choose your decrypted extracted ASTRO BOT Rescue Mission folder: European CUSA12392 v1.00 or 1.04, or American CUSA12431 when its supported build is identified. Include eboot.bin, sce_sys/param.sfo and sce_module. Encrypted PS Store packages cannot be used directly."
+        }
+      ]
+    },
+    {
+      "index": 92,
+      "id": "pokemon-gen1-recomp",
+      "title": "Gen1Recomp VR Unplugged",
+      "creatorUrl": "https://github.com/HimioneGranger/Gen1recomp-Quest-Standalone",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "rom",
+            "label": "Supported Pokémon Red, Blue or Yellow ROM",
+            "note": "Use your own supported cartridge dump. Yellow support is still beta.",
+            "kind": "file",
+            "extensions": [
+              ".gb",
+              ".gbc"
+            ],
+            "destination": "/sdcard/Download/",
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/HimioneGranger/Gen1recomp-Quest-Standalone",
+          "evidence": "The launcher imports canonical US Red, Blue, Yellow and Gold ROMs. Red, Blue and Yellow are the current VR focus; Gold VR gameplay is unfinished.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 93,
+      "id": "mjolnir-vr",
+      "title": "Mjolnir VR",
+      "creatorUrl": "https://github.com/Cesarus85/mjolnir-vr",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "disc",
+            "label": "Halo CE Xbox disc image",
+            "note": "An owned Xbox Halo CE disc image; import it in the headset.",
+            "kind": "file",
+            "extensions": [
+              ".iso",
+              ".xiso"
+            ],
+            "destination": "/sdcard/Download/",
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/Cesarus85/mjolnir-vr",
+          "evidence": "The Quest importer accepts an owned original-Xbox Halo CE ISO or XISO in any region and version.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 94,
+      "id": "18-wheeler-vr",
+      "title": "18 Wheeler VR",
+      "creatorUrl": "https://github.com/f1nal-b0ss/18-wheeler-decomp",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "chd",
+            "label": "Owned 18 Wheeler USA CHD",
+            "note": "Use your own USA Dreamcast MK-51064 disc dump in CHD format.",
+            "kind": "file",
+            "extensions": [
+              ".chd"
+            ],
+            "destination": "/sdcard/Download/18Wheeler/",
+            "optional": true,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/f1nal-b0ss/18-wheeler-decomp",
+          "evidence": "The creator requires the USA MK-51064 Dreamcast disc as CHD or as GDI plus BIN tracks. The catalog requireOneOf expresses the alternatives.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        },
+        {
+          "catalogInput": {
+            "id": "gdi",
+            "label": "Owned 18 Wheeler USA GDI folder",
+            "note": "Choose the folder with the USA MK-51064 .gdi index and its .bin tracks; VR4ALL copies both. Leave out any .cue file.",
+            "kind": "directory",
+            "extensions": null,
+            "destination": "/sdcard/Download/18Wheeler/",
+            "optional": true,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/f1nal-b0ss/18-wheeler-decomp",
+          "evidence": "The creator requires the USA MK-51064 Dreamcast disc as CHD or as GDI plus BIN tracks. The catalog requireOneOf expresses the alternatives.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 95,
+      "id": "confidential-mission-vr",
+      "title": "Confidential Mission VR",
+      "creatorUrl": "https://github.com/vr4all-standalone/confidential-mission-vr",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "game",
+            "label": "Owned MAME confmiss.zip",
+            "note": "The MAME set confmiss, with its key inside; it stays packed.",
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "destination": "/sdcard/Download/confmiss.zip",
+            "optional": false,
+            "romRequirement": {
+              "set": "confmiss.zip",
+              "revision": "original GDS-0001 set"
+            },
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/vr4all-standalone/confidential-mission-vr",
+          "evidence": "The creator requires confmiss.zip, matching disc, and NAOMI BIOS unless embedded in the game ZIP. The game can also recognize a complete CUE or GDI disc layout, though the VR4ALL recipe only exposes CHD.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        },
+        {
+          "catalogInput": {
+            "id": "chd",
+            "label": "Owned confmiss disc (gds-0001.chd)",
+            "note": "The GD-ROM from the same MAME set.",
+            "kind": "file",
+            "extensions": [
+              ".chd"
+            ],
+            "destination": "/sdcard/Download/confmiss/gds-0001.chd",
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/vr4all-standalone/confidential-mission-vr",
+          "evidence": "The creator also accepts a complete matching .cue or .gdi disc set, while the catalog offers only CHD.",
+          "verdict": "MISMATCH",
+          "proposedCopyText": "Provide the matching gds-0001.chd in Download/confmiss/ for VR4ALL. The port also supports complete matching CUE or GDI disc layouts with all tracks, which VR4ALL does not currently offer."
+        },
+        {
+          "catalogInput": {
+            "id": "naomi",
+            "label": "Optional NAOMI BIOS",
+            "note": "naomi.zip, unless the BIOS is inside your confmiss.zip.",
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "destination": "/sdcard/Download/naomi.zip",
+            "optional": true,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/vr4all-standalone/confidential-mission-vr",
+          "evidence": "The creator requires confmiss.zip, matching disc, and NAOMI BIOS unless embedded in the game ZIP. The game can also recognize a complete CUE or GDI disc layout, though the VR4ALL recipe only exposes CHD.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 96,
+      "id": "lupin-the-third-vr",
+      "title": "Lupin the Third VR",
+      "creatorUrl": "https://github.com/vr4all-standalone/lupin-the-third-vr",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "game",
+            "label": "Owned original MAME lupinshoo.zip",
+            "note": "Original GDS-0018 set with 317-0325-jpn.pic inside. Keep it packed. Rev A (lupinsho) is not supported.",
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "destination": "/sdcard/Download/lupinshoo.zip",
+            "optional": false,
+            "romRequirement": {
+              "set": "lupinshoo.zip",
+              "revision": "original GDS-0018 set (not Rev A)"
+            },
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/vr4all-standalone/lupin-the-third-vr",
+          "evidence": "The original GDS-0018 lupinshoo ZIP and gds-0018 CHD are required; Rev A is unsupported. A supported BIOS may be embedded or supplied separately.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        },
+        {
+          "catalogInput": {
+            "id": "chd",
+            "label": "Owned original Lupin disc (gds-0018.chd)",
+            "note": "Original GDS-0018 disc, not GDS-0018A. The Lupin start screen checks the CHD header revision.",
+            "kind": "file",
+            "extensions": [
+              ".chd"
+            ],
+            "destination": "/sdcard/Download/lupinshoo/gds-0018.chd",
+            "optional": false,
+            "romRequirement": {
+              "set": "gds-0018.chd",
+              "revision": "original GDS-0018 disc (not Rev A)"
+            },
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/vr4all-standalone/lupin-the-third-vr",
+          "evidence": "The original GDS-0018 lupinshoo ZIP and gds-0018 CHD are required; Rev A is unsupported. A supported BIOS may be embedded or supplied separately.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        },
+        {
+          "catalogInput": {
+            "id": "naomi",
+            "label": "Optional NAOMI BIOS",
+            "note": "naomi.zip, unless a supported BIOS is already inside your game ZIP.",
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "destination": "/sdcard/Download/naomi.zip",
+            "optional": true,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/vr4all-standalone/lupin-the-third-vr",
+          "evidence": "The original GDS-0018 lupinshoo ZIP and gds-0018 CHD are required; Rev A is unsupported. A supported BIOS may be embedded or supplied separately.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 97,
+      "id": "ninja-assault-vr",
+      "title": "Ninja Assault VR",
+      "creatorUrl": "https://github.com/vr4all-standalone/ninja-assault-vr",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "game",
+            "label": "Owned World NJA2 Ver.A ninjaslt.zip",
+            "note": "Complete World cartridge set with all 12 ROM entries. Keep it packed and lowercase. Regional ninjaslta, ninjasltj and ninjasltu clones are not supported.",
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "destination": "/sdcard/Download/ninjaslt.zip",
+            "optional": false,
+            "romRequirement": {
+              "set": "ninjaslt.zip",
+              "revision": "World NJA2 Ver.A"
+            },
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/vr4all-standalone/ninja-assault-vr",
+          "evidence": "World NJA2 Ver.A ninjaslt.zip needs all twelve cartridge entries; a supported NAOMI BIOS can be embedded or in naomi.zip.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        },
+        {
+          "catalogInput": {
+            "id": "naomi",
+            "label": "Optional supported NAOMI BIOS",
+            "note": "Provide naomi.zip unless a supported BIOS is inside your ninjaslt.zip.",
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "destination": "/sdcard/Download/naomi.zip",
+            "optional": true,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/vr4all-standalone/ninja-assault-vr",
+          "evidence": "World NJA2 Ver.A ninjaslt.zip needs all twelve cartridge entries; a supported NAOMI BIOS can be embedded or in naomi.zip.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 98,
+      "id": "death-crimson-ox-vr",
+      "title": "Death Crimson OX VR",
+      "creatorUrl": "https://github.com/vr4all-standalone/death-crimson-ox-vr",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "game",
+            "label": "Owned Japan Rev A deathcoxj.zip",
+            "note": "Complete Japan Rev A cartridge: epr-23524a.ic22 (CRC b60e113e) and ten 8 MiB MPR ROMs. Keep it packed. An older merged deathcox.zip may contain Rev A; VR4ALL copies it separately as deathcoxj.zip. Current USA deathcox and original Japan deathcoxo are unsupported.",
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "destination": "/sdcard/Download/deathcoxj.zip",
+            "optional": false,
+            "romRequirement": {
+              "set": "deathcoxj.zip",
+              "revision": "Japan Rev A"
+            },
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/vr4all-standalone/death-crimson-ox-vr",
+          "evidence": "Japan Rev A deathcoxj with the listed EPR and ten MPR chips is required. A compatible BIOS may be embedded or supplied separately.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        },
+        {
+          "catalogInput": {
+            "id": "naomi",
+            "label": "Optional supported NAOMI BIOS",
+            "note": "Provide naomi.zip unless a supported BIOS is inside your game ZIP.",
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "destination": "/sdcard/Download/naomi.zip",
+            "optional": true,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/vr4all-standalone/death-crimson-ox-vr",
+          "evidence": "Japan Rev A deathcoxj with the listed EPR and ten MPR chips is required. A compatible BIOS may be embedded or supplied separately.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 99,
+      "id": "survivor2-code-veronica-vr",
+      "title": "Survivor 2 - Code: Veronica VR",
+      "creatorUrl": "https://github.com/vr4all-standalone/survivor2-code-veronica-vr",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "game",
+            "label": "Owned World BHF2 Ver. E gunsur2.zip",
+            "note": "Complete NAOMI World BHF2 Ver. E cartridge with all 15 ROMs. Keep it packed and lowercase. Japanese gunsur2j revisions are unsupported; renaming them does not convert the game.",
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "destination": "/sdcard/Download/gunsur2.zip",
+            "optional": false,
+            "romRequirement": {
+              "set": "gunsur2.zip",
+              "revision": "World BHF2 Ver.E"
+            },
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/vr4all-standalone/survivor2-code-veronica-vr",
+          "evidence": "The World gunsur2 cartridge needs 15 ROMs and a supported NAOMI BIOS embedded or separate; Japanese revisions are unsupported.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        },
+        {
+          "catalogInput": {
+            "id": "naomi",
+            "label": "Optional supported NAOMI BIOS",
+            "note": "Provide naomi.zip unless a supported BIOS is inside your gunsur2.zip.",
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "destination": "/sdcard/Download/naomi.zip",
+            "optional": true,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/vr4all-standalone/survivor2-code-veronica-vr",
+          "evidence": "The World gunsur2 cartridge needs 15 ROMs and a supported NAOMI BIOS embedded or separate; Japanese revisions are unsupported.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 100,
+      "id": "carnevil-vr",
+      "title": "CarnEvil VR",
+      "creatorUrl": "https://github.com/vr4all-standalone/carnevil-vr",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "game",
+            "label": "Owned CarnEvil v1.0.3 ROM ZIP",
+            "note": "Keep the v1.0.3 ZIP packed. It must contain carnevil1_9.u32, sound102.u95 and 486_carnevil.u96.",
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "destination": "/sdcard/Download/carnevil.zip",
+            "optional": false,
+            "romRequirement": {
+              "set": "carnevil.zip",
+              "revision": "v1.0.3"
+            },
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/vr4all-standalone/carnevil-vr",
+          "evidence": "The author requires v1.0.3 carnevil.zip and matching carnevil/carnevil.chd; no NAOMI BIOS.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        },
+        {
+          "catalogInput": {
+            "id": "disk",
+            "label": "Owned CarnEvil v1.0.3 CHD",
+            "note": "Matching CarnEvil v1.0.3 CHDv5 disc. The port checks its disk identity and ROM hashes in the headset setup screen.",
+            "kind": "file",
+            "extensions": [
+              ".chd"
+            ],
+            "destination": "/sdcard/Download/carnevil/carnevil.chd",
+            "optional": false,
+            "romRequirement": {
+              "set": "carnevil CHD",
+              "revision": "v1.0.3"
+            },
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/vr4all-standalone/carnevil-vr",
+          "evidence": "The author requires v1.0.3 carnevil.zip and matching carnevil/carnevil.chd; no NAOMI BIOS.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 101,
+      "id": "teraburst-vr",
+      "title": "Teraburst VR",
+      "creatorUrl": "https://github.com/vr4all-standalone/teraburst-vr",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "game",
+            "label": "Prepared US UEL terabrst.zip",
+            "note": "July 17, 1998 US UEL: all eleven ROM payloads. Use the preparation tool to normalize an owned archive; renaming a 7z file is insufficient. No CHD or separate BIOS is needed.",
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "destination": "/sdcard/Download/terabrst.zip",
+            "optional": false,
+            "romRequirement": {
+              "set": "terabrst.zip",
+              "revision": "US UEL, 17 July 1998"
+            },
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/vr4all-standalone/teraburst-vr",
+          "evidence": "The supported US UEL July 17 1998 terabrst.zip must be complete; there is no CHD or separate BIOS.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 102,
+      "id": "vcop-vr",
+      "title": "Virtua Cop VR",
+      "creatorUrl": "https://github.com/vr4all-standalone/vcop-vr",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "game",
+            "label": "Owned original Virtua Cop Revision B vcop.zip",
+            "note": "Keep the original arcade set packed. A complete combined ZIP with the 26 game/board ROMs and both I/O/LCD firmware payloads is supported. This port uses its own Download/vcop-vr folder, preserving the existing Cop VR game files.",
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "destination": "/sdcard/Download/vcop-vr/vcop.zip",
+            "optional": false,
+            "romRequirement": {
+              "set": "vcop.zip",
+              "revision": "Revision B"
+            },
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/vr4all-standalone/vcop-vr",
+          "evidence": "Revision B vcop requires 28 verified payloads. Separate model1io2 and possibly hd44780 archives can supply I/O and LCD firmware, or they may be combined in vcop.zip.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        },
+        {
+          "catalogInput": {
+            "id": "model1io2",
+            "label": "Optional separate model1io2.zip I/O and LCD firmware",
+            "note": "Provide epr-17181.6 here unless it is already in vcop.zip. The LCD firmware can be in vcop.zip, model1io2.zip or the separate optional hd44780.zip.",
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "destination": "/sdcard/Download/vcop-vr/model1io2.zip",
+            "optional": true,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/vr4all-standalone/vcop-vr",
+          "evidence": "Revision B vcop requires 28 verified payloads. Separate model1io2 and possibly hd44780 archives can supply I/O and LCD firmware, or they may be combined in vcop.zip.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        },
+        {
+          "catalogInput": {
+            "id": "hd44780",
+            "label": "Optional separate hd44780.zip LCD firmware",
+            "note": "Supply hd44780_a00.bin here when it is absent from vcop.zip and model1io2.zip. Keep the firmware archive packed.",
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "destination": "/sdcard/Download/vcop-vr/hd44780.zip",
+            "optional": true,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/vr4all-standalone/vcop-vr",
+          "evidence": "Revision B vcop requires 28 verified payloads. Separate model1io2 and possibly hd44780 archives can supply I/O and LCD firmware, or they may be combined in vcop.zip.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 103,
+      "id": "vcop2-vr",
+      "title": "Virtua Cop 2 VR",
+      "creatorUrl": "https://github.com/vr4all-standalone/vcop2-vr",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "game",
+            "label": "Owned original Virtua Cop 2 vcop2.zip",
+            "note": "Original arcade Model 2A set with all 30 game, CPU-board and video-board ROMs. Keep it packed. A combined ZIP containing these and the billboard firmware is also supported.",
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "destination": "/sdcard/Download/vcop2.zip",
+            "optional": false,
+            "romRequirement": {
+              "set": "vcop2.zip",
+              "revision": "original Model 2A set"
+            },
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/vr4all-standalone/vcop2-vr",
+          "evidence": "The original Model 2A set needs all 31 payloads. segabill may be separate or combined into vcop2.zip.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        },
+        {
+          "catalogInput": {
+            "id": "segabill",
+            "label": "Optional separate segabill.zip billboard firmware",
+            "note": "Provide epr-18022.ic2 in segabill.zip unless it is already inside vcop2.zip. Setup requires all 31 actual ROM payloads across the supplied archives; optional means a separate ZIP is unnecessary for a complete combined set.",
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "destination": "/sdcard/Download/segabill.zip",
+            "optional": true,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/vr4all-standalone/vcop2-vr",
+          "evidence": "The original Model 2A set needs all 31 payloads. segabill may be separate or combined into vcop2.zip.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 104,
+      "id": "gt3-revisited",
+      "title": "GT3 Revisited",
+      "creatorUrl": "https://github.com/matt-pulsipher/GT3-revisited",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "disc",
+            "label": "Owned Gran Turismo 3 A-Spec disc image",
+            "note": "Use an ISO made from your own PlayStation 2 disc. Other formats are not supported by this port.",
+            "kind": "file",
+            "extensions": [
+              ".iso"
+            ],
+            "destination": "/sdcard/Download/VR4ALL-gt3-revisited-disc.iso",
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/matt-pulsipher/GT3-revisited",
+          "evidence": "Only ISO images are read. NTSC-U SCUS-97102 and PBPX-95503 are verified; other regions are untested.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 105,
+      "id": "vtmb-resource",
+      "title": "VtMB VR [re:Source]",
+      "creatorUrl": "https://github.com/alex-nax/resource",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "game",
+            "label": "Owned Bloodlines Vampire folder",
+            "note": "Choose the Vampire folder from an installed original Steam or GOG copy, or a ZIP/7z/RAR containing it. VR4ALL downloads the creator patch separately and combines them on the Quest.",
+            "kind": "directory",
+            "extensions": null,
+            "destination": "/sdcard/vtmb/Vampire/",
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/alex-nax/resource/blob/main/instructions.md",
+          "evidence": "The author requires the complete Vampire folder, with pack000.vpk directly inside, plus an Unofficial Patch pack and its credits/pack.json at /sdcard/vtmb.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 106,
+      "id": "gunblade-ny-vr",
+      "title": "Gunblade NY VR",
+      "creatorUrl": "https://github.com/vr4all-standalone/gunblade-ny-vr",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "game",
+            "label": "Owned Gunblade NY arcade set",
+            "note": "Complete original Model 2 gunblade set. The game checks every required ROM payload.",
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "destination": "/sdcard/Android/data/com.vrlightgunhub.gunbladeny/files/roms/gunblade.zip",
+            "optional": false,
+            "romRequirement": {
+              "set": "gunblade.zip",
+              "revision": "original Model 2B set"
+            },
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/vr4all-standalone/gunblade-ny-vr",
+          "evidence": "The catalog says original Model 2B but omits the creator-required Revision A identity.",
+          "verdict": "MISMATCH",
+          "proposedCopyText": "Use your owned Gunblade NY Revision A gunblade.zip with all 18 required payloads."
+        },
+        {
+          "catalogInput": {
+            "id": "segabill",
+            "label": "Optional separate Sega billboard firmware",
+            "note": "Needed only when the required billboard ROM is absent from gunblade.zip.",
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "destination": "/sdcard/Android/data/com.vrlightgunhub.gunbladeny/files/roms/segabill.zip",
+            "optional": true,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/vr4all-standalone/gunblade-ny-vr",
+          "evidence": "The verified Gunblade set is Revision A gunblade.zip with 18 payloads; a split set may also need segabill.zip.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 107,
+      "id": "hotd-model2-vr",
+      "title": "The House of the Dead VR (VR4ALL)",
+      "creatorUrl": "https://github.com/vr4all-standalone/hotd-model2-vr",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "game",
+            "label": "Owned original House of the Dead arcade set",
+            "note": "Original Model 2 revision hotdo with all required payloads. An archive named hotd.zip is accepted only if its contents match the original revision.",
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "destination": "/sdcard/Download/hotdo.zip",
+            "optional": false,
+            "romRequirement": {
+              "set": "hotdo.zip",
+              "revision": "original Model 2C set"
+            },
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/vr4all-standalone/hotd-model2-vr",
+          "evidence": "The original hotdo revision is required with 29 payloads. A legacy hotd.zip name works only for matching original contents, not later Rev A.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 108,
+      "id": "behind-enemy-lines-vr",
+      "title": "Behind Enemy Lines VR",
+      "creatorUrl": "https://github.com/vr4all-standalone/behind-enemy-lines-vr",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "game",
+            "label": "Owned Behind Enemy Lines arcade set",
+            "note": "Complete original bel set with all 31 ROM payloads. No separate firmware is required.",
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "destination": "/sdcard/Android/data/com.vrlightgunhub.bel/files/roms/bel.zip",
+            "optional": false,
+            "romRequirement": {
+              "set": "bel.zip",
+              "revision": "original Model 2C set"
+            },
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/vr4all-standalone/behind-enemy-lines-vr",
+          "evidence": "bel.zip with all 31 original payloads is required; no separate firmware or CHD.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 109,
+      "id": "rail-chase-2-vr",
+      "title": "Rail Chase 2 VR",
+      "creatorUrl": "https://github.com/vr4all-standalone/rail-chase-2-vr",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "game",
+            "label": "Owned Rail Chase 2 arcade set",
+            "note": "Complete Revision A set, including I/O and billboard firmware if using a combined archive.",
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "destination": "/sdcard/Android/data/com.vrlightgunhub.rchase2/files/roms/rchase2.zip",
+            "optional": false,
+            "romRequirement": {
+              "set": "rchase2.zip",
+              "revision": "Revision A"
+            },
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/vr4all-standalone/rail-chase-2-vr",
+          "evidence": "Revision A rchase2 needs 23 payloads; split media can require segabill.zip. Older 21-file sets are incomplete.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        },
+        {
+          "catalogInput": {
+            "id": "segabill",
+            "label": "Optional separate Sega billboard firmware",
+            "note": "Needed only when the billboard ROM is absent from rchase2.zip.",
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "destination": "/sdcard/Android/data/com.vrlightgunhub.rchase2/files/roms/segabill.zip",
+            "optional": true,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/vr4all-standalone/rail-chase-2-vr",
+          "evidence": "Revision A rchase2 needs 23 payloads; split media can require segabill.zip. Older 21-file sets are incomplete.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 110,
+      "id": "scud-race-vr",
+      "title": "Scud Race VR",
+      "creatorUrl": "https://github.com/jacquesdupontd/port0r/releases/tag/scud-v0.1.7",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "game",
+            "label": "Owned Scud Race arcade set",
+            "note": "Recent MAME 0.289 scud.zip. VR4ALL can package loose files or convert a 7z/RAR archive.",
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "destination": "/sdcard/Download/scud.zip",
+            "optional": false,
+            "romRequirement": {
+              "set": "scud.zip",
+              "revision": "MAME 0.289 set"
+            },
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/jacquesdupontd/port0r/releases/tag/scud-v0.1.7",
+          "evidence": "The release directs users to put scud.zip on the headset; the current project guide says MAME 0.289-compatible data.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 111,
+      "id": "project-honeydew",
+      "title": "Project Honeydew",
+      "creatorUrl": "https://projecthoneydew.com/#download",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "disc",
+            "label": "Owned Pikmin GameCube disc",
+            "note": "USA Rev 1 disc image. Quest imports ISO or GCM on first launch; convert RVZ, WIA or GCZ to ISO first. Leave about 2.5 GB free on the headset.",
+            "kind": "file",
+            "extensions": [
+              ".iso",
+              ".gcm"
+            ],
+            "destination": "/sdcard/Download/",
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://projecthoneydew.com/",
+          "evidence": "The official site currently lists Project Honeydew for Pikmin GameCube USA Rev 1; the Quest install uses the user disc.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 112,
+      "id": "ghost-squad-evolution-vr",
+      "title": "Ghost Squad Evolution VR",
+      "creatorUrl": "https://github.com/lialan/lindbergh-recomp-ports/blob/main/docs/ghostsquadevolution/QUEST.md",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "game",
+            "label": "Owned Ghost Squad Evolution vsg_l folder",
+            "note": "Choose the complete vsg_l arcade game folder; the author requires its original vsg executable. Do not use the macOS build.",
+            "kind": "directory",
+            "extensions": null,
+            "destination": "/sdcard/GhostSquadEvolution/vsg_l/",
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/lialan/lindbergh-recomp-ports/blob/main/docs/ghostsquadevolution/QUEST.md",
+          "evidence": "The code-only Quest APK requires the complete vsg_l directory, copied to /sdcard/GhostSquadEvolution/vsg_l; its vsg SHA-256 must match the lifted game.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 113,
+      "id": "hotd4-vr",
+      "title": "The House of the Dead 4 VR",
+      "creatorUrl": "https://github.com/lialan/lindbergh-recomp-ports/blob/main/docs/hotd4/QUEST.md",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "game",
+            "label": "Owned House of the Dead 4 game folder",
+            "note": "Choose the folder containing elf, fs and drv. The author requires the original hod4M.elf revision.",
+            "kind": "directory",
+            "extensions": null,
+            "destination": "/sdcard/HouseOfTheDead4/",
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/lialan/lindbergh-recomp-ports/blob/main/docs/hotd4/QUEST.md",
+          "evidence": "The Quest script copies the folder containing elf/hod4M.elf, fs and drv; the executable hash must match the lifted revision.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 114,
+      "id": "daytona-usa-vr",
+      "title": "Daytona USA VR",
+      "creatorUrl": "https://github.com/jacquesdupontd/port0r/releases/tag/daytona-v0.1.11",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "game",
+            "label": "Owned Daytona USA arcade set",
+            "note": "MAME 0.289 daytona.zip. The app can package loose files or convert a 7z/RAR archive.",
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "destination": "/sdcard/Download/daytona.zip",
+            "optional": false,
+            "romRequirement": {
+              "set": "daytona.zip",
+              "revision": "MAME 0.289 set"
+            },
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/jacquesdupontd/port0r/blob/main/README.md",
+          "evidence": "The creator specifies MAME 0.289 daytona.zip and model1io.zip as two required sets.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        },
+        {
+          "catalogInput": {
+            "id": "io",
+            "label": "Model 1 I/O board set",
+            "note": "MAME 0.289 model1io.zip.",
+            "kind": "file",
+            "extensions": [
+              ".zip"
+            ],
+            "destination": "/sdcard/Download/model1io.zip",
+            "optional": false,
+            "romRequirement": {
+              "set": "model1io.zip",
+              "revision": "MAME 0.289 set"
+            },
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/jacquesdupontd/port0r/blob/main/README.md",
+          "evidence": "The creator specifies MAME 0.289 daytona.zip and model1io.zip as two required sets.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 115,
+      "id": "mario-party-4-vr",
+      "title": "Mario Party 4 VR",
+      "creatorUrl": "https://github.com/zeranemesis/Marioparty4",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "disc",
+            "label": "Owned Mario Party 4 GameCube disc",
+            "note": "USA GMPE01 or Europe GMPP01. Choose the disc inside the game on first launch; Japanese editions are unsupported.",
+            "kind": "file",
+            "extensions": [
+              ".iso",
+              ".rvz",
+              ".wia",
+              ".gcz"
+            ],
+            "destination": "/sdcard/Download/",
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/zeranemesis/Marioparty4",
+          "evidence": "The current Quest release supports GMPE01 USA rev 0 or 1 and GMPP01 Europe. It accepts ISO, RVZ, WIA and GCZ and checks the disc hash.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 116,
+      "id": "ctr-turbocharged-vr",
+      "title": "Crash Team Racing: Turbocharged VR",
+      "creatorUrl": "https://github.com/SgtBilko76/CTR-Turbocharged-VR",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "disc",
+            "label": "Owned NTSC-U Crash Team Racing BIN",
+            "note": "Original PlayStation NTSC-U SCUS-94426 raw BIN. A CUE, CHD or PAL disc is not accepted by the creator’s current build.",
+            "kind": "file",
+            "extensions": [
+              ".bin"
+            ],
+            "destination": "/sdcard/CTR/assets/ctr-u.bin",
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/SgtBilko76/CTR-Turbocharged-VR/blob/quest/README-QUEST.md",
+          "evidence": "The Quest guide specifies the owned NTSC-U SCUS-94426 raw BIN at /sdcard/CTR/assets/ctr-u.bin.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 117,
+      "id": "victory-heat-rally-vr",
+      "title": "Victory Heat Rally VR",
+      "creatorUrl": "https://github.com/segadreamcat/VictoryHeatRallyVR-Quest/releases",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "gamePackage",
+            "label": "Owned Victory Heat Rally folder or data.win",
+            "hint": "Drop the original Steam game folder or its data.win. The creator’s builder verifies the exact supported game revision.",
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/segadreamcat/VictoryHeatRallyVR-Quest",
+          "evidence": "The author builds on the user PC from a supported Steam Victory Heat Rally install, checks the revision, creates a private APK and installs it. BuildOnly is supported.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 118,
+      "id": "mystical-ninja-vr",
+      "title": "Mystical Ninja VR",
+      "creatorUrl": "https://github.com/VistaLargaGames/Mystical-Ninja-VR",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "rom",
+            "label": "Owned US Mystical Ninja N64 ROM",
+            "note": "US game ROM. Select the copied file from Download in the port’s first-run picker.",
+            "kind": "file",
+            "extensions": [
+              ".z64",
+              ".n64",
+              ".v64"
+            ],
+            "destination": "/sdcard/Download/",
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/VistaLargaGames/Mystical-Ninja-VR",
+          "evidence": "The author asks for a North American ROM chosen in the start window, but does not list .z64/.n64/.v64 extensions.",
+          "verdict": "UNCLEAR",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 119,
+      "id": "wwf-no-mercy-vr",
+      "title": "WWF No Mercy VR",
+      "creatorUrl": "https://github.com/VistaLargaGames/WWF-No-Mercy-Quest-3-Standalone-",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "rom",
+            "label": "Owned US Rev 1 WWF No Mercy ROM",
+            "note": "US Rev 1 / Rev A Nintendo 64 ROM; choose it in the game’s first-run picker.",
+            "kind": "file",
+            "extensions": [
+              ".z64",
+              ".n64",
+              ".v64"
+            ],
+            "destination": "/sdcard/Download/",
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/VistaLargaGames/WWF-No-Mercy-Quest-3-Standalone-",
+          "evidence": "The author requires the North American Rev 1/Rev A game in the main menu, but does not specify extensions.",
+          "verdict": "UNCLEAR",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 120,
+      "id": "sin-and-punishment-vr",
+      "title": "Sin and Punishment VR",
+      "creatorUrl": "https://github.com/VistaLargaGames/Sin-and-Punishment-Quest-VR",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "rom",
+            "label": "Owned Sin and Punishment N64 ROM",
+            "note": "Original Japanese ROM or the creator-supported English translation; choose it in the game on first launch.",
+            "kind": "file",
+            "extensions": [
+              ".z64",
+              ".n64",
+              ".v64"
+            ],
+            "destination": "/sdcard/Download/",
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/VistaLargaGames/Sin-and-Punishment-Quest-VR",
+          "evidence": "The author supports Japanese original and English fan-translation ROMs; Quest accepts .z64, .n64 and .v64 and imports through its picker.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 121,
+      "id": "nfl-blitz-2000-vr",
+      "title": "NFL Blitz 2000 VR",
+      "creatorUrl": "https://github.com/VistaLargaGames/NFL-Blitz-2000-Quest-VR",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "rom",
+            "label": "Owned US Rev 1 NFL Blitz 2000 ROM",
+            "note": "US Rev 1 Nintendo 64 ROM, selected in the game on first launch.",
+            "kind": "file",
+            "extensions": [
+              ".z64",
+              ".n64",
+              ".v64"
+            ],
+            "destination": "/sdcard/Download/",
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/VistaLargaGames/NFL-Blitz-2000-Quest-VR",
+          "evidence": "The catalog creator URL returned a fetch/cache miss; no primary installation text could be verified.",
+          "verdict": "UNREACHABLE",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 122,
+      "id": "bomberman-hero-vr",
+      "title": "Bomberman Hero VR",
+      "creatorUrl": "https://github.com/VistaLargaGames/Bomberman-Hero-Quest-3-VR-Standalone",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "rom",
+            "label": "Owned US Bomberman Hero ROM",
+            "note": "US 1.0 Nintendo 64 ROM; choose it in the game’s first-run picker.",
+            "kind": "file",
+            "extensions": [
+              ".z64",
+              ".n64",
+              ".v64"
+            ],
+            "destination": "/sdcard/Download/",
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/VistaLargaGames/Bomberman-Hero-Quest-3-VR-Standalone",
+          "evidence": "The creator requires the North American 1.0 game in its main menu, but does not specify accepted ROM extensions.",
+          "verdict": "UNCLEAR",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 123,
+      "id": "arx-libertatis-vr",
+      "title": "Arx Libertatis VR",
+      "creatorUrl": "https://github.com/cmpayc/ArxLibertatisVR",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "game",
+            "label": "Owned Arx Fatalis data folder",
+            "note": "Choose the game folder with data*.pak, sfx.pak, speech*.pak, loc*.pak and its asset folders. Steam, GOG, CD or supported demo data may work.",
+            "kind": "directory",
+            "extensions": null,
+            "destination": "/sdcard/ArxLibertatis/",
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/cmpayc/ArxLibertatisVR/releases/tag/vr-v0.3.0",
+          "evidence": "The current v0.3.0 release includes an experimental Quest 3 Android ARM64 APK and directs users to copy data*.pak, sfx.pak, speech*.pak, loc*.pak, misc and graph to /sdcard/ArxLibertatis/. It permits owned Steam, GOG or CD data and the free demo.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 124,
+      "id": "wakerquest",
+      "title": "WakerQuest",
+      "creatorUrl": "https://github.com/Trastorillo/wakerquest",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "disc",
+            "label": "Owned PAL Wind Waker GameCube ISO",
+            "note": "Current Quest release requires an uncompressed PAL Europe GZLP01 Rev 0 ISO. Choose it in the port on first launch.",
+            "kind": "file",
+            "extensions": [
+              ".iso"
+            ],
+            "destination": "/sdcard/Download/",
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/Trastorillo/wakerquest",
+          "evidence": "The Quest build requires Europe GZLP01 revision 0 as an uncompressed ISO, copied to Download and chosen in the app.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 125,
+      "id": "daggerfall-unity-vr",
+      "title": "Daggerfall Unity VR",
+      "creatorUrl": "https://github.com/rwcrosk-arch/dfu-quest3",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "game",
+            "label": "Original Daggerfall ARENA2 folder",
+            "note": "Use the ARENA2 folder from the free original DOS Daggerfall. Choose the folder itself or an archive containing it.",
+            "kind": "directory",
+            "extensions": null,
+            "destination": "/sdcard/Android/data/com.dfworkshop.dfuquest3/files/Daggerfall/arena2/",
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/rwcrosk-arch/dfu-quest3",
+          "evidence": "The Quest author requires an ARENA2 directory with BSA/SND game files at the app-scoped Daggerfall/arena2 path; the guide does not mention archive selection.",
+          "verdict": "UNCLEAR",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 126,
+      "id": "star-fox-enhanced-vr",
+      "title": "Star Fox Enhanced VR",
+      "creatorUrl": "https://github.com/kandowontu2/starfox-enhanced",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "rom",
+            "label": "Owned Star Fox / Starwing SNES ROM",
+            "note": "Supported retail Japan, US or Europe revision. The Quest app imports the ROM on first launch; Star Fox 2, hacks and unknown revisions are not supported.",
+            "kind": "file",
+            "extensions": [
+              ".sfc",
+              ".smc"
+            ],
+            "destination": "/sdcard/Download/",
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/kandowontu2/starfox-enhanced",
+          "evidence": "The author accepts .sfc/.smc ROMs for listed Japan, USA, Europe and Germany revisions; mobile builds import from a first-run picker.",
+          "verdict": "MATCH",
+          "proposedCopyText": null
+        }
+      ]
+    },
+    {
+      "index": 127,
+      "id": "outlaws-vr",
+      "title": "Outlaws VR",
+      "creatorUrl": "https://github.com/outlawshub-arch/OutlawsVR",
+      "inputs": [
+        {
+          "catalogInput": {
+            "id": "game",
+            "label": "Owned Outlaws Remastered data folder",
+            "note": "Choose the folder containing olgeo.lab, Common.kpf and UI.kpf from your Steam or GOG Outlaws Remastered install. VR4ALL copies the game archives only.",
+            "kind": "directory",
+            "extensions": null,
+            "destination": "/sdcard/Android/data/com.outlawsvr.OutlawsUE/files/Outlaws/",
+            "optional": false,
+            "romRequirement": null,
+            "copyRequirement": null
+          },
+          "sourceUrl": "https://github.com/outlawshub-arch/OutlawsVR",
+          "evidence": "The README confirms olgeo.lab and Outlaws Remastered, but does not substantiate the catalog's Common.kpf and UI.kpf requirements.",
+          "verdict": "UNCLEAR",
+          "proposedCopyText": "Choose the installed Outlaws Remastered folder containing olgeo.lab. Verify the exact archive subset against the creator installer before naming additional files as required."
+        }
+      ]
+    }
+  ]
+}

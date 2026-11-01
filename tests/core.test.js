@@ -78,6 +78,16 @@ test('buildInstallPlan targets one serial and copies required files to their pro
   ]);
 });
 
+test('Rave Racer preserves either creator-supported arcade set filename', () => {
+  const game = getCatalog().find((entry) => entry.id === 'rave-racer-vr');
+  for (const name of ['raverace.zip', 'raveracw.zip']) {
+    const plan = buildInstallPlan(game, { serial: 'Q3', apkPath: 'C:\\Rave.apk', files: {
+      race: `C:\\Roms\\${name}`, board: 'C:\\Roms\\namcoc74.zip', bios: 'C:\\Roms\\c71.bin',
+    } });
+    assert.equal(plan.find((step) => step.label === 'Copy race').args.at(-1), `/sdcard/Android/data/com.virtuavrport.raveracervr/files/${name}`);
+  }
+});
+
 test('AvP initializes its app folder before transferring lowercase game assets', () => {
   const game = getCatalog().find((entry) => entry.id === 'avp-vr');
   const plan = buildInstallPlan(game, { serial: 'Q3', apkPath: 'C:\\avp.apk', files: { game: 'C:\\avp' }, directoryEntries: { game: ['avp_rifs', 'fastfile', 'language.txt'] } });

@@ -21,7 +21,7 @@ const recipes = Object.freeze({
     script: 'native/scripts/install-player.ps1',
     apk: /(^|\/)native\/GT2-VR-[0-9.]+\.apk$/i,
     input: 'file',
-    extensions: ['.bin', '.iso', '.zip'],
+    extensions: ['.bin', '.zip'],
     args: ({ gamePath, serial, adbPath, work }) => ['-DiscImage', gamePath, '-Target', 'Quest', '-Adb', adbPath, '-Serial', serial, '-NoBios', '-InstallDir', path.join(work, 'runtime')],
   },
   'animal-crossing-vr': {

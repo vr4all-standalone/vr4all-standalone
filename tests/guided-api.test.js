@@ -273,6 +273,7 @@ test('AstroQuest setup accepts a ZIP of the extracted game tree', { skip: proces
     await fs.mkdir(path.join(game, 'sce_sys'), { recursive: true });
     await fs.mkdir(path.join(game, 'sce_module'));
     await fs.writeFile(path.join(game, 'eboot.bin'), 'owned Astro game');
+    await fs.writeFile(path.join(game, 'sce_sys', 'param.sfo'), 'TITLE_ID\0CUSA12392\0');
     const archive = path.join(root, 'Astro Bot.zip');
     await runFile(sevenZip, ['a', '-tzip', archive, 'CUSA12392'], { cwd: root, windowsHide: true });
     const started = await request(app, 'POST', '/api/astroquest-install', { gameId: 'astroquest', serial: 'Q3A', gamePath: archive });
