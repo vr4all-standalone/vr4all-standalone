@@ -7,9 +7,12 @@ const { pipeline } = require('node:stream/promises');
 const { execFile, spawn } = require('node:child_process');
 const { withShortBuildPath } = require('./build-path');
 const { buildEnvironment } = require('./build-environment');
-const { withSharedBuildTools, findSharedJavaHome } = require('./shared-build-tools');
+const { withSharedBuildTools, findSharedJavaHome, buildToolsDir } = require('./shared-build-tools');
 const { convertArchiveToZip, removeConversionDirectory } = require('./archive-conversion');
 const { withRdrGameData } = require('./rdr-game-data');
+const { findOnPath } = require('./find-tool');
+const { runLogged } = require('./run-logged');
+const { checkHostTools, assertLinuxToolsReady, buildShellArgs, isCurlMeterLine } = require('./linux-build-tools');
 
 const profiles = Object.freeze({
   'gta-sa-vr': Object.freeze({ repo: 'dubrovskiy-yevhen-stakelogic/gta-sa-vr-quest', audio: true }),
@@ -37,12 +40,21 @@ async function checkInputPath(value, label, extensions) {
   return path.resolve(value);
 }
 
-async function validatePersonalBuildInput(gameId, input) {
+async function canonicalFile(value) {
+  return value && (await fs.stat(value)).isFile() ? fs.realpath(value) : value;
+}
+
+// The creator's .sh refuses file inputs that are symlinks, so Linux hands it the real path.
+async function validatePersonalBuildInput(gameId, input, options = {}) {
   const profile = profileFor(gameId);
   if (!/^[A-Za-z0-9._:-]+$/.test(input?.serial || '')) throw new Error('Choose a connected Quest');
-  const gamePackage = await checkInputPath(input.gamePackage, 'game export', gameExtensions);
-  const audioSource = profile.audio ? await checkInputPath(input.audioSource, 'audio source', audioExtensions)
+  let gamePackage = await checkInputPath(input.gamePackage, 'game export', gameExtensions);
+  let audioSource = profile.audio ? await checkInputPath(input.audioSource, 'audio source', audioExtensions)
     : gameId === 'rdr1-vr' && input.audioSource ? await checkInputPath(input.audioSource, 'additional RDR game data', gameExtensions) : null;
+  if ((options.platform || process.platform) !== 'win32') {
+    gamePackage = await canonicalFile(gamePackage);
+    audioSource = await canonicalFile(audioSource);
+  }
   return { gamePackage, audioSource, serial: input.serial };
 }
 
@@ -56,6 +68,23 @@ function buildPowerShellArgs(gameId, input, kitDir, workDir) {
 
 function extractZip(zipPath, destination) {
   return new Promise((resolve, reject) => execFile('tar.exe', ['-xf', zipPath, '-C', destination], { windowsHide: true, timeout: 10 * 60 * 1000, maxBuffer: 1024 * 1024 }, (error, _stdout, stderr) => error ? reject(new Error(stderr.trim() || error.message)) : resolve()));
+}
+
+function extractZipLinux(zipPath, destination) {
+  const unzip = findOnPath(['unzip']);
+  if (!unzip) throw new Error('unzip is missing (package unzip). Install it and retry.');
+  return new Promise((resolve, reject) => execFile(unzip, ['-q', '-o', zipPath, '-d', destination], { timeout: 10 * 60 * 1000, maxBuffer: 1024 * 1024 }, (error, _stdout, stderr) => error ? reject(new Error(stderr.trim() || error.message)) : resolve()));
+}
+
+// The creator's Linux script, and the options this port passes to it unattended.
+async function linuxScriptReady(gameId, directory) {
+  const file = path.join(directory, 'tools', 'build-and-install.sh');
+  const stat = await fs.lstat(file).catch(() => null);
+  if (!stat?.isFile() || stat.isSymbolicLink() || !stat.size) return false;
+  const script = await fs.readFile(file, 'utf8');
+  const flags = ['--non-interactive', '--serial', '--game-package', '--work-dir', '--android-sdk', '--java-home', ...(profileFor(gameId).audio ? ['--audio-source', '--yes'] : [])];
+  if (!flags.every((flag) => new RegExp(`${flag}\\b`).test(script))) throw new Error('Official build script does not support safe unattended installation on Linux');
+  return true;
 }
 
 async function downloadZip(response, target) {
@@ -72,7 +101,11 @@ async function downloadZip(response, target) {
 async function acquireSourceKit(gameId, cacheRoot, log = () => {}, options = {}) {
   const { repo } = profileFor(gameId);
   const fetchImpl = options.fetchImpl || fetch;
-  const extract = options.extract || extractZip;
+  const platform = options.platform || process.platform;
+  const extract = options.extract || (platform === 'win32' ? extractZip : extractZipLinux);
+  const scriptReady = (directory) => platform === 'win32'
+    ? fs.stat(path.join(directory, 'tools', 'build-and-install.ps1')).then((stat) => stat.isFile(), () => false)
+    : linuxScriptReady(gameId, directory);
   const headers = { Accept: 'application/vnd.github+json', 'User-Agent': 'VR4All-personal-builder' };
   const commitResponse = await fetchImpl(`https://api.github.com/repos/${repo}/commits/main`, { headers, signal: AbortSignal.timeout(20000) });
   let sha;
@@ -92,7 +125,7 @@ async function acquireSourceKit(gameId, cacheRoot, log = () => {}, options = {})
   const existing = (await fs.readdir(extractRoot, { withFileTypes: true }).catch(() => [])).filter((entry) => entry.isDirectory());
   if ((await fs.stat(marker).catch(() => null))?.isFile() && existing.length === 1) {
     const directory = path.join(extractRoot, existing[0].name);
-    if ((await fs.stat(path.join(directory, 'tools', 'build-and-install.ps1')).catch(() => null))?.isFile()) return { sha, directory, repo };
+    if (await scriptReady(directory)) return { sha, directory, repo };
   }
   await fs.mkdir(profileRoot, { recursive: true });
   const unique = crypto.randomUUID();
@@ -107,7 +140,7 @@ async function acquireSourceKit(gameId, cacheRoot, log = () => {}, options = {})
     const folders = (await fs.readdir(extractRoot, { withFileTypes: true })).filter((entry) => entry.isDirectory());
     if (folders.length !== 1) throw new Error('Official source archive has an unexpected layout');
     const sourceRoot = path.join(extractRoot, folders[0].name);
-    if (!(await fs.stat(path.join(sourceRoot, 'tools', 'build-and-install.ps1')).catch(() => null))?.isFile()) throw new Error('Official source archive is missing its build script');
+    if (!await scriptReady(sourceRoot)) throw new Error('Official source archive is missing its build script');
     await fs.writeFile(marker, `${repo}\n${sha}\n`);
     return { sha, directory: sourceRoot, repo };
   } finally {
@@ -119,7 +152,31 @@ function runAuthorScript(gameId, input, kitDir, workDir, log = () => {}, options
   return (options.withBuildPath || withShortBuildPath)(workDir, (shortPath) => runAuthorScriptAtPath(gameId, input, kitDir, shortPath, log, options), log, options);
 }
 
+// Linux: the creator's own build-and-install.sh, on the tools VR4ALL installed in <workRoot>/shared.
+async function runShellScriptAtPath(gameId, input, kitDir, workDir, log, options) {
+  const toolsDir = buildToolsDir(workDir, options);
+  const findTool = options.findTool || findOnPath;
+  const needsXz = ['.7z', '.rar'].includes(path.extname(input.audioSource || '').toLowerCase());
+  await (options.checkHostTools || checkHostTools)(gameId, { findTool, needsXz });
+  const { javaHome, sdkRoot } = await (options.resolveLinuxTools || assertLinuxToolsReady)(kitDir, toolsDir);
+  const args = buildShellArgs(gameId, input, kitDir, { toolsDir, javaHome, sdkRoot });
+  let authorError = '';
+  const result = await runLogged(findTool(['bash']), args, {
+    cwd: kitDir, env: buildEnvironment(toolsDir, options), spawnImpl: options.spawnImpl,
+    onLine: (line) => {
+      if (isCurlMeterLine(line)) return;
+      log(line);
+      // RDR ends with "Read the ERROR line above", which would hide the specific error before it.
+      if (/^(?:ERROR|FAILED):\s*\S/i.test(line) && !/Read the ERROR line above/i.test(line)) authorError = line.replace(/^(?:ERROR|FAILED):\s*/i, '').slice(0, 1000);
+    },
+  });
+  if (result.code === 0) return;
+  const status = result.code === null ? `signal ${result.signal}` : `exit ${result.code}`;
+  throw new Error(`Official build and install failed (${status})${authorError ? `: ${authorError}` : "; see activity for the author's error"}`);
+}
+
 async function runAuthorScriptAtPath(gameId, input, kitDir, workDir, log, options) {
+  if ((options.platform || process.platform) !== 'win32') return runShellScriptAtPath(gameId, input, kitDir, workDir, log, options);
   const spawnImpl = options.spawnImpl || spawn;
   const args = buildPowerShellArgs(gameId, input, kitDir, workDir);
   const javaHome = await findSharedJavaHome(workDir);
@@ -197,7 +254,7 @@ async function runPersonalBuild(gameId, input, roots, log = () => {}, options = 
   await withSharedBuildTools(workDir, () => withCompatibleGamePackage(input.gamePackage, path.join(workDir, '.tmp'),
     (gamePackage) => gameId === 'rdr1-vr' ? withRdrGameData({ ...input, gamePackage }, path.join(workDir, '.tmp'),
       (completePackage) => runAuthorScript(gameId, { ...input, gamePackage: completePackage }, kit.directory, workDir, log, options), log)
-      : runAuthorScript(gameId, { ...input, gamePackage }, kit.directory, workDir, log, options), log, options), log);
+      : runAuthorScript(gameId, { ...input, gamePackage }, kit.directory, workDir, log, options), log, options), log, options);
   return kit;
 }
 

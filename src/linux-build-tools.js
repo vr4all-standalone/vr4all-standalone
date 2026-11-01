@@ -259,7 +259,12 @@ function buildShellArgs(gameId, input, kitDir, { toolsDir, javaHome, sdkRoot }) 
   return [script, '--game-package', input.gamePackage, ...shared, '--serial', input.serial, '--non-interactive'];
 }
 
+// curl's progress meter (header, units, and one numeric row per update) is noise in the activity log.
+function isCurlMeterLine(line) {
+  return /^\s*(?:%\s+Total|Dload|\d+\s+[\d.kMGT]+\s+\d+)/.test(line);
+}
+
 module.exports = {
   parseKitScript, readKitPins, ensureJdk, ensureCommandLineTools, missingSdkPackages, prepareSdkToolsLinux,
-  checkHostTools, assertLinuxToolsReady, buildShellArgs,
+  checkHostTools, assertLinuxToolsReady, buildShellArgs, isCurlMeterLine,
 };

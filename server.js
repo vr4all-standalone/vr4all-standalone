@@ -655,7 +655,7 @@ function createApp(options = {}) {
         ? await viceCityBuilder({ ...input, gamePackage: convertedGame?.path || input.gamePackage }, viceCityRoots(input.downloadLocation), log)
         : game.id === 'victory-heat-rally-vr'
         ? await victoryHeatBuilder({ ...input, releases, source: sourceFor(game), adb, workspaceRoot: buildWorkRoot(), inspectApk, onLog: log })
-        : await personalBuilder(game.id, input, input.downloadLocation ? viceCityRoots(input.downloadLocation) : personalRoots(), log);
+        : await personalBuilder(game.id, input, input.downloadLocation ? viceCityRoots(input.downloadLocation) : personalRoots(), log, { platform: options.platform });
       job.sourceCommit = kit.sha;
       job.status = 'success';
       log('Author build and Quest installation completed. Start the game on the headset to confirm it plays.');
@@ -697,7 +697,7 @@ function createApp(options = {}) {
         job.license = { id: crypto.randomUUID(), text: String(text) };
         sdkDecisions.set(job.id, { licenseId: job.license.id, resolve });
         log('Review the Google license in the build tools window to continue.');
-      }), { gameId: job.gameId });
+      }), { gameId: job.gameId, platform: options.platform });
       job.sourceCommit = result.sha;
       job.status = 'success';
       log(`Build tools are ready. Click Build and install to retry ${gameById(job.gameId).title}.`);
@@ -1726,7 +1726,7 @@ function createApp(options = {}) {
           ? await validateViceCityRequest(requestInput, downloadLocation)
           : game.id === 'victory-heat-rally-vr'
           ? await validateVictoryHeatInput(requestInput)
-          : await validatePersonalBuildInput(game.id, requestInput);
+          : await validatePersonalBuildInput(game.id, requestInput, { platform: options.platform });
         if (downloadLocation) input.downloadLocation = downloadLocation;
         if (!canQueueInstall(input.serial)) return json(res, 409, { error: 'Another operation is already running on this device' });
         if (buildToolGames.has(game.id) && busyBuildGames.has(game.id)) return json(res, 409, { error: 'Game tool setup or build is already running' });
