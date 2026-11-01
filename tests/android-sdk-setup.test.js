@@ -7,8 +7,8 @@ const { EventEmitter } = require('node:events');
 const { PassThrough } = require('node:stream');
 const { spawn } = require('node:child_process');
 const { runSdkManager, setupViceCityTools, prepareSdkTools } = require('../src/android-sdk-setup');
-
-const config = { javaExe: 'C:\\tools\\jdk\\bin\\java.exe', javaHome: 'C:\\tools\\jdk', classpath: 'C:\\tools\\sdk\\lib\\sdkmanager-classpath.jar', sdkRoot: 'C:\\tools\\sdk', packages: ['platforms;android-35', 'ndk;27.2.12479018'] };
+const tools = path.resolve(path.sep, 'tools');
+const config = { javaExe: path.join(tools, 'jdk', 'bin', 'java.exe'), javaHome: path.join(tools, 'jdk'), classpath: path.join(tools, 'sdk', 'lib', 'sdkmanager-classpath.jar'), sdkRoot: path.join(tools, 'sdk'), packages: ['platforms;android-35', 'ndk;27.2.12479018'] };
 
 function childProcess() {
   const child = new EventEmitter();
@@ -28,13 +28,13 @@ test('SDK Manager waits for the displayed license decision before sending any in
     spawnImpl: (binary, args, options) => {
       assert.equal(binary, config.javaExe);
       assert.ok(args.includes('--install'));
-      assert.ok(args.includes('--sdk_root=C:\\tools\\sdk'));
+      assert.ok(args.includes(`--sdk_root=${path.join(tools, 'sdk')}`));
       assert.deepEqual(args.slice(-2), config.packages);
       assert.equal(options.stdio[0], 'pipe');
-      assert.equal(options.env.TEMP, 'C:\\tools\\.tmp');
-      assert.equal(options.env.TMP, 'C:\\tools\\.tmp');
-      assert.equal(options.env.ANDROID_USER_HOME, 'C:\\tools\\.android-user');
-      assert.ok(args.includes('-Djava.io.tmpdir=C:\\tools\\.tmp'));
+      assert.equal(options.env.TEMP, path.join(tools, '.tmp'));
+      assert.equal(options.env.TMP, path.join(tools, '.tmp'));
+      assert.equal(options.env.ANDROID_USER_HOME, path.join(tools, '.android-user'));
+      assert.ok(args.includes(`-Djava.io.tmpdir=${path.join(tools, '.tmp')}`));
       child = childProcess();
       child.stdin.on('data', (chunk) => writes.push(String(chunk)));
       queueMicrotask(() => { child.stdout.write('License android-sdk-license:\nActual Google terms\nAccept? (y'); child.stdout.write('/N): '); });

@@ -1424,7 +1424,7 @@ test('AvP install unpacks a TAR of owned assets into its app folder when nested 
   const quest = path.join(root, 'quest');
   const onQuest = (remote) => path.join(quest, remote);
   const appFiles = '/sdcard/Android/data/com.bassquake.quest.avpvr/files';
-  const tar = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'tar.exe');
+  const tar = process.platform === 'win32' ? path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'tar.exe') : 'tar';
   const calls = [];
   async function remoteFiles(base, relative, lines) {
     const stat = await fs.stat(path.join(base, relative));
