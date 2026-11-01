@@ -1260,3 +1260,24 @@ test('updateInstallEnabled does not throw with no selected game and no selected 
   context.document.querySelector = (selector) => selector === '#personalBuildButton' ? { disabled: false } : query(selector);
   assert.doesNotThrow(() => vm.runInContext('updateInstallEnabled()', context));
 });
+
+test('Windows-only ports are not offered as ready, bulk-installable or bulk-updatable when unsupported', () => {
+  const { context } = appHarness();
+  const reason = 'This port installs through a Windows-only tool. It is not available on Linux yet.';
+  context.reason = reason;
+  context.vhrGame = { ...getCatalog().find((game) => game.id === 'victory-heat-rally-vr'), support: { supported: false, reason } };
+  context.rdr = { ...getCatalog().find((game) => game.id === 'rdr1-vr'), support: { supported: false, reason } };
+  vm.runInContext(`state.games = [vhrGame, rdr]; state.selectedSerial = 'Q3';
+    state.deviceLibrary.Q3 = { [vhrGame.id]: { packageId: 'com.segadreamcat.vhrquest', dataReady: true, versionName: '1.0' } };
+    state.installed = { Q3: { [vhrGame.id]: { packageId: 'com.segadreamcat.vhrquest', sourceCommit: 'v1.1' } } };
+    state.releases[vhrGame.id] = { tag: 'v1.2', stale: false };
+    state.inputs[rdr.id] = { gamePackage: '/owned/RDR', audioSource: '/owned/RDR-data' };
+    state.savedPaths[rdr.id] = { ...state.inputs[rdr.id] };
+    state.pathAvailability[rdr.id] = { gamePackage: true, audioSource: true };`, context);
+  assert.equal(vm.runInContext('versionStatus(vhrGame)', context), 'status-update');
+  assert.deepEqual(Array.from(vm.runInContext('confirmedBulkUpdates()', context), (game) => game.id), []);
+  assert.equal(vm.runInContext('isAvailableForInstall(rdr)', context), false);
+  vm.runInContext("state.bulkMode = 'new'", context);
+  assert.equal(vm.runInContext('bulkCandidate({ gameId: vhrGame.id, files: {}, buildInputs: {} }).hidden', context), true);
+  assert.equal(vm.runInContext("bulkCandidate({ gameId: rdr.id, files: {}, buildInputs: { gamePackage: '/owned/RDR' } }).reason", context), reason);
+});
