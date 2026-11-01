@@ -113,7 +113,7 @@ if (!ownsInstanceLock) {
         show: false,
         autoHideMenuBar: true,
         backgroundColor: '#0b111c',
-        icon: path.join(__dirname, 'icon.ico'),
+        icon: path.join(__dirname, process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
         webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, preload: path.join(__dirname, 'preload.js') },
       });
       traceStartup('window-created');

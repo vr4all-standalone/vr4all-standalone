@@ -485,7 +485,8 @@ test('install-type views filter actual ports without a connected headset and inc
 test('Ready to install follows All, New and Emulators and shows only complete install inputs', () => {
   const { context, elements, listeners } = appHarness();
   const catalog = getCatalog();
-  context.ports = ['time-crisis-vr', 'dr89-time-crisis', 'mgs-vr', 'vice-city-vr', 'wave-race-vr'].map((id) => catalog.find((game) => game.id === id));
+  // Windows-flow fixtures (Vice City build) are supported regardless of the host.
+  context.ports = ['time-crisis-vr', 'dr89-time-crisis', 'mgs-vr', 'vice-city-vr', 'wave-race-vr'].map((id) => ({ ...catalog.find((game) => game.id === id), support: { supported: true } }));
   vm.runInContext("state.games = ports; renderLibraryScopeOptions(); state.libraryScope = 'available'; renderGrid()", context);
   assert.match(elements.get('#libraryScope').innerHTML, /All games<\/option><option value="new">New games<\/option><option value="emulators">Emulators<\/option><option value="available">Ready to install/);
   const ids = () => [...elements.get('#gameGrid').innerHTML.matchAll(/data-id="([^"]+)"/g)].map((match) => match[1]);
@@ -652,7 +653,7 @@ test('new games selects ten catalog cards while Most downloaded sorts the full v
 
 test('Victory Heat Rally build is ready after install and joins bulk updates for a newer builder', () => {
   const { context } = appHarness();
-  context.vhrGame = getCatalog().find((game) => game.id === 'victory-heat-rally-vr');
+  context.vhrGame = { ...getCatalog().find((game) => game.id === 'victory-heat-rally-vr'), support: { supported: true } };
   vm.runInContext(`state.games = [vhrGame]; state.selectedSerial = 'Q3';
     state.deviceLibrary.Q3 = { [vhrGame.id]: { packageId: 'com.segadreamcat.vhrquest', dataReady: true, versionName: '1.0' } };
     state.installed = { Q3: { [vhrGame.id]: { packageId: 'com.segadreamcat.vhrquest', sourceCommit: 'v1.1' } } };
@@ -1242,7 +1243,7 @@ test('Bulk install can build a game with its saved inputs, including RDR', async
 
 test('a complete saved personal build is marked Install available before headset installation', () => {
   const { context } = appHarness();
-  const rdr = getCatalog().find((entry) => entry.id === 'rdr1-vr');
+  const rdr = { ...getCatalog().find((entry) => entry.id === 'rdr1-vr'), support: { supported: true } };
   context.rdr = rdr;
   vm.runInContext("state.games = [rdr]; state.selectedSerial = 'QUEST'; state.deviceLibrary.QUEST = {}; state.inputs[rdr.id] = { gamePackage: 'C:\\\\Owned\\\\RDR', audioSource: 'C:\\\\Owned\\\\RDR-data' }; state.savedPaths[rdr.id] = { ...state.inputs[rdr.id] }; state.pathAvailability[rdr.id] = { gamePackage: true, audioSource: true }", context);
   assert.equal(vm.runInContext('cardStatus(rdr)', context), 'status-staged');
@@ -1250,4 +1251,12 @@ test('a complete saved personal build is marked Install available before headset
   assert.equal(vm.runInContext("state.libraryScope = 'available'; matchesScope(rdr)", context), true);
   vm.runInContext("state.pathAvailability[rdr.id].gamePackage = false", context);
   assert.notEqual(vm.runInContext('cardStatus(rdr)', context), 'status-staged');
+});
+
+test('updateInstallEnabled does not throw with no selected game and no selected headset', () => {
+  const { context } = appHarness();
+  vm.runInContext("state.games = []; state.selectedId = ''; state.selectedSerial = ''", context);
+  const query = context.document.querySelector;
+  context.document.querySelector = (selector) => selector === '#personalBuildButton' ? { disabled: false } : query(selector);
+  assert.doesNotThrow(() => vm.runInContext('updateInstallEnabled()', context));
 });

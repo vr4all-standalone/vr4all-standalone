@@ -28,13 +28,13 @@ VR4ALL runs on Linux x64 as a development preview in your browser, as the Electr
 
 1. Install the tools VR4ALL looks up on your `PATH` (package names vary by distribution):
    - `adb` from `android-tools` (or Android SDK Platform Tools): headset detection and installs. VR4ALL also checks `ADB_PATH`, `ANDROID_HOME` and `ANDROID_SDK_ROOT`, and **Connection help** can set another path.
-   - `7z` from `p7zip` (or `7zz`/`7za`): `.7z` and `.rar` conversion.
+   - `7z` from `p7zip` (or `7zz`/`7za`): reads ZIPs, packages game folders into ZIPs and converts `.7z` and `.rar`. RAR needs a 7-Zip build with RAR support: `p7zip` may lack it, and whether `7zip` or `7-zip-full` includes it varies by distribution.
    - `chdman` from `mame-tools`: required for Wipeout CHD disc images.
    - `zenity` or `kdialog`: file and folder choosers for **Browse** in the browser preview. The desktop app and AppImage use Electron's own chooser. Without them, type the path in the field.
 2. Install udev rules for the Quest so `adb` can open the USB device without root, for example the `android-udev` or `android-udev-rules` package, or a rule for Meta's USB vendor ID `2833`. Replug the headset, accept **Allow USB debugging** inside it, and confirm `adb devices` lists it as `device`.
 3. Start the browser preview with `./start.sh` (needs Node.js 20 or newer), or the desktop app with `npm install` then `npm run start:desktop`.
 4. After `npm install`, build the AppImage with `npm run dist:linux`. It writes `dist/VR4ALL-linux-x64.AppImage`; mark it executable with `chmod +x dist/VR4ALL-linux-x64.AppImage` and run it. Building needs network access the first time to download Electron and the AppImage toolchain.
-5. Ports that install through creator PowerShell kits or Windows `.exe` tools (personal builds, installer and patch kits, and the official-zip, Road Rash, Harry Potter, GalaxyQuest and Magic Carpet installs) are shown as unavailable on Linux and are never run.
+5. Ports that install through creator PowerShell kits or Windows `.exe` tools (personal builds, installer and patch kits, the author-installer ports (Descent 1 & 2, Gothic II, Animal Crossing and GT2), and the Road Rash, Harry Potter, GalaxyQuest and Magic Carpet installs) are shown as unavailable on Linux and are never run.
 
 The in-app self-update is for the Windows portable `.exe`; update the Linux build by pulling the latest source and rebuilding the AppImage.
 

@@ -28,6 +28,7 @@
       "desktop/update-launcher.ps1",
       "desktop/update-helper.ps1",
       "desktop/icon.ico",
+      "desktop/icon.png",
       "public/**/*",
       "!public/models/**",
       "src/**/*",

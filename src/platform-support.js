@@ -5,11 +5,9 @@ const WINDOWS_PLAYER_INSTALLS = new Set(['official-zip', 'road-rash', 'harry-pot
 
 // personalBuild covers the creator PowerShell kits (GTA SA, RDR, Vice City), the BioShock
 // installer EXE, the Victory Heat PowerShell kit, the F-Zero X gdx-extract.exe tool and the
-// Crazy Taxi xdelta3.exe patcher. manualBuild and releaseKind installer/patch mark the same ports.
+// Crazy Taxi xdelta3.exe patcher.
 function needsWindows(game) {
-  return Boolean(game.personalBuild || game.manualBuild
-    || game.releaseKind === 'installer' || game.releaseKind === 'patch'
-    || WINDOWS_PLAYER_INSTALLS.has(game.playerInstall));
+  return Boolean(game.personalBuild || WINDOWS_PLAYER_INSTALLS.has(game.playerInstall));
 }
 
 function platformSupport(game, platform = process.platform) {

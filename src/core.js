@@ -2,7 +2,7 @@ const path = require('node:path');
 
 function parseDevices(output) {
   return String(output).split(/\r?\n/).slice(1).map((line) => {
-    const match = line.trim().match(/^(\S+)\s+(device|unauthorized|offline|recovery|sideload|no permissions)(?:\s+(.*))?$/);
+    const match = line.trim().match(/^(\S+)\s+(device|unauthorized|offline|recovery|sideload|no permissions);?(?:\s+(.*))?$/);
     if (!match) return null;
     const rawModel = match[3]?.match(/\bmodel:(\S+)/)?.[1];
     let model = rawModel ? rawModel.replaceAll('_', ' ') : 'Quest headset';

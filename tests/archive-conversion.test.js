@@ -90,7 +90,7 @@ test('folder packing rejects links, empty folders, unsafe names, and over-limit 
   } finally { await fs.rm(root, { recursive: true, force: true }); }
 });
 
-test('folder contents are packed at ZIP root with nested paths preserved', { skip: process.platform !== 'win32' }, async () => {
+test('folder contents are packed at ZIP root with nested paths preserved', async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-pack-root-'));
   let converted;
   try {
@@ -101,8 +101,8 @@ test('folder contents are packed at ZIP root with nested paths preserved', { ski
     converted = await packageDirectoryToZip(source, 'timecris');
     const listing = await runFile(sevenZip, ['l', '-slt', converted.path], { windowsHide: true });
     assert.match(listing.stdout, /Path = game\.bin/);
-    assert.match(listing.stdout, /Path = nested\\board\.bin/);
-    assert.doesNotMatch(listing.stdout, /Path = timecris\\game\.bin/);
+    assert.match(listing.stdout, /Path = nested[\\/]board\.bin/);
+    assert.doesNotMatch(listing.stdout, /Path = timecris[\\/]game\.bin/);
   } finally {
     if (converted) await removeConversionDirectory(converted.directory);
     await fs.rm(root, { recursive: true, force: true });

@@ -301,3 +301,11 @@ test('parseDevices accepts the older adb no-permissions line with a TAB after th
   const text = 'List of devices attached\n2G0YC1ZF8B00XX\tno permissions (user in plugdev group; are your udev rules wrong?); see [http://developer.android.com/tools/device.html]\n';
   assert.deepEqual(parseDevices(text), [{ serial: '2G0YC1ZF8B00XX', state: 'no-permissions', model: 'Quest headset' }]);
 });
+
+test('parseDevices accepts adb no-permissions lines without a parenthesised reason (no plugdev group)', () => {
+  const see = 'see [http://developer.android.com/tools/device.html]';
+  for (const separator of [' ', '\t']) {
+    const text = `List of devices attached\nQ3SERIAL${separator}no permissions; ${see}\n`;
+    assert.deepEqual(parseDevices(text), [{ serial: 'Q3SERIAL', state: 'no-permissions', model: 'Quest headset' }]);
+  }
+});

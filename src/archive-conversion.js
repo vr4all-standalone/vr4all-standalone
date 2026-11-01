@@ -19,6 +19,9 @@ function needsZipConversion(item, file) {
   return acceptsZipContents(item) && archiveExtensions.has(path.extname(file).toLowerCase());
 }
 
+// System 7-Zip executable names tried in order on non-Windows hosts.
+const sevenZipNames = ['7zz', '7z', '7za'];
+
 async function sevenZipPath() {
   if (process.platform === 'win32') {
     const candidates = [process.env.VR4ALL_7ZIP, process.resourcesPath && path.join(process.resourcesPath, '7zip', '7z.exe'), path.join(__dirname, '..', 'vendor', '7zip', '7z.exe'), path.join(process.env.ProgramFiles || 'C:\\Program Files', '7-Zip', '7z.exe'), path.join(process.env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)', '7-Zip', '7z.exe'), '7z.exe'];
@@ -29,7 +32,7 @@ async function sevenZipPath() {
   } else {
     const configured = process.env.VR4ALL_7ZIP;
     if (configured && path.isAbsolute(configured) && (await fs.stat(configured).catch(() => null))?.isFile()) return configured;
-    const found = findOnPath(['7zz', '7z', '7za']);
+    const found = findOnPath(sevenZipNames);
     if (found) return found;
   }
   throw new Error('7-Zip is needed to convert .7z or .rar files to ZIP');
@@ -304,4 +307,4 @@ async function convertArchiveToZip(source, options = {}) {
   }
 }
 
-module.exports = { needsZipConversion, acceptsZipContents, convertArchiveToZip, packageDirectoryToZip, inspectDirectory, inspectDirectoryArchive, extractDirectoryArchive, inspectSingleFileArchive, extractSingleFileArchive, removeConversionDirectory, inspectListing, inspectRomArchive, testRomArchive, sevenZipPath, runSevenZip };
+module.exports = { needsZipConversion, acceptsZipContents, convertArchiveToZip, packageDirectoryToZip, inspectDirectory, inspectDirectoryArchive, extractDirectoryArchive, inspectSingleFileArchive, extractSingleFileArchive, removeConversionDirectory, inspectListing, inspectRomArchive, testRomArchive, sevenZipPath, sevenZipNames, runSevenZip };

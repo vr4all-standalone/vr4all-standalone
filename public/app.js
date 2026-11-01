@@ -291,6 +291,7 @@ function installType(game) {
 }
 function isAvailableForInstall(game) {
   if (state.deviceLibrary[state.selectedSerial]?.[game.id]) return false;
+  if (game.support?.supported === false) return false;
   if (game.personalBuild) return hasBuildInputs(game);
   if (game.externalInstaller || game.manualDataSetup) return false;
   return installType(game) === 'apk-included' && !game.manualRelease || hasLocalInstallFile(game);
@@ -405,7 +406,7 @@ function renderGrid() {
 function confirmedBulkUpdates() {
   if (!state.selectedSerial || !(state.selectedSerial in state.deviceLibrary)) return [];
   return state.games.filter((game) => state.deviceLibrary[state.selectedSerial]?.[game.id]
-    && sourceFor(game) && !state.releaseErrors[game.id] && (!game.personalBuild || game.id === 'victory-heat-rally-vr') && !game.manualRelease && !game.playerInstall && !game.externalInstaller
+    && sourceFor(game) && !state.releaseErrors[game.id] && (!game.personalBuild || game.id === 'victory-heat-rally-vr') && !game.manualRelease && !game.playerInstall && !game.externalInstaller && game.support?.supported !== false
     && versionStatus(game) === 'status-update');
 }
 function updateBulkUpdateButton() {
@@ -462,7 +463,7 @@ async function refreshDevices({ scanLibrary = true } = {}) {
   const select = $('#deviceSelect');
   select.innerHTML = ready.length
     ? [...ready.map((device) => `<option value="${escapeHtml(device.serial)}">${escapeHtml(device.model)} · ${escapeHtml(device.serial.slice(-6))}</option>`), ...waiting.map((device) => `<option disabled>${escapeHtml(device.model)} · ${escapeHtml(device.state)}</option>`)].join('')
-    : `<option value="">${waiting.length ? 'USB approval needed' : 'No headset connected'}</option>${waiting.map((device) => `<option disabled>${escapeHtml(device.model)} · ${escapeHtml(device.state)}</option>`).join('')}`;
+    : `<option value="">${waiting.length ? (waiting.some((device) => device.state === 'no-permissions') ? 'USB permission needed' : 'USB approval needed') : 'No headset connected'}</option>${waiting.map((device) => `<option disabled>${escapeHtml(device.model)} · ${escapeHtml(device.state)}</option>`).join('')}`;
   select.value = state.selectedSerial;
   const banner = $('#deviceBanner');
   const hero = $('#heroDeviceStatus');
@@ -516,7 +517,7 @@ function updateInstallEnabled() {
   if (buildButton) {
     const game = selectedGame();
     const values = state.inputs[game?.id] || {};
-    buildButton.disabled = game.support?.supported === false || state.installSubmitting || !state.selectedSerial || !localPathAvailable(game, 'gamePackage') || game.personalBuild.audioLabel && !game.personalBuild.audioOptional && !localPathAvailable(game, 'audioSource') || state.jobs.some((job) => ['queued', 'running'].includes(job.status) && (job.serial === state.selectedSerial && job.gameId === game.id || job.kind === 'build-tools' && job.gameId === game.id));
+    buildButton.disabled = game?.support?.supported === false || state.installSubmitting || !state.selectedSerial || !localPathAvailable(game, 'gamePackage') || game.personalBuild.audioLabel && !game.personalBuild.audioOptional && !localPathAvailable(game, 'audioSource') || state.jobs.some((job) => ['queued', 'running'].includes(job.status) && (job.serial === state.selectedSerial && job.gameId === game.id || job.kind === 'build-tools' && job.gameId === game.id));
   }
 }
 
@@ -837,9 +838,9 @@ function bulkCandidate(match) {
   if (!game) return { game: null, reason: 'Unknown game' };
   const device = state.deviceLibrary[state.selectedSerial]?.[game.id];
   const missing = (game.data || []).filter((item) => !item.optional && !match.files?.[item.id]);
-  if (game.support?.supported === false) return { game, reason: game.support.reason };
   if (!state.selectedSerial) return { game, reason: 'Connect and scan a Quest first' };
   if (state.bulkMode === 'new' && device || state.bulkMode === 'update' && !device) return { game, hidden: true, reason: '' };
+  if (game.support?.supported === false) return { game, reason: game.support.reason };
   if (state.bulkMode === 'update' && versionStatus(game) !== 'status-update') return { game, reason: 'No confirmed APK update for this port' };
   if (game.personalBuild) {
     const inputs = match.buildInputs || {};
