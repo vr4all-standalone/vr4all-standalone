@@ -291,3 +291,13 @@ test('guided PC ports copy only the creator-documented game archives', () => {
   const quake = buildInstallPlan(games.quake3quest, { serial: 'Q3', apkPath: 'C:\\quake.apk', files: { baseq3: 'C:\\Quake3\\baseq3' }, directoryEntries: { baseq3: ['pak0.pk3', 'pak1.pk3', 'q3config.cfg'] } });
   assert.deepEqual(quake.filter((step) => step.label.startsWith('Copy ')).map((step) => step.label), ['Copy baseq3/pak0.pk3', 'Copy baseq3/pak1.pk3']);
 });
+
+test('parseDevices reports a headset the user may not access (missing udev rule) instead of hiding it', () => {
+  const text = 'List of devices attached\nQ3SERIAL no permissions (user is not in the plugdev group); see [http://developer.android.com/tools/device.html] usb:1-2 transport_id:1\n';
+  assert.deepEqual(parseDevices(text), [{ serial: 'Q3SERIAL', state: 'no-permissions', model: 'Quest headset' }]);
+});
+
+test('parseDevices accepts the older adb no-permissions line with a TAB after the serial', () => {
+  const text = 'List of devices attached\n2G0YC1ZF8B00XX\tno permissions (user in plugdev group; are your udev rules wrong?); see [http://developer.android.com/tools/device.html]\n';
+  assert.deepEqual(parseDevices(text), [{ serial: '2G0YC1ZF8B00XX', state: 'no-permissions', model: 'Quest headset' }]);
+});

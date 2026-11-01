@@ -477,6 +477,12 @@ async function refreshDevices({ scanLibrary = true } = {}) {
     hero.textContent = `${selected.model} connected`;
     $('#sidebarDeviceStatus').textContent = `${selected.model} selected for installs`;
     $('#topbarDeviceName').textContent = selected.model;
+  } else if (state.devices.some((device) => device.state === 'no-permissions')) {
+    banner.className = 'device-banner warn';
+    banner.innerHTML = '<span class="banner-icon">!</span><span>Headset detected, but Linux blocks USB access. Install the Android udev rules (package <code>android-udev</code> or <code>android-udev-rules</code>), replug the cable, then refresh.</span>';
+    hero.textContent = 'USB permission needed';
+    $('#sidebarDeviceStatus').textContent = 'Allow USB access (udev rules)';
+    $('#topbarDeviceName').textContent = 'USB permission needed';
   } else if (state.devices.some((device) => device.state === 'unauthorized')) {
     banner.className = 'device-banner warn';
     banner.innerHTML = '<span class="banner-icon">!</span><span>Headset detected, but USB debugging is not authorized. Put it on, approve the computer, then refresh.</span>';

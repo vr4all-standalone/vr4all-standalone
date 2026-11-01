@@ -1773,7 +1773,9 @@ if (require.main === module) {
   app.server.listen(4173, '127.0.0.1', () => {
     const address = 'http://127.0.0.1:4173';
     console.log(`VR4ALL is ready at ${address}`);
-    if (process.platform === 'win32') require('node:child_process').execFile('rundll32.exe', ['url.dll,FileProtocolHandler', address], { windowsHide: true }, () => {});
+    const opener = process.platform === 'win32' ? ['rundll32.exe', ['url.dll,FileProtocolHandler', address]]
+      : process.platform === 'linux' ? ['xdg-open', [address]] : null;
+    if (opener) require('node:child_process').execFile(opener[0], opener[1], { windowsHide: true }, () => {});
   });
 }
 
