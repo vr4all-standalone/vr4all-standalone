@@ -1,15 +1,18 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { Readable } = require('node:stream');
-const { platformSupport } = require('../src/platform-support');
+const { platformSupport, EXPERIMENTAL_NOTE } = require('../src/platform-support');
 const { getCatalog } = require('../src/catalog');
 const { createApp } = require('../server');
 
 const byId = (id) => getCatalog().find((entry) => entry.id === id);
 
 // Ports without a Linux install path. Each port task removes its id from this list.
-const LINUX_REFUSED = ['gta-sa-vr', 'bioshock-vr', 'vice-city-vr', 'rdr1-vr', 'crazy-taxi-vr', 'fzero-x-virtuavr', 'victory-heat-rally-vr',
+const LINUX_REFUSED = ['gta-sa-vr', 'bioshock-vr', 'vice-city-vr', 'rdr1-vr', 'fzero-x-virtuavr', 'victory-heat-rally-vr',
   'road-rash-vr', 'harry-potter-vr', 'galaxyquest', 'magic-carpet-vr', 'descent12-vr', 'gothic2-vr', 'animal-crossing-vr', 'gt2-vr'];
+
+// Ports with a Linux path that needs an x86-64 host. Each port task adds its id.
+const LINUX_EXPERIMENTAL = ['crazy-taxi-vr'];
 
 test('Windows runs every port', () => {
   for (const game of getCatalog()) assert.equal(platformSupport(game, 'win32').supported, true, game.id);
@@ -22,6 +25,15 @@ test('Linux refuses ports that need PowerShell kits or Windows executables, with
     const result = platformSupport(game, 'linux');
     assert.equal(result.supported, false, id);
     assert.match(result.reason, /Windows/);
+  }
+});
+
+test('Linux enables the ports that have a Linux install path, as experimental', () => {
+  for (const id of LINUX_EXPERIMENTAL) {
+    assert.deepEqual(platformSupport(byId(id), 'linux', { arch: 'x64' }), { supported: true, experimental: true, note: EXPERIMENTAL_NOTE }, id);
+    const arm = platformSupport(byId(id), 'linux', { arch: 'arm64' });
+    assert.equal(arm.supported, false, id);
+    assert.match(arm.reason, /x64/, id);
   }
 });
 

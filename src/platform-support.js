@@ -10,7 +10,9 @@ const NOT_ON_LINUX = Object.freeze({
   'bioshock-vr': 'BioShock VR installs through the creator’s 1 GB Windows installer, which carries Windows-only tools. It is not available on Linux.',
 });
 // Ports whose Linux install path exists. x64: the Linux artifacts are x86-64 only.
-const LINUX_PORTS = Object.freeze({});
+const LINUX_PORTS = Object.freeze({
+  'crazy-taxi-vr': { x64: true },
+});
 
 // personalBuild covers the creator PowerShell kits (GTA SA, RDR, Vice City), the BioShock
 // installer EXE, the Victory Heat PowerShell kit, the F-Zero X gdx-extract.exe tool and the
