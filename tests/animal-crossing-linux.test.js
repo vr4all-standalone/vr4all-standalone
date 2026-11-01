@@ -36,21 +36,40 @@ async function fixture(run, { rom = Buffer.concat([header(), Buffer.alloc(4096, 
 }
 
 // A scripted Quest: `files` is the app's private storage (relative path -> bytes).
-function fakeAdb({ running = '', existing = {}, corruptUpload = false, appearDuringUpload = null, installResult = 'Performing Streamed Install\nSuccess' } = {}) {
+function fakeAdb({ running = '', existing = {}, corruptUpload = false, appearDuringUpload = null, installResult = 'Performing Streamed Install\nSuccess', freeKb = 50 * 1024 ** 2 } = {}) {
   const files = new Map(Object.entries(existing).map(([name, content]) => [name, Buffer.from(content)]));
+  // The shell-owned staging area (/data/local/tmp): absolute path -> bytes; `readable` holds the files made world-readable.
+  const staging = new Map();
+  const readable = new Set();
+  const matching = (map, pattern) => [...map.keys()].filter((name) => new RegExp('^' + pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*') + '$').test(name));
   const calls = [];
   const adb = {
-    calls, files,
+    calls, files, staging,
     async run(args, _onOutput, options) {
       calls.push({ args, options });
       assert.deepEqual(args.slice(0, 2), ['-s', 'Q3']);
       const verb = args[2];
-      if (verb === 'shell') { assert.equal(args[3], `pidof ${PKG} || true`); return running; }
+      if (verb === 'shell') return this.shell(args[3]);
+      if (verb === 'push') {
+        const data = await fs.readFile(args[3]);
+        staging.set(args[4], corruptUpload ? data.subarray(1) : data);
+        if (appearDuringUpload) files.set(appearDuringUpload, Buffer.from('someone else'));
+        return `${args[3]}: 1 file pushed`;
+      }
       if (verb === 'install') return installResult;
       assert.deepEqual(args.slice(2, 7), ['exec-out', 'run-as', PKG, 'sh', '-c']);
       assert.equal(args.length, 8, 'the script is one argv element');
       const script = args[7].replace(/^set -eu\n/, '').replace(/\nprintf '__ACQUEST_INSTALL_OK__\\n'$/, '');
       return (await this.app(script)) + '\n__ACQUEST_INSTALL_OK__';
+    },
+    async shell(script) {
+      let match;
+      if (script === `pidof ${PKG} || true`) return running;
+      if (script === 'df -k /data/local/tmp | tail -1') return `/dev/block/dm-55 107584204 72292464 ${freeKb} 68% /data/local/tmp`;
+      if ((match = /^stat -c %s (\S+) 2>\/dev\/null \|\| echo 0$/.exec(script))) return String(staging.get(match[1])?.length ?? 0);
+      if ((match = /^chmod 644 (\S+)$/.exec(script))) { assert.ok(staging.has(match[1]), 'only a pushed file is made readable'); readable.add(match[1]); return ''; }
+      if ((match = /^rm -f (\S+)$/.exec(script))) { for (const name of matching(staging, match[1])) staging.delete(name); return ''; }
+      throw new Error('unexpected shell command: ' + script);
     },
     async app(script) {
       let match;
@@ -62,19 +81,14 @@ function fakeAdb({ running = '', existing = {}, corruptUpload = false, appearDur
         const data = files.get(match[1]);
         return `${sha(data)}  ${match[1]}\n${data.length}`;
       }
+      if ((match = /^umask 077; cp (\S+) (\S+)$/.exec(script))) {
+        assert.ok(readable.has(match[1]), 'the app can only copy a staging file that was made world-readable');
+        files.set(match[2], staging.get(match[1]));
+        return '';
+      }
       if ((match = /^mv -n (\S+) (\S+)$/.exec(script))) { if (!files.has(match[2])) { files.set(match[2], files.get(match[1])); files.delete(match[1]); } return ''; }
-      if ((match = /^rm -f (\S+)$/.exec(script))) { files.delete(match[1]); return ''; }
+      if ((match = /^rm -f (\S+)$/.exec(script))) { for (const name of matching(files, match[1])) files.delete(name); return ''; }
       throw new Error('unexpected app script: ' + script);
-    },
-    async runWithInput(args, inputPath, options) {
-      calls.push({ args, options, input: inputPath });
-      assert.deepEqual(args.slice(0, 6), ['-s', 'Q3', 'exec-in', 'run-as', PKG, 'sh']);
-      const temporary = /^umask 077; cat > (\S+)$/.exec(args[7])[1];
-      const data = await fs.readFile(inputPath);
-      options.onProgress?.(data.length);
-      files.set(temporary, corruptUpload ? data.subarray(1) : data);
-      if (appearDuringUpload) files.set(appearDuringUpload, Buffer.from('someone else'));
-      return '';
     },
   };
   return adb;
@@ -82,7 +96,7 @@ function fakeAdb({ running = '', existing = {}, corruptUpload = false, appearDur
 
 const scripts = (adb) => adb.calls.map((call) => call.args.at(-1));
 
-test('Animal Crossing on Linux installs the APK, uploads the ROM through a temporary file and verifies it', async () => {
+test('Animal Crossing on Linux installs the APK, pushes the ROM to a staging file, copies it into the app and verifies it', async () => {
   await fixture(async ({ apk, gamePath, rom }) => {
     const adb = fakeAdb();
     const logs = [];
@@ -91,12 +105,18 @@ test('Animal Crossing on Linux installs the APK, uploads the ROM through a tempo
     assert.deepEqual(adb.files.get('files/rom/AnimalCrossing.iso'), rom);
     const verbs = adb.calls.map((call) => call.args[2]);
     assert.equal(verbs[0], 'shell', 'the game is checked before the APK is installed');
-    assert.ok(verbs.indexOf('install') < verbs.indexOf('exec-in'));
+    assert.ok(verbs.indexOf('install') < verbs.indexOf('push'));
     assert.deepEqual(adb.calls.find((call) => call.args[2] === 'install').args.slice(2), ['install', '-r', apk]);
-    const upload = adb.calls.find((call) => call.args[2] === 'exec-in');
-    assert.match(upload.args[7], /^umask 077; cat > files\/rom\/\.acquest-import-[0-9a-f]{32}\.tmp$/);
-    assert.equal(upload.input, gamePath);
-    assert.equal(upload.options.timeoutMs, 30 * 60 * 1000);
+    const push = adb.calls.find((call) => call.args[2] === 'push');
+    assert.equal(push.args[3], gamePath);
+    assert.match(push.args[4], /^\/data\/local\/tmp\/vr4all-acquest-[0-9a-f]{32}\.tmp$/);
+    assert.equal(push.options.timeoutMs, 30 * 60 * 1000);
+    assert.equal(adb.staging.size, 0, 'the staging copy is removed');
+    const order = scripts(adb);
+    const at = (pattern) => order.findIndex((script) => pattern.test(script));
+    assert.ok(at(/^chmod 644 /) < at(/umask 077; cp /) && at(/umask 077; cp /) < at(/sha256sum/), 'chmod, then copy into the app, then verify');
+    assert.ok(at(/rm -f files\/rom\/\.acquest-import-\*\.tmp\n/) < at(/umask 077; cp /), 'leftovers of earlier attempts are cleared first');
+    assert.ok(adb.calls.filter((call) => /umask 077; cp /.test(call.args.at(-1))).every((call) => call.options.timeoutMs === 600000));
     assert.ok(scripts(adb).filter((script) => /^pidof/.test(script)).length >= 4, 'the game-stopped check runs before install, after install, before upload and before publishing');
     assert.ok(adb.calls.filter((call) => /sha256sum|mv -n/.test(call.args.at(-1))).every((call) => call.options.timeoutMs === 600000));
     assert.ok(!scripts(adb).some((script) => /uninstall|pm clear/.test(script)));
@@ -135,7 +155,7 @@ test('Animal Crossing on Linux rejects a wrong revision, a bad CISO header and u
     await fixture(async ({ apk, gamePath }) => {
       const adb = fakeAdb();
       await assert.rejects(installAnimalCrossingLinux({ apk, gamePath, serial: 'Q3', adb }), message, name);
-      assert.ok(!adb.calls.some((call) => call.args[2] === 'exec-in'));
+      assert.ok(!adb.calls.some((call) => call.args[2] === 'push'));
       assert.deepEqual([...adb.files.keys()], []);
     }, { rom, name });
   }
@@ -146,7 +166,7 @@ test('Animal Crossing on Linux keeps an existing Quest ROM and imports nothing',
     const adb = fakeAdb({ existing: { 'files/rom/AnimalCrossing.gcm': 'mine' } });
     const logs = [];
     await installAnimalCrossingLinux({ apk, gamePath, serial: 'Q3', adb, onLog: (line) => logs.push(line) });
-    assert.ok(!adb.calls.some((call) => call.args[2] === 'exec-in'));
+    assert.ok(!adb.calls.some((call) => call.args[2] === 'push'));
     assert.equal(adb.files.get('files/rom/AnimalCrossing.gcm').toString(), 'mine');
     assert.ok(logs.some((line) => /existing Quest ROM, saves, and settings have been kept/.test(line)));
   });
@@ -181,7 +201,42 @@ test('Animal Crossing on Linux removes a corrupted upload and never publishes it
     const adb = fakeAdb({ corruptUpload: true });
     await assert.rejects(installAnimalCrossingLinux({ apk, gamePath, serial: 'Q3', adb }), /ROM transfer verification failed/);
     assert.deepEqual([...adb.files.keys()], []);
+    assert.equal(adb.staging.size, 0);
     assert.ok(!scripts(adb).some((script) => script.includes('mv -n')));
+  });
+});
+
+test('Animal Crossing on Linux clears leftovers of an interrupted attempt before sending the disc', async () => {
+  await fixture(async ({ apk, gamePath, rom }) => {
+    const adb = fakeAdb({ existing: { 'files/rom/.acquest-import-0123.tmp': 'partial' } });
+    adb.staging.set('/data/local/tmp/vr4all-acquest-0123.tmp', Buffer.from('partial'));
+    await installAnimalCrossingLinux({ apk, gamePath, serial: 'Q3', adb });
+    assert.deepEqual([...adb.files.keys()], ['files/rom/AnimalCrossing.iso']);
+    assert.deepEqual(adb.files.get('files/rom/AnimalCrossing.iso'), rom);
+    assert.equal(adb.staging.size, 0);
+  });
+});
+
+test('Animal Crossing on Linux refuses to start when the headset cannot hold the staging copy plus the final copy', async () => {
+  await fixture(async ({ apk, gamePath }) => {
+    const adb = fakeAdb({ freeKb: 100 });
+    await assert.rejects(installAnimalCrossingLinux({ apk, gamePath, serial: 'Q3', adb }), /needs \d+ MiB free to import the disc and has 0 MiB/);
+    assert.ok(!adb.calls.some((call) => call.args[2] === 'push'));
+  });
+});
+
+test('Animal Crossing on Linux reports a failed push and leaves no staging or partial copy behind', async () => {
+  await fixture(async ({ apk, gamePath }) => {
+    const adb = fakeAdb();
+    const run = adb.run.bind(adb);
+    adb.run = async (args, onOutput, options) => {
+      if (args[2] !== 'push') return run(args, onOutput, options);
+      adb.staging.set(args[4], Buffer.from('half'));
+      throw new Error('adb: error: failed to write');
+    };
+    await assert.rejects(installAnimalCrossingLinux({ apk, gamePath, serial: 'Q3', adb }), /ROM transfer failed\. adb: error: failed to write/);
+    assert.equal(adb.staging.size, 0);
+    assert.deepEqual([...adb.files.keys()], []);
   });
 });
 

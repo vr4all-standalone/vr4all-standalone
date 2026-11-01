@@ -11,6 +11,11 @@ const MARKER = '__ACQUEST_INSTALL_OK__';
 const ROM_EXTENSIONS = ['.iso', '.gcm', '.ciso'];
 const LONG = { timeoutMs: 10 * 60 * 1000 };
 const UPLOAD_TIMEOUT_MS = 30 * 60 * 1000;
+const MIB = 1024 ** 2;
+// The disc cannot be streamed into the app with `adb exec-in … cat >`: on a Quest 3 the Meta adbd silently drops data
+// when the stream outruns the app's storage (a 400 MB stream "succeeded" with ~190 MB written, and real installs hung).
+// `adb push` has end-to-end flow control, so the disc is pushed to a shell-owned staging file that run-as then copies.
+const STAGING_PREFIX = '/data/local/tmp/vr4all-acquest-';
 const RUNNING = 'Animal Crossing is running on the Quest. Save and quit, then close the app before retrying. The installer will not force-stop your game.';
 
 async function sha256File(file) {
@@ -101,18 +106,37 @@ async function installAnimalCrossingLinux({ apk, gamePath, serial, adb, onLog = 
   const temporary = `files/rom/.acquest-import-${crypto.randomBytes(16).toString('hex')}.tmp`;
   const matches = (info) => info && info.sha256 === local.sha256 && info.bytes === local.bytes;
 
+  const staging = `${STAGING_PREFIX}${crypto.randomBytes(16).toString('hex')}.tmp`;
+  const removeStaging = (file) => adb.run([...S, 'shell', `rm -f ${file}`]).catch(() => {});
+
   try {
     await assertStopped();
     await inApp('mkdir -p files/rom');
+    // Partial copies left by an interrupted earlier attempt only waste space; nothing else writes these names.
+    await inApp('rm -f files/rom/.acquest-import-*.tmp');
+    await removeStaging(`${STAGING_PREFIX}*.tmp`);
     if (await remoteExists(destination)) throw new Error('A Quest ROM appeared during setup; it has been kept. Close the game and run the installer again.');
-    onLog(`Sending the disc image to the headset (${(local.bytes / 1024 ** 2).toFixed(0)} MiB)...`);
+    const free = Number((await adb.run([...S, 'shell', 'df -k /data/local/tmp | tail -1'])).trim().split(/\s+/)[3]) * 1024;
+    const need = 2 * local.bytes + 256 * MIB;
+    if (free < need) throw new Error(`The headset needs ${Math.ceil(need / MIB)} MiB free to import the disc and has ${Math.floor(free / MIB)} MiB. Remove something and retry.`);
+    onLog(`Sending the disc image to the headset (${(local.bytes / MIB).toFixed(0)} MiB)...`);
     let decile = 0;
+    let polling = false;
+    const poll = setInterval(async () => {
+      if (polling) return;
+      polling = true;
+      const sent = Number((await adb.run([...S, 'shell', `stat -c %s ${staging} 2>/dev/null || echo 0`]).catch(() => '0')).trim());
+      polling = false;
+      const reached = Math.min(9, Math.floor(sent / local.bytes * 10));
+      if (reached > decile) { decile = reached; onLog(`Sent ${decile * 10}%`); }
+    }, 3000);
     try {
-      await adb.runWithInput([...S, 'exec-in', 'run-as', PKG, 'sh', '-c', `umask 077; cat > ${temporary}`], gamePath, {
-        timeoutMs: UPLOAD_TIMEOUT_MS,
-        onProgress: (sent) => { const reached = Math.floor(sent / local.bytes * 10); if (reached > decile) { decile = reached; onLog(`Sent ${decile * 10}%`); } },
-      });
-    } catch (error) { throw new Error('ROM transfer failed. ' + error.message); }
+      await adb.run([...S, 'push', gamePath, staging], undefined, { timeoutMs: UPLOAD_TIMEOUT_MS });
+    } catch (error) { throw new Error('ROM transfer failed. ' + error.message); } finally { clearInterval(poll); }
+    onLog('Copying the disc image into the app...');
+    await adb.run([...S, 'shell', `chmod 644 ${staging}`]);
+    await inApp(`umask 077; cp ${staging} ${temporary}`, LONG);
+    await removeStaging(staging);
     onLog('Verifying the copy on the headset...');
     if (!matches(await remoteInfo(temporary))) throw new Error('ROM transfer verification failed; the incomplete copy will be removed.');
     await assertStopped();
@@ -120,6 +144,7 @@ async function installAnimalCrossingLinux({ apk, gamePath, serial, adb, onLog = 
     if (await remoteExists(temporary)) throw new Error('A Quest ROM appeared during the transfer; the existing file was kept.');
     if (!matches(await remoteInfo(destination))) throw new Error('Final ROM verification failed.');
   } finally {
+    await removeStaging(staging);
     await inApp(`rm -f ${temporary}`).catch(() => {});
   }
   onLog('ROM import verified. Your PC files and existing Quest saves/settings were not changed.');
