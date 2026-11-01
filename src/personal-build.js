@@ -128,11 +128,20 @@ async function runAuthorScriptAtPath(gameId, input, kitDir, workDir, log, option
   return new Promise((resolve, reject) => {
     const child = spawnImpl('powershell.exe', args, { cwd: kitDir, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'], env: buildEnvironment(workDir) });
     let authorError = '';
+    let pythonError = '';
+    let wrapperError = '';
     const recordLine = (line) => {
       const trimmed = line.trim();
       if (!trimmed) return;
       log(trimmed.slice(0, 500));
-      if (/^(?:ERROR|FAILED):\s*\S/i.test(trimmed)) authorError = trimmed.replace(/^(?:ERROR|FAILED):\s*/i, '').slice(0, 1000);
+      const labeledError = trimmed.match(/^(?:ERROR|FAILED):\s*(\S.*)/i);
+      if (labeledError) {
+        const message = labeledError[1].slice(0, 1000);
+        if (/^Command failed \(\d+\):/i.test(message)) wrapperError = message;
+        else authorError = message;
+      } else if (/^(?:[\w.]+(?:Error|Exception)|OSError|RuntimeError):\s*\S/.test(trimmed)) {
+        pythonError = trimmed.slice(0, 1000);
+      }
     };
     const streamRecorder = () => {
       let tail = '';
@@ -155,7 +164,10 @@ async function runAuthorScriptAtPath(gameId, input, kitDir, workDir, log, option
     child.once('close', (code) => {
       stdout.flush(); stderr.flush();
       if (processError) reject(processError);
-      else code === 0 ? resolve() : reject(new Error(`Official build and install failed (exit ${code})${authorError ? `: ${authorError}` : "; see activity for the author's error"}`));
+      else {
+        const cause = authorError || pythonError || wrapperError;
+        code === 0 ? resolve() : reject(new Error(`Official build and install failed (exit ${code})${cause ? `: ${cause}` : "; see activity for the author's error"}`));
+      }
     });
   });
 }

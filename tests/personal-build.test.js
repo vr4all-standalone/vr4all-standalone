@@ -208,6 +208,46 @@ test('personal builder reports FAILED messages from the author instead of a gene
     'C:\\kit', 'C:\\work', () => {}, { spawnImpl, platform: 'linux' }), /Required Windows build command is unavailable/);
 });
 
+test('GTA SA build failure reports the assembly cause instead of the wrapper command', async () => {
+  const lines = [];
+  const spawnImpl = () => {
+    const child = new EventEmitter(); child.stdout = new PassThrough(); child.stderr = new PassThrough();
+    queueMicrotask(() => {
+      child.stdout.write('Checking the original game export...\n');
+      child.stderr.write('ERROR: audio archive size mismatch: streams/CUTSCENE.osw (12 != 34).\n');
+      child.stderr.write('ERROR: Command failed (1): Z:\\gta-sa-vr\\.tools\\python.exe assemble.py --game-package D:\\port files\\export\n');
+      child.emit('close', 1);
+    });
+    return child;
+  };
+  await assert.rejects(() => runAuthorScript('gta-sa-vr', {
+    gamePackage: 'D:\\port files\\export', audioSource: 'D:\\port files\\audio.7z', serial: 'Q3',
+  }, 'C:\\kit', 'C:\\work', (line) => lines.push(line), { spawnImpl, platform: 'linux' }),
+  (error) => {
+    assert.match(error.message, /audio archive size mismatch/);
+    assert.doesNotMatch(error.message, /Command failed \(1\)/);
+    return true;
+  });
+  assert.ok(lines.some((line) => line.includes('Command failed (1)')));
+});
+
+test('personal builder reports a Python exception when the wrapper only names the failed command', async () => {
+  const spawnImpl = () => {
+    const child = new EventEmitter(); child.stdout = new PassThrough(); child.stderr = new PassThrough();
+    queueMicrotask(() => {
+      child.stderr.write('Traceback (most recent call last):\n');
+      child.stderr.write('FileNotFoundError: base.apk was not found in the game export\n');
+      child.stderr.write('ERROR: Command failed (1): python.exe assemble.py\n');
+      child.emit('close', 1);
+    });
+    return child;
+  };
+  await assert.rejects(() => runAuthorScript('gta-sa-vr', {
+    gamePackage: 'D:\\export', audioSource: 'D:\\audio.7z', serial: 'Q3',
+  }, 'C:\\kit', 'C:\\work', () => {}, { spawnImpl, platform: 'linux' }),
+  /FileNotFoundError: base\.apk was not found/);
+});
+
 test('7z personal game archives reach the builder as ZIP and clean up on failure', { skip: process.platform !== 'win32' }, async (t) => {
   const { promisify } = require('node:util');
   const runFile = promisify(require('node:child_process').execFile);
