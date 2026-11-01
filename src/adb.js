@@ -76,6 +76,43 @@ async function commandToFile(adbPath, args, destination, options = {}) {
   }
 }
 
+const PIPE_CLOSED = new Set(['EPIPE', 'ERR_STREAM_PREMATURE_CLOSE', 'ERR_STREAM_DESTROYED', 'ECONNRESET']);
+
+// Pipes a local file into the child's stdin (adb exec-in), binary-exact. Same contract as command():
+// resolves stdout.trim() || stderr.trim(); rejects Error(stderr || stdout || `ADB exited ${code}`) on a non-zero exit.
+async function commandWithInput(adbPath, args, inputPath, options = {}) {
+  const child = spawn(adbPath, args, { windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'] });
+  let stdout = '', stderr = '', processError, bytes = 0;
+  const stop = (error) => { processError ||= error; child.kill(); };
+  const timer = setTimeout(() => stop(new Error('ADB file transfer timed out. Keep the headset connected, then retry.')), options.timeoutMs || 30 * 60 * 1000);
+  timer.unref();
+  const onAbort = () => stop(options.signal.reason instanceof Error ? options.signal.reason : new Error('ADB file transfer was cancelled.'));
+  if (options.signal?.aborted) onAbort(); else options.signal?.addEventListener('abort', onAbort, { once: true });
+  child.stdout.on('data', (chunk) => { stdout = (stdout + chunk).slice(-65536); options.onOutput?.(String(chunk)); });
+  child.stderr.on('data', (chunk) => { stderr = (stderr + chunk).slice(-65536); options.onOutput?.(String(chunk)); });
+  const closed = new Promise((resolve, reject) => {
+    child.once('error', (error) => { processError ||= error; });
+    child.once('close', (code, signal) => {
+      clearTimeout(timer);
+      options.signal?.removeEventListener('abort', onAbort);
+      if (processError) reject(processError);
+      else if (code !== 0) reject(new Error((stderr || stdout || `ADB exited ${code}${signal ? ` (signal ${signal})` : ''}`).trim()));
+      else resolve(stdout.trim() || stderr.trim());
+    });
+  });
+  const count = new Transform({ transform(chunk, _encoding, done) {
+    bytes += chunk.length;
+    try { options.onProgress?.(bytes); done(null, chunk); } catch (error) { done(error); }
+  } });
+  const transferred = pipeline(fs.createReadStream(inputPath), count, child.stdin).catch((error) => { child.kill(); throw error; });
+  const [result, sent] = await Promise.allSettled([closed, transferred]);
+  // A read or progress failure is the real cause; a broken pipe only means adb stopped listening, and adb's own message explains why.
+  if (sent.status === 'rejected' && !PIPE_CLOSED.has(sent.reason?.code)) throw sent.reason;
+  if (result.status === 'rejected') throw result.reason;
+  if (sent.status === 'rejected') throw new Error('ADB stopped reading before the whole file was sent.');
+  return result.value;
+}
+
 function createAdb(getConfiguredPath = () => '') {
   function requiredPath() {
     const found = findAdb(getConfiguredPath());
@@ -87,7 +124,8 @@ function createAdb(getConfiguredPath = () => '') {
     listDevices: async () => parseDevices(await command(requiredPath(), ['devices', '-l'])),
     run: (args, onOutput, options) => command(requiredPath(), args, onOutput, options),
     runToFile: (args, destination, options) => commandToFile(requiredPath(), args, destination, options),
+    runWithInput: (args, inputPath, options) => commandWithInput(requiredPath(), args, inputPath, options),
   };
 }
 
-module.exports = { findAdb, createAdb, commandToFile };
+module.exports = { findAdb, createAdb, commandToFile, commandWithInput };

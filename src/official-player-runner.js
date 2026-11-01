@@ -130,6 +130,7 @@ function allowQuest3SInInstaller(source) {
 const linuxInstallers = {
   'gt2-vr': (args) => require('./gt2-linux').installGt2Linux(args),
   'descent12-vr': (args) => require('./descent-linux').installDescentLinux(args),
+  'animal-crossing-vr': (args) => require('./animal-crossing-linux').installAnimalCrossingLinux(args),
 };
 
 async function installOfficialPlayer(input) {
