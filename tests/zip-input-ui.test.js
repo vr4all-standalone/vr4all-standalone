@@ -47,6 +47,47 @@ function appHarness() {
   return { context, game, elements, listeners, requests };
 }
 
+test('installed port offers a confirmed headset uninstall and clears shared cards after success', async () => {
+  const { context, elements, listeners, requests } = appHarness();
+  context.port = getCatalog().find((item) => item.id === 'hotd2-dreamcast-vr');
+  context.other = getCatalog().find((item) => item.id === 'mok-upstream-vr');
+  vm.runInContext("state.games = [port, other]; state.selectedId = port.id; state.selectedSerial = 'QUEST'; state.deviceLibrary.QUEST = { [port.id]: { packageId: 'com.flycast.emulator.vr', dataReady: true }, [other.id]: { packageId: 'com.flycast.emulator.vr', dataReady: true } }; state.installed.QUEST = { [port.id]: { packageId: 'com.flycast.emulator.vr' }, [other.id]: { packageId: 'com.flycast.emulator.vr' } }", context);
+  assert.match(vm.runInContext('uninstallActionHtml(port)', context), /Uninstall from headset/);
+  await listeners.get('document:click')({ target: { closest(selector) { return selector === '#uninstallButton' ? {} : null; } } });
+  assert.match(elements.get('#uninstallShared').textContent, /MOK|Maze of the Kings/i);
+  assert.equal(requests.some((entry) => entry.url === '/api/uninstall'), false, 'opening the confirmation must not uninstall');
+  context.fetch = async (url, options = {}) => {
+    requests.push({ url, options });
+    if (url === '/api/uninstall') return { ok: true, json: async () => ({ packageId: 'com.flycast.emulator.vr', removedGameIds: [context.port.id] }) };
+    return { ok: true, json: async () => ({}) };
+  };
+  vm.runInContext('renderCategories = () => {}; renderGrid = () => {}; renderBulkMatches = () => {}; updateBulkUpdateButton = () => {}; renderReadinessNote = () => {}; renderExistingFilesNote = () => {};', context);
+  await vm.runInContext('confirmUninstall()', context);
+  const submitted = requests.find((entry) => entry.url === '/api/uninstall');
+  assert.equal(JSON.parse(submitted.options.body).packageId, 'com.flycast.emulator.vr');
+  assert.equal(vm.runInContext('Boolean(state.deviceLibrary.QUEST[port.id] || state.deviceLibrary.QUEST[other.id])', context), false);
+  assert.equal(vm.runInContext('Boolean(state.installed.QUEST[port.id] || state.installed.QUEST[other.id])', context), false);
+});
+
+test('manual headset scan waits for installed packages before reporting completion', async () => {
+  const { context, listeners, elements } = appHarness();
+  let finishScan;
+  context.fetch = async (url) => {
+    if (url === '/api/devices') return { ok: true, json: async () => ({ devices: [{ serial: 'QUEST', state: 'device', model: 'Quest 3' }] }) };
+    if (url.startsWith('/api/device-library?')) return new Promise((resolve) => { finishScan = () => resolve({ ok: true, json: async () => ({ games: { 'hotd-vr': { packageId: 'io.port0r.houseofthedead', dataReady: true } } }) }); });
+    return { ok: true, json: async () => ({}) };
+  };
+  vm.runInContext('state.games = []; state.selectedSerial = "QUEST"; state.devices = [{ serial: "QUEST", state: "device", model: "Quest 3" }]', context);
+  const scan = listeners.get('#scanHeadsetButton:click')();
+  for (let i = 0; i < 10 && !finishScan; i++) await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(typeof finishScan, 'function');
+  assert.match(elements.get('#updateStatus').textContent, /Scanning connected headsets/);
+  finishScan();
+  await scan;
+  assert.match(elements.get('#updateStatus').textContent, /scan complete/i);
+  assert.equal(vm.runInContext("state.deviceLibrary.QUEST['hotd-vr'].packageId", context), 'io.port0r.houseofthedead');
+});
+
 for (const id of ['forsaken-gameordie', 'unreal-gold-gameordie', 'ut99-gameordie']) {
   test(`${id}: first install and bulk setup allow the creator's automatic data preparation`, async () => {
     const { context, requests } = appHarness();

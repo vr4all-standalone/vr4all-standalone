@@ -1,5 +1,5 @@
 const $ = (selector) => document.querySelector(selector);
-const state = { games: [], sources: {}, installed: {}, deviceLibrary: {}, devices: [], selectedSerial: '', selectedId: '', portChoices: {}, detailLayout: 'docked', theme: 'graphite', palette: 'blue', browseMode: 'console', libraryScope: 'all', sortMode: 'name-asc', installedFirst: false, category: 'All games', search: '', releases: {}, discovery: {}, releaseErrors: {}, inputs: {}, savedPaths: {}, pathAvailability: {}, fileChecks: {}, apkChecks: {}, staged: {}, bulkApks: {}, bulkMatches: [], bulkMode: 'new', managedFiles: [], bulkSessionId: '', bulkUploading: false, bulkUpdatePreparing: false, jobFiles: {}, jobApks: {}, mode: {}, jobs: [], activeJobId: null, installSubmitting: false, bulkRunning: false, updateChecking: false, settings: { adbPath: '', sources: {}, theme: 'graphite', palette: 'blue' } };
+const state = { games: [], sources: {}, installed: {}, deviceLibrary: {}, devices: [], selectedSerial: '', selectedId: '', portChoices: {}, detailLayout: 'docked', theme: 'graphite', palette: 'blue', browseMode: 'console', libraryScope: 'all', sortMode: 'name-asc', installedFirst: false, category: 'All games', search: '', releases: {}, discovery: {}, releaseErrors: {}, inputs: {}, savedPaths: {}, pathAvailability: {}, fileChecks: {}, apkChecks: {}, staged: {}, bulkApks: {}, bulkMatches: [], bulkMode: 'new', managedFiles: [], bulkSessionId: '', bulkUploading: false, bulkUpdatePreparing: false, jobFiles: {}, jobApks: {}, mode: {}, jobs: [], activeJobId: null, installSubmitting: false, uninstallSubmitting: false, uninstallTarget: null, bulkRunning: false, updateChecking: false, settings: { adbPath: '', sources: {}, theme: 'graphite', palette: 'blue' } };
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 
 async function api(url, options = {}) {
@@ -72,6 +72,66 @@ function acceptedGameExtensions(item) {
     ? [...new Set([...extensions, '.zip', '.7z', '.rar'])] : extensions;
 }
 function selectedGame() { return state.games.find((game) => game.id === state.selectedId); }
+function uninstallActionHtml(game) {
+  const installed = state.deviceLibrary[state.selectedSerial]?.[game.id];
+  if (!installed?.packageId) return '';
+  return `<section class="uninstall-section"><div class="detail-divider"></div><div class="detail-step">Installed on this headset</div><p class="field-help">Remove the Quest app if you no longer want this port installed. Your saved PC file paths remain available for a later reinstall.</p><button id="uninstallButton" type="button" class="outline-button uninstall-button" ${state.uninstallSubmitting ? 'disabled' : ''}>Uninstall from headset</button></section>`;
+}
+function renderUninstallAction() {
+  const game = selectedGame();
+  $('#uninstallArea').innerHTML = game ? uninstallActionHtml(game) : '';
+}
+function openUninstallDialog() {
+  const game = selectedGame();
+  const serial = state.selectedSerial;
+  const installed = state.deviceLibrary[serial]?.[game?.id];
+  if (!game || !serial || !installed?.packageId || state.uninstallSubmitting) return toast('Scan an authorized headset and select an installed port first.', true);
+  state.uninstallTarget = { gameId: game.id, serial, packageId: installed.packageId };
+  const headset = state.devices.find((device) => device.serial === serial)?.model || 'selected Quest';
+  const shared = state.games.filter((entry) => entry.id !== game.id && state.deviceLibrary[serial]?.[entry.id]?.packageId === installed.packageId);
+  $('#uninstallName').textContent = game.title;
+  $('#uninstallHeadset').textContent = `${headset} · ${serial}`;
+  $('#uninstallPackage').textContent = installed.packageId;
+  $('#uninstallShared').hidden = !shared.length;
+  $('#uninstallShared').textContent = shared.length ? `This is a shared Quest app. Uninstalling it also removes the app used by ${shared.map((entry) => entry.title).join(', ')}. Game files in shared storage remain.` : '';
+  $('#uninstallDialog').showModal();
+}
+async function confirmUninstall() {
+  const target = state.uninstallTarget;
+  if (!target || state.uninstallSubmitting) return;
+  const game = state.games.find((entry) => entry.id === target.gameId);
+  state.uninstallSubmitting = true;
+  $('#confirmUninstallButton').disabled = true;
+  renderUninstallAction();
+  setActivity('uninstall', `Uninstalling ${game?.title || 'port'} from the selected Quest…`);
+  try {
+    const result = await api('/api/uninstall', { method: 'POST', body: JSON.stringify(target) });
+    const removed = result.removedGameIds || [target.gameId];
+    for (const id of removed) {
+      delete state.deviceLibrary[target.serial]?.[id];
+      delete state.installed[target.serial]?.[id];
+    }
+    for (const [id, installed] of Object.entries(state.deviceLibrary[target.serial] || {})) {
+      if (installed?.packageId === result.packageId) {
+        delete state.deviceLibrary[target.serial][id];
+        delete state.installed[target.serial]?.[id];
+      }
+    }
+    $('#uninstallDialog').close();
+    state.uninstallTarget = null;
+    renderCategories(); renderGrid(); renderBulkMatches(); updateBulkUpdateButton();
+    renderReadinessNote(); renderExistingFilesNote(); renderUninstallAction(); updateInstallEnabled();
+    setActivity('uninstall', `${game?.title || 'Port'} uninstalled from the Quest.`, false);
+    toast(`${game?.title || 'Port'} uninstalled from the Quest.`);
+  } catch (error) {
+    setActivity('uninstall', `Uninstall failed: ${error.message}`, false, true);
+    toast(`Uninstall failed: ${error.message}`, true);
+  } finally {
+    state.uninstallSubmitting = false;
+    $('#confirmUninstallButton').disabled = false;
+    renderUninstallAction();
+  }
+}
 function applyDetailLayout() {
   document.body.dataset.detailLayout = state.detailLayout;
   document.body.dataset.detailOpen = $('#detailPanel').hidden ? 'false' : 'true';
@@ -437,24 +497,28 @@ function bulkUpdateProgress(message, active = true) {
   setActivity('bulk-update', message, active, !active && /fail|error|stopped/i.test(message));
 }
 
-async function refreshDeviceLibrary(serial) {
+async function refreshDeviceLibrary(serial, { checkReleases = true } = {}) {
   if (!serial) return;
   try {
     const result = await api(`/api/device-library?serial=${encodeURIComponent(serial)}`);
     state.deviceLibrary[serial] = result.games || {};
+    for (const id of result.removedReceipts || []) delete state.installed[serial]?.[id];
     renderCategories(); renderGrid();
     if (!state.bulkRunning) renderBulkMatches();
     renderExistingFilesNote();
     renderReadinessNote();
+    renderUninstallAction();
+    if (!checkReleases) return true;
     for (const game of state.games.filter((item) => result.games?.[item.id]?.dataReady && sourceFor(item))) {
       if (serial !== state.selectedSerial) break;
       const error = await checkRelease(game);
       if (error && /rate limit|403/.test(error)) break;
     }
-  } catch (error) { toast(`Could not read headset library: ${error.message}`, true); }
+    return true;
+  } catch (error) { toast(`Could not read headset library: ${error.message}`, true); return false; }
 }
 
-async function refreshDevices({ scanLibrary = true } = {}) {
+async function refreshDevices({ scanLibrary = true, checkReleases = true } = {}) {
   const result = await api('/api/devices');
   const previousSelected = state.selectedSerial;
   const wasReady = state.devices.some((device) => device.serial === previousSelected && device.state === 'device');
@@ -503,7 +567,9 @@ async function refreshDevices({ scanLibrary = true } = {}) {
     renderLibraryScopeOptions(); renderCategories(); renderGrid();
   }
   if (state.selectedId) updateInstallEnabled();
-  if (state.selectedSerial && (scanLibrary || state.selectedSerial !== previousSelected || !wasReady)) refreshDeviceLibrary(state.selectedSerial);
+  renderUninstallAction();
+  if (state.selectedSerial && (scanLibrary || state.selectedSerial !== previousSelected || !wasReady)) return refreshDeviceLibrary(state.selectedSerial, { checkReleases });
+  return null;
 }
 
 function updateInstallEnabled() {
@@ -683,6 +749,7 @@ function selectGame(id) {
   if (!game) return;
   state.activeJobId = state.jobs.find((job) => job.gameId === id)?.id || null;
   $('#detailBody').innerHTML = detailHtml(game);
+  renderUninstallAction();
   renderReadinessNote();
   $('#detailPanel').hidden = false;
   applyDetailLayout();
@@ -1843,6 +1910,9 @@ document.addEventListener('click', async (event) => {
   const buildBrowse = event.target.closest('.build-browse-btn');
   if (buildBrowse) { browse(buildBrowse.dataset.buildKind, buildBrowse.dataset.buildTarget === 'gamePackage' ? 'buildGamePath' : 'buildAudioPath'); return; }
   if (event.target.closest('#installButton')) { install(); return; }
+  if (event.target.closest('#uninstallButton')) { openUninstallDialog(); return; }
+  if (event.target.closest('#confirmUninstallButton')) { confirmUninstall(); return; }
+  if (event.target.closest('#cancelUninstallButton') || event.target.closest('#cancelUninstallAction')) { $('#uninstallDialog').close(); state.uninstallTarget = null; return; }
   if (event.target.closest('#personalBuildButton')) { buildPersonalGame(); return; }
   if (event.target.closest('#setupBuildToolsButton')) { startBuildTools(); return; }
   if (event.target.closest('#exportPhoneButton')) { startPhoneExport(); return; }
@@ -1913,7 +1983,7 @@ $('#browseGames').addEventListener('click', () => $('#library').scrollIntoView({
 $('#sidebarUpdatesButton').addEventListener('click', () => checkAllReleases());
 $('#scanHeadsetButton').addEventListener('click', async () => {
   setActivity('scan-headset', 'Scanning connected headsets and installed games…');
-  try { await refreshDevices(); setActivity('scan-headset', state.selectedSerial ? 'Connected headset scan complete' : 'No authorized Quest found', false, !state.selectedSerial); if (state.selectedSerial) toast('Connected headset scanned'); }
+  try { const scanned = await refreshDevices({ checkReleases: false }); setActivity('scan-headset', scanned === false ? 'Headset scan failed' : state.selectedSerial ? 'Connected headset scan complete' : 'No authorized Quest found', false, scanned === false || !state.selectedSerial); if (scanned) toast('Connected headset scanned'); }
   catch (error) { setActivity('scan-headset', `Headset scan failed: ${error.message}`, false, true); toast(error.message, true); }
 });
 async function openBulkDialog(mode) {

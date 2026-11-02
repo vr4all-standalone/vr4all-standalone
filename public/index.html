@@ -72,11 +72,21 @@
     <aside id="detailPanel" class="detail-panel" aria-label="Install game" hidden>
       <div class="detail-top"><span class="detail-kicker">INSTALL PORT</span><button id="closeDetail" class="close-button" aria-label="Close details">×</button></div>
       <div id="detailBody"></div>
+      <div id="uninstallArea"></div>
     </aside>
   </div>
 
   <div id="toast" class="toast" role="status" hidden></div>
   <div id="updateStatus" class="update-status" role="status" aria-live="polite" hidden></div>
+
+  <dialog id="uninstallDialog" class="app-dialog" aria-labelledby="uninstallHeading">
+    <div class="dialog-head"><div><div class="eyebrow muted">SELECTED HEADSET</div><h2 id="uninstallHeading">Uninstall app?</h2></div><button id="cancelUninstallButton" type="button" class="close-button" aria-label="Cancel uninstall">×</button></div>
+    <p class="field-help">Remove <strong id="uninstallName"></strong> from <strong id="uninstallHeadset"></strong>?</p>
+    <p class="field-help">Quest app: <code id="uninstallPackage"></code></p>
+    <p id="uninstallShared" class="guide-note" hidden></p>
+    <p class="field-help">Android may remove this app’s saves and private data. Game files in shared Quest folders and files on your PC stay in place.</p>
+    <div class="dialog-actions"><button id="cancelUninstallAction" type="button" class="outline-button">Cancel</button><button id="confirmUninstallButton" type="button" class="danger-button">Uninstall app</button></div>
+  </dialog>
 
   <dialog id="settingsDialog" class="app-dialog">
     <form method="dialog">

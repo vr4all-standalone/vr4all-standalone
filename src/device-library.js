@@ -414,8 +414,9 @@ async function inspectDevice(adb, serial, games, knownPackages = {}) {
     return true;
   }
   for (const game of games) {
-    const packageId = packageAliases[game.id]?.find((candidate) => installedPackages.has(candidate)) || packages[game.id] || knownPackages[game.id];
-    if (!packageId || !installedPackages.has(packageId)) continue;
+    const packageId = [...(packageAliases[game.id] || []), packages[game.id], knownPackages[game.id]]
+      .find((candidate) => candidate && installedPackages.has(candidate));
+    if (!packageId) continue;
     const dump = await adb.run(['-s', serial, 'shell', 'dumpsys', 'package', packageId]).catch(() => '');
     const versionName = dump.match(/\bversionName=([^\s]+)/)?.[1] || null;
     result[game.id] = { packageId, versionName, dataReady: await hasData(game), versionComparable: !incomparableVersions.has(game.id) };

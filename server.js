@@ -1196,7 +1196,37 @@ function createApp(options = {}) {
         const devices = await adb.listDevices();
         if (!devices.some((device) => device.serial === serial && device.state === 'device')) return json(res, 400, { error: 'Choose a connected, authorized headset' });
         const known = Object.fromEntries(Object.entries(settings.installed?.[serial] || {}).filter(([, value]) => value?.packageId).map(([id, value]) => [id, value.packageId]));
-        return json(res, 200, { games: await inspectDevice(adb, serial, catalog(), known) });
+        const games = await inspectDevice(adb, serial, catalog(), known);
+        const removedReceipts = Object.keys(known).filter((id) => gameById(id) && !games[id]);
+        for (const id of removedReceipts) delete settings.installed[serial][id];
+        if (removedReceipts.length) await saveSettings();
+        return json(res, 200, { games, removedReceipts });
+      }
+      if (url.pathname === '/api/uninstall' && req.method === 'POST') {
+        const input = await body(req);
+        const game = gameById(input.gameId);
+        if (!game) return json(res, 404, { error: 'Unknown game' });
+        if (typeof input.serial !== 'string' || !input.serial || typeof input.packageId !== 'string' || !input.packageId) throw new Error('Select an installed port on a connected headset');
+        if (busySerials.has(input.serial)) return json(res, 409, { error: 'Wait for the current headset operation to finish before uninstalling' });
+        busySerials.add(input.serial);
+        try {
+          const devices = await adb.listDevices();
+          if (!devices.some((device) => device.serial === input.serial && device.state === 'device')) throw new Error('Choose a connected, authorized headset');
+          const known = { [game.id]: settings.installed?.[input.serial]?.[game.id]?.packageId };
+          const current = (await inspectDevice(adb, input.serial, [game], known))[game.id];
+          if (!current) throw new Error('This port is no longer installed on the selected headset. Scan the headset to refresh its status.');
+          if (current.packageId !== input.packageId) throw new Error('The installed Quest app changed. Scan the headset and confirm the uninstall again.');
+          const output = await adb.run(['-s', input.serial, 'uninstall', current.packageId]);
+          if (!/^Success\b/m.test(output)) throw new Error(`ADB did not confirm the uninstall: ${output || 'no response'}`);
+          const installedText = await adb.run(['-s', input.serial, 'shell', 'pm', 'list', 'packages', '-3']);
+          if (installedText.split(/\r?\n/).some((line) => line.trim() === `package:${current.packageId}`)) throw new Error('ADB reported success, but the Quest still lists this app. Reconnect and scan the headset.');
+          const removedGameIds = catalog().filter((entry) => entry.id === game.id || packages[entry.id] === current.packageId
+            || settings.installed?.[input.serial]?.[entry.id]?.packageId === current.packageId).map((entry) => entry.id);
+          for (const id of removedGameIds) delete settings.installed?.[input.serial]?.[id];
+          await saveSettings();
+          if (installTextLogPath) await fs.appendFile(installTextLogPath, `${new Date().toISOString()} UNINSTALL ${game.title} | ${input.serial} | ${current.packageId}\n`).catch(() => {});
+          return json(res, 200, { packageId: current.packageId, removedGameIds });
+        } finally { busySerials.delete(input.serial); }
       }
       if (url.pathname === '/api/releases' && req.method === 'GET') {
         const game = gameById(url.searchParams.get('gameId'));
