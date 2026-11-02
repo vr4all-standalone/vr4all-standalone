@@ -147,9 +147,12 @@ test('Linux server refuses Windows-only installs before any device, download or 
   const touched = [];
   const app = createApp({ platform: 'linux', adb: { listDevices: async () => { touched.push('adb'); return []; } },
     releases: { latest: async () => { touched.push('releases'); return null; } },
-    personalBuilder: async () => { touched.push('build'); }, sdkSetup: async () => { touched.push('sdk'); } });
+    personalBuilder: async () => { touched.push('build'); }, sdkSetup: async () => { touched.push('sdk'); },
+    jurassicBuilder: async () => { touched.push('jurassic'); } });
   const attempts = [['/api/personal-build', { gameId: 'bioshock-vr', serial: 'Q3' }],
-    ['/api/install', { gameId: 'bioshock-vr', serial: 'Q3', apkMode: 'github' }]];
+    ['/api/install', { gameId: 'bioshock-vr', serial: 'Q3', apkMode: 'github' }],
+    ['/api/personal-build', { gameId: 'jurassic-park-arcade-vr', serial: 'Q3' }],
+    ['/api/official-player-install', { gameId: 'forsaken-gameordie', serial: 'Q3' }]];
   for (const [url, payload] of attempts) {
     const response = await request(app, url, payload);
     assert.equal(response.status, 400, `${url} ${payload.gameId}`);
