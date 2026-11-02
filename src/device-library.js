@@ -27,6 +27,7 @@ const packages = {
   'nfl-blitz-2000-vr': 'com.blitz2000.recompiled',
   'bomberman-hero-vr': 'com.bmhero.recompiled',
   'arx-libertatis-vr': 'org.arxlibertatis.vr',
+  'jurassic-park-arcade-vr': 'com.jp2015.vr',
   wakerquest: 'io.github.wakerquest',
   'victory-heat-rally-vr': 'com.segadreamcat.vhrquest',
   'confidential-mission-vr': 'com.vrlightgunhub.confmiss',
@@ -171,6 +172,13 @@ async function inspectDevice(adb, serial, games, knownPackages = {}) {
     return listCache.get(directory);
   }
   async function hasData(game) {
+    if (game.id === 'jurassic-park-arcade-vr') {
+      const base = '/sdcard/Android/data/com.jp2015.vr/files';
+      const root = await list(base);
+      if (root.includes('data.tar')) return false; // The app has not unpacked it yet.
+      return (await list(`${base}/game`)).includes('game')
+        && (await list(`${base}/libs`)).includes('libPhysXCore.so');
+    }
     if (game.id === 'vtmb-resource') {
       const vampire = await list('/sdcard/vtmb/Vampire/');
       const root = await list('/sdcard/vtmb/');

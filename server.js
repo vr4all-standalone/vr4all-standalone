@@ -25,6 +25,7 @@ const { GitHubReleases, validateSource } = require('./src/releases');
 const { prepareReleaseApk } = require('./src/release-apk');
 const { matchesInstalledApk, matchesInstalledDigest } = require('./src/apk-match');
 const { validatePersonalBuildInput, runPersonalBuild } = require('./src/personal-build');
+const { validateJurassicInput, resolvePhysxFolder, requiredPhysxFiles, runJurassicBuild } = require('./src/jurassic-runner');
 const { validateVictoryHeatInput, runVictoryHeatBuild } = require('./src/victory-heat-runner');
 const { checkRdrInternet } = require('./src/rdr-connectivity');
 const { validateViceCityInput, runViceCityBuild } = require('./src/vice-city-runner');
@@ -126,6 +127,7 @@ function createApp(options = {}) {
   const picker = options.picker || pickPath;
   const inspectApk = options.inspectApkPackage || inspectApkPackage;
   const personalBuilder = options.personalBuilder || runPersonalBuild;
+  const jurassicBuilder = options.jurassicBuilder || runJurassicBuild;
   const victoryHeatBuilder = options.victoryHeatBuilder || runVictoryHeatBuild;
   const bioshockInstaller = options.bioshockInstaller || installBioShock;
   const viceCityBuilder = options.viceCityBuilder || runViceCityBuild;
@@ -272,6 +274,13 @@ function createApp(options = {}) {
       else delete settings.localPaths[peer.game.id][peerKey];
       linked.push({ gameId: peer.game.id, key: peerKey, path: local, available: Boolean(local) && sourceValid });
     }
+    if (game.id === 'jurassic-park-arcade-vr' && key === 'gamePackage' && sourceValid) {
+      const autoPhysx = await resolvePhysxFolder(local);
+      if (autoPhysx && await localPathAvailable(game, 'audioSource', autoPhysx)) {
+        settings.localPaths[game.id].audioSource = autoPhysx;
+        linked.push({ gameId: game.id, key: 'audioSource', path: autoPhysx, available: true });
+      }
+    }
     await saveSettings();
     return linked;
   }
@@ -316,6 +325,14 @@ function createApp(options = {}) {
   async function localPathAvailable(game, key, local) {
     const stat = await fs.stat(local).catch(() => null);
     if (!stat) return false;
+    if (game.id === 'jurassic-park-arcade-vr') {
+      if (!stat.isDirectory()) return false;
+      if (key === 'audioSource') return (await Promise.all(requiredPhysxFiles.map((name) => fs.stat(path.join(local, name)).catch(() => null))))
+        .every((entry) => entry?.isFile() && entry.size > 0);
+      if (key === 'gamePackage') return (await fs.stat(path.join(local, 'game')).catch(() => null))?.isFile()
+        && (await Promise.all(['g5/dino/data', 'g5/shaders', 'g5/g5engine', 'pmuser', 'programs_dec', 'g5/dino/data/programs_enc']
+          .map((name) => fs.stat(path.join(local, name)).catch(() => null)))).every((entry) => entry?.isDirectory());
+    }
     if (game.id === 'bioshock-vr' && key === 'gamePackage') return Boolean(await validateBioShockGame(local).catch(() => null));
     if (game.id === 'fzero-x-virtuavr' && key === 'gamePackage') {
       return stat.isFile() && stat.size > 0 && (path.extname(local).toLowerCase() === '.z64'
@@ -660,6 +677,9 @@ function createApp(options = {}) {
       }
       const kit = game.id === 'vice-city-vr'
         ? await viceCityBuilder({ ...input, gamePackage: convertedGame?.path || input.gamePackage }, viceCityRoots(input.downloadLocation), log)
+        : game.id === 'jurassic-park-arcade-vr'
+        ? await jurassicBuilder(input, { workspaceRoot: buildWorkRoot(), sharedToolsRoot: settings.sharedBuildToolsLocation && viceCityRoots(settings.sharedBuildToolsLocation).workRoot,
+          adbPath: adb.getPath?.() || settings.adbPath, onLog: log })
         : game.id === 'victory-heat-rally-vr'
         ? await victoryHeatBuilder({ ...input, releases, source: sourceFor(game), adb, workspaceRoot: buildWorkRoot(), inspectApk, onLog: log })
         : await personalBuilder(game.id, input, input.downloadLocation ? viceCityRoots(input.downloadLocation) : personalRoots(), log);
@@ -1702,8 +1722,9 @@ function createApp(options = {}) {
       if (url.pathname === '/api/personal-build' && req.method === 'POST') {
         const requestInput = await body(req);
         const game = gameById(requestInput.gameId);
-        if (!game || !['gta-sa-vr', 'rdr1-vr', 'vice-city-vr', 'crazy-taxi-vr', 'fzero-x-virtuavr', 'bioshock-vr', 'victory-heat-rally-vr'].includes(game.id)) throw new Error('Choose a supported personal build');
-        if (buildToolGames.has(game.id) && busyBuildGames.has(game.id)) return json(res, 409, { error: 'Game tool setup or build is already running' });
+        if (!game || !['gta-sa-vr', 'rdr1-vr', 'vice-city-vr', 'crazy-taxi-vr', 'fzero-x-virtuavr', 'bioshock-vr', 'victory-heat-rally-vr', 'jurassic-park-arcade-vr'].includes(game.id)) throw new Error('Choose a supported personal build');
+        const serialBuild = buildToolGames.has(game.id) || game.id === 'jurassic-park-arcade-vr';
+        if (serialBuild && busyBuildGames.has(game.id)) return json(res, 409, { error: 'Game tool setup or build is already running' });
         const downloadLocation = buildToolGames.has(game.id) && (game.id === 'vice-city-vr' || buildToolsLocation(game.id))
           ? await validateBuildToolsLocation(buildToolsLocation(game.id)) : null;
         if (await gameFolderContainsBuildTools(requestInput.gamePackage, downloadLocation)) throw new Error('Build tools are inside your game export folder. Set up build tools in a separate folder, then retry.');
@@ -1725,12 +1746,14 @@ function createApp(options = {}) {
           ? await validateViceCityRequest(requestInput, downloadLocation)
           : game.id === 'victory-heat-rally-vr'
           ? await validateVictoryHeatInput(requestInput)
+          : game.id === 'jurassic-park-arcade-vr'
+          ? await validateJurassicInput(requestInput)
           : await validatePersonalBuildInput(game.id, requestInput);
         if (downloadLocation) input.downloadLocation = downloadLocation;
         if (!canQueueInstall(input.serial)) return json(res, 409, { error: 'Another operation is already running on this device' });
-        if (buildToolGames.has(game.id) && busyBuildGames.has(game.id)) return json(res, 409, { error: 'Game tool setup or build is already running' });
+        if (serialBuild && busyBuildGames.has(game.id)) return json(res, 409, { error: 'Game tool setup or build is already running' });
 
-        if (buildToolGames.has(game.id)) busyBuildGames.add(game.id);
+        if (serialBuild) busyBuildGames.add(game.id);
         try {
           const devices = await adb.listDevices();
           if (!devices.some((device) => device.serial === input.serial && device.state === 'device')) throw new Error('Choose a connected, authorized headset');

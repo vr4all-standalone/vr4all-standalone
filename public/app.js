@@ -149,7 +149,7 @@ async function saveLocalPath(game, key, localPath) {
     if (entry.path) state.savedPaths[entry.gameId][entry.key] = entry.path;
     else delete state.savedPaths[entry.gameId][entry.key];
     state.pathAvailability[entry.gameId][entry.key] = entry.available;
-    if (entry.gameId !== game.id || state.inputs[entry.gameId][entry.key] === localPath) state.inputs[entry.gameId][entry.key] = entry.path;
+    if (entry.gameId !== game.id || entry.key !== key || state.inputs[entry.gameId][entry.key] === localPath) state.inputs[entry.gameId][entry.key] = entry.path;
     if (!entry.path) delete state.staged[entry.gameId][entry.key];
     else if (entry.gameId !== game.id && entry.available) {
       state.staged[entry.gameId][entry.key] = entry.path;

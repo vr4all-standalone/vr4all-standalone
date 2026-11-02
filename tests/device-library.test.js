@@ -3,6 +3,22 @@ const assert = require('node:assert/strict');
 const { inspectDevice } = require('../src/device-library');
 const { getCatalog } = require('../src/catalog');
 
+test('Jurassic Park scan checks the creator APK and transferred game and PhysX data', async () => {
+  const game = getCatalog().find((entry) => entry.id === 'jurassic-park-arcade-vr');
+  const files = new Map();
+  const adb = { async run(args) {
+    const command = args.slice(2).join(' ');
+    if (command === 'shell pm list packages -3') return 'package:com.jp2015.vr';
+    if (command === 'shell dumpsys package com.jp2015.vr') return 'versionName=1.0';
+    if (command.startsWith('shell ls -1 ')) return files.get(command.slice('shell ls -1 '.length)) || '';
+    return '';
+  } };
+  assert.equal((await inspectDevice(adb, 'Q3', [game]))[game.id].dataReady, false);
+  files.set('/sdcard/Android/data/com.jp2015.vr/files/game', 'game');
+  files.set('/sdcard/Android/data/com.jp2015.vr/files/libs', 'libPhysXCore.so');
+  assert.equal((await inspectDevice(adb, 'Q3', [game]))[game.id].dataReady, true);
+});
+
 test('GT3 Revisited scan requires its Quest app and a GT3 disc image', async () => {
   const game = getCatalog().find((entry) => entry.id === 'gt3-revisited');
   const files = { '/sdcard/Download': 'Other Game.iso' };

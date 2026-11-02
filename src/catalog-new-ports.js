@@ -193,8 +193,19 @@ const newPorts = [
   {
     id: 'jurassic-park-arcade-vr', title: 'Jurassic Park Arcade Quest', gameName: 'Jurassic Park Arcade (2015)', series: 'Lovecore', category: 'Arcade', color: '#849d68',
     description: 'Quest 3 recompilation of the 2015 arcade lightgun game.',
-    projectUrl: 'https://github.com/Lovecore/jurassic-park-arcade-quest/blob/main/docs/BUILD-IT-YOURSELF.md', externalInstaller: true,
-    data: [], guidance: 'There is no creator APK release. This port must be compiled from source using your own Linux PC v1.08 game dump, PhysX i386 libraries, Android SDK and NDK. The creator asks builders not to distribute APKs containing proprietary game code. VR4ALL links the official source-build guide and cannot currently produce this APK from a simple ROM drop.',
+    projectUrl: 'https://github.com/Lovecore/jurassic-park-arcade-quest/blob/main/docs/BUILD-IT-YOURSELF.md',
+    personalBuild: {
+      gameLabel: 'Owned Jurassic Park Arcade v1.08 game folder',
+      gameHint: 'Drop the extracted Raw Thrills Linux PC v1.08 TeknoParrot game folder. VR4ALL checks the original game binary SHA-256 and required g5, pmuser and programs_dec folders.',
+      audioLabel: 'PhysX 2.8 i386 ElfLdr2/libs folder',
+      audioHint: 'Drop the TeknoParrot ElfLdr2/libs folder containing all four matching PhysX libraries. If it is already inside your game folder, VR4ALL finds it automatically.',
+      audioStep: 'Add PhysX only if it is outside the game folder',
+      inputStep: 'Add your original arcade game folder',
+      actionLabel: 'Build and install',
+      processDescription: 'VR4ALL checks both owned inputs, refreshes the creator’s source, runs its dependency, preparation and Quest build scripts, then installs the personal APK and game data on the selected Quest. This large first build needs Git Bash, Python 3.10+, Android SDK/NDK and JDK 17+ installed on the PC, about 15 GB free build space and 15–60 minutes. Keep the same PC build folder for future signed updates.',
+    },
+    data: [], guidance: 'The creator publishes source, not a prebuilt APK. VR4ALL runs the official build inside the app for your own Quest. The creator documents Quest 3; Quest 3S support has not been confirmed. Do not share the personal APK or game files.',
+    afterInstall: 'Find Jurassic Park Arcade under Unknown Sources. The first start may unpack game data for a few minutes.',
   },
   {
     id: 'wakerquest', title: 'WakerQuest', gameName: 'The Legend of Zelda: The Wind Waker', series: 'Trastorillo', category: 'GameCube', color: '#85bacb',

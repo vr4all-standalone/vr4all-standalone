@@ -884,6 +884,17 @@ test('Vice City card asks for one owned game input and builds inside VR4All', ()
   assert.doesNotMatch(html, /VR4All cannot prepare this port/);
 });
 
+test('Jurassic Park card collects the arcade dump and PhysX and builds inside VR4ALL', () => {
+  const { context } = appHarness();
+  context.jurassic = getCatalog().find((item) => item.id === 'jurassic-park-arcade-vr');
+  const html = vm.runInContext('detailHtml(jurassic)', context);
+  assert.match(html, /buildGamePath/);
+  assert.match(html, /buildAudioPath/);
+  assert.match(html, /PhysX 2\.8/);
+  assert.match(html, /Build and install/);
+  assert.doesNotMatch(html, /Open official setup/);
+});
+
 test('Vice City offers tool setup before a headset or game files are selected', () => {
   const { context } = appHarness();
   context.viceCity = getCatalog().find((item) => item.id === 'vice-city-vr');

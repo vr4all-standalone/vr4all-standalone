@@ -26,6 +26,30 @@ function request(app, method, url, payload, authorized = true, headers = {}) {
   });
 }
 
+test('saving a Jurassic Park dump discovers its nested PhysX folder without a second drop', async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-jp-path-'));
+  const app = createApp({ settingsPath: path.join(root, 'settings.json') });
+  try {
+    const game = path.join(root, 'Jurassic Park v1.08');
+    await fs.mkdir(game);
+    await fs.writeFile(path.join(game, 'game'), 'fixture');
+    for (const name of ['g5/dino/data', 'g5/shaders', 'g5/g5engine', 'pmuser', 'programs_dec', 'g5/dino/data/programs_enc']) {
+      await fs.mkdir(path.join(game, name), { recursive: true });
+    }
+    const libs = path.join(game, 'TeknoParrot', 'ElfLdr2', 'libs');
+    await fs.mkdir(libs, { recursive: true });
+    for (const name of ['libPhysXLoader.so.1', 'libPhysXCore.so', 'libNxCooking.so', 'libNxCharacter.so.1']) {
+      await fs.writeFile(path.join(libs, name), 'fixture');
+    }
+    const saved = await request(app, 'POST', '/api/local-paths', { gameId: 'jurassic-park-arcade-vr', key: 'gamePackage', path: game });
+    assert.equal(saved.status, 200, saved.body?.error);
+    assert.equal(saved.body.available, true);
+    assert.ok(saved.body.linked.some((entry) => entry.key === 'audioSource' && entry.path === libs && entry.available));
+    const stored = await request(app, 'GET', '/api/local-paths');
+    assert.equal(stored.body.paths['jurassic-park-arcade-vr'].audioSource, libs);
+  } finally { app.server.close(); await fs.rm(root, { recursive: true, force: true }); }
+});
+
 function uploadRaw(app, url, bytes) {
   return new Promise((resolve) => {
     const req = Readable.from([bytes]);
