@@ -149,7 +149,7 @@ async function saveLocalPath(game, key, localPath) {
     if (entry.path) state.savedPaths[entry.gameId][entry.key] = entry.path;
     else delete state.savedPaths[entry.gameId][entry.key];
     state.pathAvailability[entry.gameId][entry.key] = entry.available;
-    if (entry.gameId !== game.id || state.inputs[entry.gameId][entry.key] === localPath) state.inputs[entry.gameId][entry.key] = entry.path;
+    if (entry.gameId !== game.id || entry.key !== key || state.inputs[entry.gameId][entry.key] === localPath) state.inputs[entry.gameId][entry.key] = entry.path;
     if (!entry.path) delete state.staged[entry.gameId][entry.key];
     else if (entry.gameId !== game.id && entry.available) {
       state.staged[entry.gameId][entry.key] = entry.path;
@@ -168,6 +168,9 @@ function stagedGameFileReady(game, item) {
   const values = state.inputs[game.id] || {};
   const staged = state.staged[game.id] || {};
   return Boolean(values[item.id]) && staged[item.id] === values[item.id] && localPathAvailable(game, item.id);
+}
+function canPrepareWithoutLocalFiles(game) {
+  return game.playerInstall === 'official-zip' && game.data.every((item) => item.optional);
 }
 function hasRequiredLocalGameFiles(game) {
   return game.data.filter((item) => !item.optional).every((item) => stagedGameFileReady(game, item))
@@ -226,8 +229,8 @@ function versionStatus(game) {
     return completed.tag === release.tag ? 'status-current' : 'status-update';
   }
   if (release && !release.stale && release.verifiedSerial === state.selectedSerial && release.installedApkMatchesRelease === true) return 'status-current';
-  if (game.releaseKind === 'installer' && release && !release.stale && completed?.tag === release.tag
-    && completed.packageId === device.packageId && completed.versionName && completed.versionName === device.versionName) return 'status-current';
+  if (game.releaseKind === 'installer' && release && !release.stale && completed?.tag
+    && completed.packageId === device.packageId && completed.versionName && completed.versionName === device.versionName) return completed.tag === release.tag ? 'status-current' : 'status-update';
   if (game.verifyApkHash) {
     if (!release || release.stale || release.verifiedSerial !== state.selectedSerial) return 'status-installed';
     if (release.installedApkMatchesRelease === true) return 'status-current';
@@ -294,7 +297,7 @@ function isAvailableForInstall(game) {
   if (game.support?.supported === false) return false;
   if (game.personalBuild) return hasBuildInputs(game);
   if (game.externalInstaller || game.manualDataSetup) return false;
-  return installType(game) === 'apk-included' && !game.manualRelease || hasLocalInstallFile(game);
+  return canPrepareWithoutLocalFiles(game) || installType(game) === 'apk-included' && !game.manualRelease || hasLocalInstallFile(game);
 }
 function matchesScope(game) {
   if (state.libraryScope === 'all') return true;
@@ -526,7 +529,11 @@ function renderExistingFilesNote() {
   const game = selectedGame();
   if (!note || !game) return;
   const installed = state.deviceLibrary[state.selectedSerial]?.[game.id];
-  note.textContent = game.id === 'beef-raider-xr'
+  note.textContent = canPrepareWithoutLocalFiles(game)
+    ? installed?.dataReady
+      ? 'Game files were found on this Quest. Updates run the creator’s setup again to refresh the app and companion files while preserving your saves and settings. Local game folders are optional.'
+      : 'No local game files are required. The creator’s setup can download and prepare the required data automatically. Optional game folders can be added below.'
+    : game.id === 'beef-raider-xr'
     ? installed?.dataReady ? 'Full-game data was found on this Quest. VR4ALL leaves it in place.' : 'The demo APK works without game data. For the full game, launch it once and grant permissions, then choose the official extractor’s mod folder.'
     : installed
     ? installed.dataReady
@@ -629,7 +636,7 @@ function detailHtml(game) {
   if (game.externalInstaller) return `<div class="detail-art"><img src="${escapeHtml(game.art || '/art/custom.svg')}" alt="Artwork for ${escapeHtml(game.title)}"></div><div class="detail-series">${escapeHtml(game.console)} · ${escapeHtml(game.genre)} · ${escapeHtml(game.series)}</div><h2 class="detail-title">${escapeHtml(game.title)}</h2><p class="detail-description">${escapeHtml(game.description)}</p><div class="detail-divider"></div><div class="guide-note">${escapeHtml(game.guidance)}</div><a class="primary-button install-button" href="${escapeHtml(game.projectUrl)}" target="_blank" rel="noopener noreferrer">${game.developmentPreview ? 'Follow development ↗' : 'Open official setup ↗'}</a>`;
   return `<div class="detail-art"><img src="${escapeHtml(game.art || '/art/custom.svg')}" alt="Artwork for ${escapeHtml(game.title)}"></div><div class="detail-series">${escapeHtml(game.console || 'Other')} · ${escapeHtml(game.genre || 'Other')} · ${escapeHtml(game.series)}</div><h2 class="detail-title">${escapeHtml(game.title)}</h2><p class="detail-description">${escapeHtml(game.description)}</p>${portChoiceHtml(game)}<div class="detail-divider"></div>
     <div class="detail-step"><span class="step-number">1</span> ${game.playerInstall ? 'Use the official player release' : 'Choose the port APK'}</div>
-    ${game.playerInstall ? `<p class="guide-note">${game.playerInstall === 'beef-raider' ? 'VR4ALL installs the official Quest APK for the demo. For the full game, use the author’s extractor on your owned files, then VR4ALL transfers its output after you launch the app once.' : `VR4ALL downloads ${['road-rash', 'harry-potter'].includes(game.playerInstall) ? 'the official player installer ZIP' : game.playerInstall === 'jkxr' ? 'both official Quest APKs' : game.playerInstall === 'official-zip' ? 'the official Quest player ZIP' : 'the official Quest APK'} and prepares your owned game files.`}</p>` : game.manualRelease ? '<p class="guide-note">The official GitHub release is an installer ZIP, not a directly installable APK. Follow its installer instructions to prepare the game, then select a local APK here.</p>' : source ? `<div class="source-toggle"><button type="button" class="source-choice ${mode === 'github' ? 'active' : ''}" data-mode="github">${source.provider === 'project-honeydew' ? 'Latest from creator' : `Latest on ${releaseProviderName(source)}`}</button><button type="button" class="source-choice ${mode === 'local' ? 'active' : ''}" data-mode="local">Local APK</button></div>` : `<div class="guide-note"><strong>Manual creator APK.</strong> This mod does not publish a verified Quest APK through a GitHub release that VR4ALL can auto-update. Download the APK from the creator, then drop it below. VR4ALL remembers its path for later installs.</div>`}
+    ${game.playerInstall ? `<p class="guide-note">${escapeHtml(game.playerInstallDescription) || (game.playerInstall === 'beef-raider' ? 'VR4ALL installs the official Quest APK for the demo. For the full game, use the author’s extractor on your owned files, then VR4ALL transfers its output after you launch the app once.' : `VR4ALL downloads ${['road-rash', 'harry-potter'].includes(game.playerInstall) ? 'the official player installer ZIP' : game.playerInstall === 'jkxr' ? 'both official Quest APKs' : game.playerInstall === 'official-zip' ? 'the official Quest player ZIP' : 'the official Quest APK'} and prepares your owned game files.`)}</p>` : game.manualRelease ? '<p class="guide-note">The official GitHub release is an installer ZIP, not a directly installable APK. Follow its installer instructions to prepare the game, then select a local APK here.</p>' : source ? `<div class="source-toggle"><button type="button" class="source-choice ${mode === 'github' ? 'active' : ''}" data-mode="github">${source.provider === 'project-honeydew' ? 'Latest from creator' : `Latest on ${releaseProviderName(source)}`}</button><button type="button" class="source-choice ${mode === 'local' ? 'active' : ''}" data-mode="local">Local APK</button></div>` : `<div class="guide-note"><strong>Manual creator APK.</strong> This mod does not publish a verified Quest APK through a GitHub release that VR4ALL can auto-update. Download the APK from the creator, then drop it below. VR4ALL remembers its path for later installs.</div>`}
     <div id="releaseCard" class="release-card" ${mode === 'local' && !game.manualRelease ? 'hidden' : ''}></div>
     ${game.playerInstall ? '' : `<div id="localApkGroup" ${mode === 'github' ? 'hidden' : ''}><label class="field-label" for="apkPath">Quest APK or archive on your computer</label><div class="input-row"><input id="apkPath" class="text-input" value="${escapeHtml(values.apkPath || '')}" placeholder="${escapeHtml(typeof navigator !== 'undefined' && !/Win/i.test(navigator.platform) ? '/home/you/Games/Port.apk' : 'C:\\Games\\Port.apk')}"><button type="button" class="small-button browse-btn" data-picker="file" data-target="apkPath">Browse</button></div><div class="drop-zone apk-drop-zone" data-apk="true">Drop APK, ZIP, 7z, or RAR for ${escapeHtml(game.title)} here</div><p id="apkCheck" class="file-check ${state.apkChecks[game.id]?.startsWith('Rejected:') ? 'error' : ''}">${escapeHtml(state.apkChecks[game.id] || '')}</p>${game.projectUrl ? `<p class="field-help"><a href="${escapeHtml(game.projectUrl)}" target="_blank" rel="noopener noreferrer">${game.manualBuild ? 'Open the official build guide' : source ? 'Open the official project release' : 'Open creator download'} ↗</a> — ${game.manualBuild ? 'prepare your own APK with the developer’s steps before selecting it here.' : source ? 'follow its installer instructions to obtain the APK.' : 'download the creator APK once, then VR4ALL remembers its path for future installs.'}</p>` : ''}</div>`}
     ${source && !source.provider ? '<div style="margin-top:11px"><button type="button" id="editSourceButton" class="inline-link">Edit GitHub source</button></div>' : ''}
@@ -856,7 +863,7 @@ function bulkCandidate(match) {
   if (game.playerInstall === 'road-rash') return { game, reason: match.files?.discImage ? '' : 'Add your owned Road Rash disc' };
   if (game.playerInstall === 'harry-potter') return { game, reason: match.files?.gamePath ? '' : 'Add your owned Harry Potter PC game' };
   if (game.playerInstall === 'descent3') return { game, reason: match.files?.gamePath || device?.dataReady ? '' : 'Add your owned Descent 3 folder' };
-  if (['official-zip', 'magic-carpet', 'astroquest', 'galaxyquest'].includes(game.playerInstall)) return { game, reason: match.files?.gamePath || device?.dataReady ? '' : 'Add your owned game file or folder' };
+  if (['official-zip', 'magic-carpet', 'astroquest', 'galaxyquest'].includes(game.playerInstall)) return { game, reason: match.files?.gamePath || device?.dataReady || canPrepareWithoutLocalFiles(game) ? '' : 'Add your owned game file or folder' };
   if (game.playerInstall === 'jkxr') return { game, reason: 'Open JKXR to choose Jedi Outcast or Jedi Academy' };
   if (!game.playerInstall && !bulkUseLocalApk(game, match) && (!sourceFor(game) || game.manualRelease)) return { game, reason: 'Choose a local APK for this port' };
   if (state.bulkMode === 'update' && !bulkUseLocalApk(game, match) && !game.playerInstall) {
@@ -1372,7 +1379,7 @@ async function install() {
   if (!state.selectedSerial) return toast('Connect and select an authorized Quest first.', true);
   if (game.playerInstall) {
     const localInput = game.playerInstall === 'road-rash' ? values.discImage : values.gamePath;
-    if (!localInput && game.playerInstall !== 'beef-raider' && (['road-rash', 'harry-potter'].includes(game.playerInstall) || !state.deviceLibrary[state.selectedSerial]?.[game.id]?.dataReady)) return toast(game.playerInstall === 'road-rash' ? 'Choose your owned Road Rash disc image.' : 'Choose your owned game file or folder for the first install.', true);
+    if (!localInput && !canPrepareWithoutLocalFiles(game) && game.playerInstall !== 'beef-raider' && (['road-rash', 'harry-potter'].includes(game.playerInstall) || !state.deviceLibrary[state.selectedSerial]?.[game.id]?.dataReady)) return toast(game.playerInstall === 'road-rash' ? 'Choose your owned Road Rash disc image.' : 'Choose your owned game file or folder for the first install.', true);
     state.installSubmitting = true;
     setActivity('submit', `Preparing ${game.title} installation…`);
     updateInstallEnabled();
@@ -1639,7 +1646,9 @@ async function startBuildTools() {
       $('#sdkBrowseButton').disabled = false;
       $('#sdkStartButton').hidden = false;
       $('#sdkStartButton').disabled = false;
-      $('#sdkSetupStatus').textContent = 'Choose a download folder, then select Download and set up tools.';
+      $('#sdkSetupStatus').textContent = location.unsafeSaved
+        ? 'Your previous build tools are inside the game export. Set them up in the suggested parent folder so the builder keeps your game files safe.'
+        : 'Choose a download folder, then select Download and set up tools.';
       $('#sdkLicenseSection').hidden = true;
       $('#sdkLicenseActions').hidden = true;
       $('#sdkLicenseText').textContent = '';
@@ -1660,7 +1669,8 @@ async function installBuildTools() {
   $('#sdkDownloadLocation').disabled = true;
   $('#sdkBrowseButton').disabled = true;
   try {
-    const { job } = await api('/api/build-tools', { method: 'POST', body: JSON.stringify({ gameId: game.id, downloadLocation }) });
+    const gamePackage = state.inputs[game.id]?.gamePackage;
+    const { job } = await api('/api/build-tools', { method: 'POST', body: JSON.stringify({ gameId: game.id, ...(gamePackage ? { gamePackage } : {}), downloadLocation }) });
     state.jobs.unshift(job);
     sdkSetupJobId = job.id;
     state.activeJobId = job.id;

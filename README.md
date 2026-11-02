@@ -10,7 +10,9 @@
 
 ## 🎮 Current catalog: 128 game projects and 5 emulator tools
 
-The catalog has **128 game cards, 5 emulator and runtime cards, and 142 port choices**, including alternate mods for Time Crisis, Pokémon, Halo, Max Payne, Virtua Cop, and The House of the Dead. Each card explains its setup requirements; Quest model support varies by port.
+The catalog has **128 game cards, 5 emulator and runtime cards, and 145 port choices**, including alternate mods for Time Crisis, Pokémon, Halo, Max Payne, Virtua Cop, and The House of the Dead. Each card explains its setup requirements; Quest model support varies by port.
+
+Game Or Die’s Forsaken, Unreal Gold and Unreal Tournament 99 Quest ports are available as alternate developer choices. Their official setup can download and prepare the required data; optional local folders and each creator’s app remain separate.
 
 Project Honeydew can be installed from its checksum-verified creator APK with your own Pikmin disc. Deus Ex is listed as an **in-development project**; its creator has not published a playable Quest release, so VR4ALL links the project without offering an install.
 

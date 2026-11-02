@@ -26,6 +26,42 @@ async function settledJob(app, id) {
   throw new Error('Install job did not settle');
 }
 
+for (const [id, packageId, markers] of [
+  ['forsaken-gameordie', 'net.gameordie.forsakenvr', { 'data/levels': 'levels.dat\nbattle.dat', 'data/levels/ship': 'ship.mxv' }],
+  ['unreal-gold-gameordie', 'net.gameordie.unrealgoldvr', { 'UT99/System': 'Core.u\nEngine.u\nUnrealI.u', 'UT99/Unreal/Maps': 'Vortex2.unr' }],
+  ['ut99-gameordie', 'net.gameordie.ut99vr', { 'UT99/System': 'Core.u\nEngine.u\nBotpack.u', 'UT99/Maps': 'CityIntro.unr' }],
+]) {
+  test(`${id}: API prepares a first install without local files and verifies data completion`, async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-god-api-'));
+    let installed = false;
+    let complete = true;
+    const app = createApp({ platform: 'win32', settingsPath: path.join(root, 'settings.json'),
+      adb: { listDevices: async () => [{ serial: 'Q3', state: 'device' }], run: async (args) => {
+        assert.equal(args[1], 'Q3');
+        const command = args.slice(2).join(' ');
+        if (command === 'shell pm list packages -3') return installed ? `package:${packageId}` : '';
+        if (command.startsWith('shell dumpsys package ')) return 'versionName=1.0';
+        const prefix = `shell ls -1 /sdcard/Android/data/${packageId}/files/`;
+        if (complete && command.startsWith(prefix)) return markers[command.slice(prefix.length)] || '';
+        return '';
+      } },
+      releases: { latest: async () => ({ tag: 'v1.0', url: 'https://example.test/release', assetName: 'creator-Quest.zip' }), downloadPackage: async () => path.join(root, 'creator.zip') },
+      officialPlayerInstaller: async (input) => { assert.equal(input.gameId, id); assert.equal(input.gamePath, null); assert.equal(input.serial, 'Q3'); installed = true; },
+    });
+    try {
+      const first = await request(app, '/api/official-player-install', { gameId: id, serial: 'Q3' });
+      assert.equal(first.status, 202, JSON.stringify(first.body));
+      assert.equal((await settledJob(app, first.body.job.id)).status, 'success');
+      complete = false;
+      const second = await request(app, '/api/official-player-install', { gameId: id, serial: 'Q3' });
+      assert.equal(second.status, 202, JSON.stringify(second.body));
+      const job = await settledJob(app, second.body.job.id);
+      assert.equal(job.status, 'error', 'an APK alone must not count as completed setup');
+      assert.match(job.error, /data|files/i);
+    } finally { app.server.close(); await fs.rm(root, { recursive: true, force: true }); }
+  });
+}
+
 test('build workspace defaults to AppData path and can be changed or reset', async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-workspace-setting-'));
   const selected = path.join(root, 'selected builds');

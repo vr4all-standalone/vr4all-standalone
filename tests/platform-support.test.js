@@ -8,7 +8,7 @@ const { createApp } = require('../server');
 const byId = (id) => getCatalog().find((entry) => entry.id === id);
 
 // Ports without a Linux install path. Each port task removes its id from this list.
-const LINUX_REFUSED = ['bioshock-vr'];
+const LINUX_REFUSED = ['bioshock-vr', 'jurassic-park-arcade-vr', 'forsaken-gameordie', 'unreal-gold-gameordie', 'ut99-gameordie'];
 
 // Ports with a Linux path that needs an x86-64 host. Each port task adds its id.
 const LINUX_EXPERIMENTAL = ['crazy-taxi-vr', 'magic-carpet-vr', 'rdr1-vr', 'vice-city-vr', 'victory-heat-rally-vr'];
@@ -86,7 +86,7 @@ test('Linux accepts a plain creator-APK port', () => {
 });
 
 test('Linux accepts Node-only player installs and link-only external installers', () => {
-  for (const id of ['jkxr', 'descent3-vr', 'beef-raider-xr', 'astroquest', 'sclerosis-vr', 'deus-ex-quest-vr', 'jurassic-park-arcade-vr']) {
+  for (const id of ['jkxr', 'descent3-vr', 'beef-raider-xr', 'astroquest', 'sclerosis-vr', 'deus-ex-quest-vr']) {
     assert.ok(byId(id), id);
     assert.deepEqual(platformSupport(byId(id), 'linux'), { supported: true }, id);
   }

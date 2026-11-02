@@ -90,7 +90,7 @@ test('declining a displayed license ends setup and releases the game setup lock'
   app.server.close();
 });
 
-test('location preview defaults to the game folder or archive parent without starting downloads', async (t) => {
+test('location preview keeps build tools outside a selected game folder without starting downloads', async (t) => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-sdk-location-'));
   t.after(() => fs.rm(root, { recursive: true, force: true }));
   const game = path.join(root, 'Vice City');
@@ -99,7 +99,7 @@ test('location preview defaults to the game folder or archive parent without sta
   await fs.writeFile(archive, 'fixture');
   const app = createApp({ sdkSetup: async () => { throw new Error('Preview must not download'); } });
   t.after(() => app.server.close());
-  for (const [gamePackage, expected] of [[game, game], [archive, root], ['', '']]) {
+  for (const [gamePackage, expected] of [[game, root], [archive, root], ['', '']]) {
     const preview = await request(app, 'POST', '/api/build-tools/location', { gameId: 'vice-city-vr', gamePackage });
     assert.equal(preview.status, 200);
     assert.equal(preview.body.downloadLocation, expected);
@@ -108,6 +108,68 @@ test('location preview defaults to the game folder or archive parent without sta
   assert.deepEqual((await request(app, 'GET', '/api/jobs')).body.jobs, []);
   assert.deepEqual((await fs.readdir(root)).sort(), ['Vice City', 'Vice City.zip']);
 });
+
+for (const gameId of ['gta-sa-vr', 'rdr1-vr']) {
+  test(`${gameId} rejects saved build tools inside a phone export and sets up outside it`, async (t) => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-sdk-export-overlap-'));
+    t.after(() => fs.rm(root, { recursive: true, force: true }));
+    const gamePackage = path.join(root, `VR4ALL-export-${gameId}-fixture`);
+    await fs.mkdir(gamePackage);
+    await fs.writeFile(path.join(gamePackage, 'base.apk'), 'owned game fixture');
+    const audioSource = path.join(root, 'owned-audio.7z');
+    await fs.writeFile(audioSource, 'owned audio fixture');
+    const settingsPath = path.join(root, 'settings.json');
+    const oldTools = path.join(gamePackage, 'VR4ALL-build-tools');
+    const marker = path.join(oldTools, 'source-kits', 'keep.txt');
+    const first = createApp({ settingsPath, sdkSetup: async (roots) => {
+      await fs.mkdir(roots.cacheRoot, { recursive: true });
+      await fs.writeFile(marker, 'existing setup');
+      return { sha: 'a'.repeat(40) };
+    } });
+    t.after(() => first.server.close());
+    const initial = await request(first, 'POST', '/api/build-tools', { gameId, downloadLocation: gamePackage });
+    assert.equal(initial.status, 202);
+    assert.equal((await waitJob(first, initial.body.job.id)).status, 'success');
+    first.server.close();
+
+    let buildRoots;
+    const second = createApp({ settingsPath,
+      adb: { listDevices: async () => [{ serial: 'Quest-1', state: 'device' }] },
+      sdkSetup: async (roots) => {
+        assert.equal(roots.cacheRoot, path.join(root, 'VR4ALL-build-tools', 'source-kits'));
+        await fs.mkdir(roots.cacheRoot, { recursive: true });
+        await fs.writeFile(path.join(roots.cacheRoot, 'new-setup.txt'), 'separate setup');
+        return { sha: 'a'.repeat(40) };
+      },
+      personalBuilder: async (_game, _input, roots) => { buildRoots = roots; return { sha: 'b'.repeat(40) }; },
+    });
+    t.after(() => second.server.close());
+    const preview = await request(second, 'POST', '/api/build-tools/location', { gameId, gamePackage });
+    assert.equal(preview.status, 200);
+    assert.equal(preview.body.downloadLocation, root);
+    assert.equal(preview.body.configured, false);
+    assert.equal(preview.body.unsafeSaved, true);
+    const unsafeSetup = await request(second, 'POST', '/api/build-tools', { gameId, gamePackage, downloadLocation: gamePackage });
+    assert.equal(unsafeSetup.status, 400);
+    assert.match(unsafeSetup.body.error, /outside.*game export/i);
+    const unsafeBuild = await request(second, 'POST', '/api/personal-build', { gameId, gamePackage, audioSource, serial: 'Quest-1' });
+    assert.equal(unsafeBuild.status, 400);
+    assert.match(unsafeBuild.body.error, /outside|separate|build tools/i);
+
+    const moved = await request(second, 'POST', '/api/build-tools', { gameId, gamePackage, downloadLocation: root });
+    assert.equal(moved.status, 202);
+    assert.equal((await waitJob(second, moved.body.job.id)).status, 'success');
+    assert.equal(await fs.readFile(marker, 'utf8'), 'existing setup');
+    assert.equal(await fs.readFile(path.join(root, 'VR4ALL-build-tools', 'source-kits', 'new-setup.txt'), 'utf8'), 'separate setup');
+    const ready = await request(second, 'POST', '/api/build-tools/location', { gameId, gamePackage });
+    assert.equal(ready.body.configured, true);
+    assert.equal(ready.body.downloadLocation, root);
+    const built = await request(second, 'POST', '/api/personal-build', { gameId, gamePackage, audioSource, serial: 'Quest-1' });
+    assert.equal(built.status, 202);
+    assert.equal((await waitJob(second, built.body.job.id)).status, 'success');
+    assert.equal(buildRoots.workRoot, path.join(root, 'VR4ALL-build-tools', 'builds'));
+  });
+}
 
 test('setup requires an existing absolute download folder before it can queue work', async (t) => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-sdk-invalid-'));

@@ -225,6 +225,6 @@ test('server passes the platform to the installer and treats an in-headset impor
 test('server still fails an official player install whose game data is not on the headset when no import is pending', async () => {
   const { job, installed } = await runServerJob({});
   assert.equal(job.status, 'error');
-  assert.match(job.error, /game disc was not found on the selected headset/);
+  assert.match(job.error, /required game files were not found on the selected headset/);
   assert.equal(installed, undefined);
 });

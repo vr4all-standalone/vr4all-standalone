@@ -24,7 +24,7 @@ test('new Quest ports have distinct cards and actionable source information', ()
     assert.ok(game.source || game.externalInstaller || game.personalBuild || id === 'iron-lung-vr', id);
   }
   assert.equal(new Set(catalog.map((entry) => entry.id)).size, catalog.length);
-  assert.equal(catalog.length, 142);
+  assert.equal(catalog.length, 145);
 });
 
 test('Scud Race selects only the Quest release and copies the owned arcade ZIP', () => {
@@ -88,11 +88,13 @@ test('Daytona selects its own release and requires both arcade sets', () => {
   assert.deepEqual(game.data.map((item) => item.destination), ['/sdcard/Download/daytona.zip', '/sdcard/Download/model1io.zip']);
 });
 
-test('Jurassic Park cannot be mistaken for a downloadable APK', () => {
+test('Jurassic Park uses a personal source build rather than a downloadable APK', () => {
   const game = getCatalog().find((entry) => entry.id === 'jurassic-park-arcade-vr');
   assert.equal(game.source, undefined);
-  assert.equal(game.externalInstaller, true);
-  assert.match(game.guidance, /source|build/i);
+  assert.equal(game.externalInstaller, undefined);
+  assert.ok(game.personalBuild);
+  assert.match(game.personalBuild.gameHint, /v1\.08/);
+  assert.match(game.personalBuild.audioHint, /PhysX/);
 });
 
 test('new picker-based ports use a stable headset filename even for arbitrary local names', () => {

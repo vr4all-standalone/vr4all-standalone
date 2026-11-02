@@ -1,5 +1,7 @@
 # Artwork sources
 
+The Game Or Die alternate choices for Forsaken, Unreal Gold and UT99 reuse those games’ existing catalog artwork listed below. These identify the games and are not presented as captures of the new developer’s port.
+
 These are project images or media previews. Lupin uses an original software-project title graphic; it contains no game scene or character artwork. Files are local so cards work offline. Source repositories and videos may contain proprietary game graphics, logos, and trademarks. A repository's code license does **not** establish a license for those elements. Unless a row says otherwise, redistribution permission for the image is unverified; obtain permission or replace the image before public distribution if needed. No ROM or disc data is included.
 
 | Catalog ID | Local file | Exact image source | Context and rights note |

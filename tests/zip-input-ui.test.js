@@ -34,6 +34,8 @@ function appHarness() {
     else if (url === '/api/bulk-sessions') body = { id: 'session-fixture' };
     else if (url.startsWith('/api/bulk-upload?')) body = { path: new URL(url, 'http://localhost').searchParams.get('path') };
     else if (url === '/api/package-uploaded') body = { path: 'C:\\Temp\\timecris.zip', verification: { message: 'Packed 2 dropped files into ZIP' } };
+    else if (url === '/api/official-player-install') body = { job: { id: 'official-job', gameId: JSON.parse(options.body).gameId, serial: 'QUEST', status: 'queued', log: [] } };
+    else if (url === '/api/jobs/official-job') body = { job: { id: 'official-job', status: 'running', serial: 'QUEST', log: [] } };
     return { ok: true, json: async () => body };
   }
   const context = vm.createContext({ document, window: { QUESTDESK_TOKEN: 'test-token', addEventListener() {} }, fetch, setTimeout: () => 1, clearTimeout() {}, setInterval() {}, console });
@@ -43,6 +45,42 @@ function appHarness() {
   context.game = game;
   vm.runInContext('state.games = [game]; state.selectedId = game.id', context);
   return { context, game, elements, listeners, requests };
+}
+
+for (const id of ['forsaken-gameordie', 'unreal-gold-gameordie', 'ut99-gameordie']) {
+  test(`${id}: first install and bulk setup allow the creator's automatic data preparation`, async () => {
+    const { context, requests } = appHarness();
+    // The creator setup is a PowerShell kit: check the Windows card, where the port is supported.
+    context.port = { ...getCatalog().find((game) => game.id === id), support: { supported: true } };
+    assert.ok(context.port);
+    vm.runInContext("state.games = [port]; state.selectedId = port.id; state.selectedSerial = 'QUEST'; state.deviceLibrary.QUEST = {}", context);
+    assert.match(vm.runInContext('detailHtml(port)', context), /download/i);
+    assert.equal(vm.runInContext('isAvailableForInstall(port)', context), true, 'automatic setup must appear in Ready to install and bulk discovery');
+    vm.runInContext("state.bulkMode = 'new'; state.bulkMatches = []; renderBulkMatches()", context);
+    assert.match(vm.runInContext("document.querySelector('#bulkMatches').innerHTML", context), new RegExp(`value="${id}"`));
+    vm.runInContext('renderExistingFilesNote()', context);
+    assert.match(vm.runInContext("document.querySelector('#existingFilesNote').textContent", context), /download|automatic/i);
+    assert.equal(vm.runInContext('bulkCandidate({ gameId: port.id, files: {} }).reason', context), '');
+    await vm.runInContext('install()', context);
+    const submitted = requests.find((request) => request.url === '/api/official-player-install');
+    assert.ok(submitted, 'blank optional input must submit an install');
+    assert.equal(JSON.parse(submitted.options.body).gameId, id);
+  });
+}
+
+for (const id of ['unreal-gold-gameordie', 'ut99-gameordie']) {
+  test(`${id}: independent APK version uses completed installer receipts to find updates`, () => {
+    const { context } = appHarness();
+    context.port = getCatalog().find((game) => game.id === id);
+    vm.runInContext("state.selectedSerial = 'QUEST'; state.deviceLibrary.QUEST = { [port.id]: { packageId: 'net.gameordie.test', versionName: '0.1.0', dataReady: true, versionComparable: false } }; state.releases[port.id] = {tag: 'v1.0.3'}; state.installed = { QUEST: { [port.id]: { packageId: 'net.gameordie.test', versionName: '0.1.0', tag: 'v1.0.3' } } }", context);
+    assert.equal(vm.runInContext('versionStatus(port)', context), 'status-current');
+    vm.runInContext("state.releases[port.id].tag = 'v1.0.4'", context);
+    assert.equal(vm.runInContext('versionStatus(port)', context), 'status-update');
+    vm.runInContext('delete state.installed.QUEST[port.id]', context);
+    assert.equal(vm.runInContext('versionStatus(port)', context), 'status-installed', 'unknown external install cannot be compared to unrelated desktop tags');
+    vm.runInContext('state.selectedId = port.id; state.games = [port]; renderExistingFilesNote()', context);
+    assert.match(vm.runInContext("document.querySelector('#existingFilesNote').textContent", context), /setup|companion/i);
+  });
 }
 
 for (const id of ['confidential-mission-vr','hotd2-vr','lupin-the-third-vr','ninja-assault-vr','death-crimson-ox-vr','mok-vr','survivor2-code-veronica-vr','carnevil-vr','teraburst-vr','vcop-vr','vcop2-vr']) {
@@ -883,6 +921,17 @@ test('Vice City card asks for one owned game input and builds inside VR4All', ()
   assert.match(html, /Build and install/);
   assert.doesNotMatch(html, /buildAudioPath/);
   assert.doesNotMatch(html, /VR4All cannot prepare this port/);
+});
+
+test('Jurassic Park card collects the arcade dump and PhysX and builds inside VR4ALL', () => {
+  const { context } = appHarness();
+  context.jurassic = getCatalog().find((item) => item.id === 'jurassic-park-arcade-vr');
+  const html = vm.runInContext('detailHtml(jurassic)', context);
+  assert.match(html, /buildGamePath/);
+  assert.match(html, /buildAudioPath/);
+  assert.match(html, /PhysX 2\.8/);
+  assert.match(html, /Build and install/);
+  assert.doesNotMatch(html, /Open official setup/);
 });
 
 test('Vice City offers tool setup before a headset or game files are selected', () => {

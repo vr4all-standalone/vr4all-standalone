@@ -106,6 +106,41 @@ test('source kit pins the Git branch SHA when the GitHub API is rate limited', a
   assert.ok(urls.some((url) => url.endsWith(`/zip/${sha}`)));
 });
 
+test('GTA SA phone export passes base.apk and its sibling splits without scanning old nested build tools', async (t) => {
+  const root = await fs.mkdtemp(path.join(__dirname, '.gta-export-build-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const gamePackage = path.join(root, 'VR4ALL-export-gta-sa-vr-fixture');
+  await fs.mkdir(path.join(gamePackage, 'VR4ALL-build-tools'), { recursive: true });
+  await fs.writeFile(path.join(gamePackage, 'base.apk'), 'owned base');
+  await fs.writeFile(path.join(gamePackage, 'split_config.arm64_v8a.apk'), 'owned split');
+  await fs.writeFile(path.join(gamePackage, 'VR4ALL-build-tools', 'unrelated.apk'), 'old build output');
+  const audioSource = path.join(root, 'audio.7z');
+  await fs.writeFile(audioSource, 'owned audio');
+  const sha = 'e'.repeat(40);
+  let authorPackage;
+  await runPersonalBuild('gta-sa-vr', { gamePackage, audioSource, serial: 'Q3' }, {
+    cacheRoot: path.join(root, 'cache'), workRoot: path.join(root, 'safe-work'),
+  }, () => {}, {
+    platform: 'win32',
+    fetchImpl: async (url) => new Response(url.includes('/commits/') ? JSON.stringify({ sha }) : 'source zip'),
+    extract: async (_zip, destination) => {
+      const tools = path.join(destination, 'official-kit', 'tools');
+      await fs.mkdir(tools, { recursive: true });
+      await fs.writeFile(path.join(tools, 'build-and-install.ps1'), 'param()');
+    },
+    withBuildPath: async (work, operation) => operation(work),
+    spawnImpl: (_program, args) => {
+      authorPackage = args[args.indexOf('-GamePackage') + 1];
+      const child = new EventEmitter(); child.stdout = new PassThrough(); child.stderr = new PassThrough();
+      queueMicrotask(() => child.emit('close', 0));
+      return child;
+    },
+  });
+  assert.equal(authorPackage, path.join(gamePackage, 'base.apk'));
+  assert.equal(await fs.readFile(path.join(gamePackage, 'split_config.arm64_v8a.apk'), 'utf8'), 'owned split');
+  assert.equal(await fs.readFile(path.join(gamePackage, 'VR4ALL-build-tools', 'unrelated.apk'), 'utf8'), 'old build output');
+});
+
 test('author builder progress and a failed exit are reported through the job log', async () => {
   const lines = [];
   const spawnImpl = (_program, args) => {
@@ -210,6 +245,46 @@ test('personal builder reports FAILED messages from the author instead of a gene
   };
   await assert.rejects(() => runAuthorScript('rdr1-vr', { gamePackage: 'C:\\game.zip', serial: 'Q3' },
     'C:\\kit', 'C:\\work', () => {}, { spawnImpl, platform: 'win32', withBuildPath }), /Required Windows build command is unavailable/);
+});
+
+test('GTA SA build failure reports the assembly cause instead of the wrapper command', async () => {
+  const lines = [];
+  const spawnImpl = () => {
+    const child = new EventEmitter(); child.stdout = new PassThrough(); child.stderr = new PassThrough();
+    queueMicrotask(() => {
+      child.stdout.write('Checking the original game export...\n');
+      child.stderr.write('ERROR: audio archive size mismatch: streams/CUTSCENE.osw (12 != 34).\n');
+      child.stderr.write('ERROR: Command failed (1): Z:\\gta-sa-vr\\.tools\\python.exe assemble.py --game-package D:\\port files\\export\n');
+      child.emit('close', 1);
+    });
+    return child;
+  };
+  await assert.rejects(() => runAuthorScript('gta-sa-vr', {
+    gamePackage: 'D:\\port files\\export', audioSource: 'D:\\port files\\audio.7z', serial: 'Q3',
+  }, 'C:\\kit', 'C:\\work', (line) => lines.push(line), { spawnImpl, platform: 'win32', withBuildPath: async (dir, op) => op(dir) }),
+  (error) => {
+    assert.match(error.message, /audio archive size mismatch/);
+    assert.doesNotMatch(error.message, /Command failed \(1\)/);
+    return true;
+  });
+  assert.ok(lines.some((line) => line.includes('Command failed (1)')));
+});
+
+test('personal builder reports a Python exception when the wrapper only names the failed command', async () => {
+  const spawnImpl = () => {
+    const child = new EventEmitter(); child.stdout = new PassThrough(); child.stderr = new PassThrough();
+    queueMicrotask(() => {
+      child.stderr.write('Traceback (most recent call last):\n');
+      child.stderr.write('FileNotFoundError: base.apk was not found in the game export\n');
+      child.stderr.write('ERROR: Command failed (1): python.exe assemble.py\n');
+      child.emit('close', 1);
+    });
+    return child;
+  };
+  await assert.rejects(() => runAuthorScript('gta-sa-vr', {
+    gamePackage: 'D:\\export', audioSource: 'D:\\audio.7z', serial: 'Q3',
+  }, 'C:\\kit', 'C:\\work', () => {}, { spawnImpl, platform: 'win32', withBuildPath: async (dir, op) => op(dir) }),
+  /FileNotFoundError: base\.apk was not found/);
 });
 
 test('7z personal game archives reach the builder as ZIP and clean up on failure', { skip: process.platform !== 'win32' }, async (t) => {
