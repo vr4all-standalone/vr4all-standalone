@@ -1627,7 +1627,9 @@ async function startBuildTools() {
       $('#sdkBrowseButton').disabled = false;
       $('#sdkStartButton').hidden = false;
       $('#sdkStartButton').disabled = false;
-      $('#sdkSetupStatus').textContent = 'Choose a download folder, then select Download and set up tools.';
+      $('#sdkSetupStatus').textContent = location.unsafeSaved
+        ? 'Your previous build tools are inside the game export. Set them up in the suggested parent folder so the builder keeps your game files safe.'
+        : 'Choose a download folder, then select Download and set up tools.';
       $('#sdkLicenseSection').hidden = true;
       $('#sdkLicenseActions').hidden = true;
       $('#sdkLicenseText').textContent = '';
@@ -1648,7 +1650,8 @@ async function installBuildTools() {
   $('#sdkDownloadLocation').disabled = true;
   $('#sdkBrowseButton').disabled = true;
   try {
-    const { job } = await api('/api/build-tools', { method: 'POST', body: JSON.stringify({ gameId: game.id, downloadLocation }) });
+    const gamePackage = state.inputs[game.id]?.gamePackage;
+    const { job } = await api('/api/build-tools', { method: 'POST', body: JSON.stringify({ gameId: game.id, ...(gamePackage ? { gamePackage } : {}), downloadLocation }) });
     state.jobs.unshift(job);
     sdkSetupJobId = job.id;
     state.activeJobId = job.id;

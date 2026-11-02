@@ -206,7 +206,11 @@ async function runPersonalBuild(gameId, input, roots, log = () => {}, options = 
   const workDir = path.join(roots.workRoot, gameId);
   await fs.mkdir(path.join(workDir, '.tmp'), { recursive: true });
   log(`Building from ${kit.repo} commit ${kit.sha.slice(0, 12)} for Quest ${input.serial}.`);
-  await withSharedBuildTools(workDir, () => withCompatibleGamePackage(input.gamePackage, path.join(workDir, '.tmp'),
+  // The author accepts base.apk and scans its sibling splits. Avoid recursively
+  // scanning an exported folder that may contain an older VR4ALL tools cache.
+  const gamePackage = gameId === 'gta-sa-vr' && (await fs.stat(input.gamePackage)).isDirectory()
+    ? path.join(input.gamePackage, 'base.apk') : input.gamePackage;
+  await withSharedBuildTools(workDir, () => withCompatibleGamePackage(gamePackage, path.join(workDir, '.tmp'),
     (gamePackage) => gameId === 'rdr1-vr' ? withRdrGameData({ ...input, gamePackage }, path.join(workDir, '.tmp'),
       (completePackage) => runAuthorScript(gameId, { ...input, gamePackage: completePackage }, kit.directory, workDir, log, options), log)
       : runAuthorScript(gameId, { ...input, gamePackage }, kit.directory, workDir, log, options), log, options), log);

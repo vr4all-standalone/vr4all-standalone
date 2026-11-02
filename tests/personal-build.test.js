@@ -102,6 +102,40 @@ test('source kit pins the Git branch SHA when the GitHub API is rate limited', a
   assert.ok(urls.some((url) => url.endsWith(`/zip/${sha}`)));
 });
 
+test('GTA SA phone export passes base.apk and its sibling splits without scanning old nested build tools', async (t) => {
+  const root = await fs.mkdtemp(path.join(__dirname, '.gta-export-build-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const gamePackage = path.join(root, 'VR4ALL-export-gta-sa-vr-fixture');
+  await fs.mkdir(path.join(gamePackage, 'VR4ALL-build-tools'), { recursive: true });
+  await fs.writeFile(path.join(gamePackage, 'base.apk'), 'owned base');
+  await fs.writeFile(path.join(gamePackage, 'split_config.arm64_v8a.apk'), 'owned split');
+  await fs.writeFile(path.join(gamePackage, 'VR4ALL-build-tools', 'unrelated.apk'), 'old build output');
+  const audioSource = path.join(root, 'audio.7z');
+  await fs.writeFile(audioSource, 'owned audio');
+  const sha = 'e'.repeat(40);
+  let authorPackage;
+  await runPersonalBuild('gta-sa-vr', { gamePackage, audioSource, serial: 'Q3' }, {
+    cacheRoot: path.join(root, 'cache'), workRoot: path.join(root, 'safe-work'),
+  }, () => {}, {
+    fetchImpl: async (url) => new Response(url.includes('/commits/') ? JSON.stringify({ sha }) : 'source zip'),
+    extract: async (_zip, destination) => {
+      const tools = path.join(destination, 'official-kit', 'tools');
+      await fs.mkdir(tools, { recursive: true });
+      await fs.writeFile(path.join(tools, 'build-and-install.ps1'), 'param()');
+    },
+    withBuildPath: async (work, operation) => operation(work),
+    spawnImpl: (_program, args) => {
+      authorPackage = args[args.indexOf('-GamePackage') + 1];
+      const child = new EventEmitter(); child.stdout = new PassThrough(); child.stderr = new PassThrough();
+      queueMicrotask(() => child.emit('close', 0));
+      return child;
+    },
+  });
+  assert.equal(authorPackage, path.join(gamePackage, 'base.apk'));
+  assert.equal(await fs.readFile(path.join(gamePackage, 'split_config.arm64_v8a.apk'), 'utf8'), 'owned split');
+  assert.equal(await fs.readFile(path.join(gamePackage, 'VR4ALL-build-tools', 'unrelated.apk'), 'utf8'), 'old build output');
+});
+
 test('author builder progress and a failed exit are reported through the job log', async () => {
   const lines = [];
   const spawnImpl = (_program, args) => {
