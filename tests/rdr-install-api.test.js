@@ -24,7 +24,8 @@ async function finished(app, id) {
 // The server saves settings asynchronously after a job finishes; read until the file holds a complete write.
 async function savedSettings(settingsPath, ready = () => true) {
   for (let attempt = 0; attempt < 200; attempt++) {
-    const saved = await fs.readFile(settingsPath, 'utf8').then(JSON.parse, () => null);
+    // A half-written file fails JSON.parse, so the catch must cover parsing as well as reading.
+    const saved = await fs.readFile(settingsPath, 'utf8').then(JSON.parse).catch(() => null);
     if (saved && ready(saved)) return saved;
     await new Promise((resolve) => setTimeout(resolve, 10));
   }
