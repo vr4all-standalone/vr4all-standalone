@@ -3,8 +3,24 @@ const os = require('node:os');
 const path = require('node:path');
 const { spawn } = require('node:child_process');
 const { inspectListing, sevenZipPath, runSevenZip } = require('./archive-conversion');
+const { inspectApkPackage } = require('./apk-verification');
 
 const recipes = Object.freeze({
+  'forsaken-gameordie': {
+    script: 'files/setup-quest.ps1', apk: 'files/ForsakenVR.apk', packageId: 'net.gameordie.forsakenvr',
+    input: 'directory', prepareWithoutInput: true,
+    args: ({ gamePath, serial, adbPath }) => ['-Quiet', '-NoSearch', ...(gamePath ? ['-GamePath', gamePath] : []), '-Serial', serial, '-Adb', adbPath, '-Json'],
+  },
+  'unreal-gold-gameordie': {
+    script: 'files/setup-quest.ps1', apk: 'files/UnrealGoldVR.apk', packageId: 'net.gameordie.unrealgoldvr',
+    input: 'directory', prepareWithoutInput: true,
+    args: ({ gamePath, serial, adbPath }) => ['-Game', 'UG', '-Quiet', '-NoSearch', ...(gamePath ? ['-GamePath', gamePath] : []), '-Serial', serial, '-Adb', adbPath, '-Json'],
+  },
+  'ut99-gameordie': {
+    script: 'files/setup-quest.ps1', apk: 'files/UT99VR.apk', packageId: 'net.gameordie.ut99vr',
+    input: 'directory', prepareWithoutInput: true,
+    args: ({ serial, adbPath }) => ['-Game', 'UT', '-Quiet', '-NoSearch', '-Serial', serial, '-Adb', adbPath, '-Json'],
+  },
   'descent12-vr': {
     script: 'files/setup-quest.ps1',
     apk: 'files/DescentVR.apk',
@@ -37,7 +53,7 @@ const recipes = Object.freeze({
 async function validateOwnedInput(gameId, gamePath, updateOnly = false) {
   const recipe = recipes[gameId];
   if (!recipe) throw new Error('No integrated Quest player recipe for this port');
-  if (!gamePath && updateOnly) return null;
+  if (!gamePath && (updateOnly || recipe.prepareWithoutInput)) return null;
   if (typeof gamePath !== 'string' || !path.isAbsolute(gamePath)) throw new Error('Choose your owned game file or folder');
   const stat = await fs.lstat(gamePath).catch(() => null);
   if (!stat || stat.isSymbolicLink() || !stat[recipe.input === 'directory' ? 'isDirectory' : 'isFile']()) throw new Error('Choose an existing regular game ' + (recipe.input === 'directory' ? 'folder' : 'file'));
@@ -143,7 +159,10 @@ async function installOfficialPlayer(input) {
     onLog('Extracting the verified official Quest player ZIP...');
     await extractPlayerZip(zipPath, path.join(work, 'release'));
     const apk = await findRecipeFile(path.join(work, 'release'), recipe.apk);
-    if (!gamePath) {
+    if (recipe.packageId && await (input.inspectApk || inspectApkPackage)(apk, adbPath) !== recipe.packageId) {
+      throw new Error('The official Quest APK package identity does not match this port');
+    }
+    if (!gamePath && !recipe.prepareWithoutInput) {
       onLog('Updating the Quest APK; existing game data stays on the headset.');
       await adb.run(['-s', serial, 'install', '-r', apk], (chunk) => onLog(String(chunk).trim().slice(0, 500)));
       return { apk, updatedOnly: true };
@@ -154,7 +173,7 @@ async function installOfficialPlayer(input) {
       await fs.writeFile(script, allowQuest3SInInstaller(original), 'utf8');
       onLog('Quest 3S is unverified by the port creator. VR4ALL adjusted the temporary installer model check; game compatibility still needs testing.');
     }
-    onLog('Preparing your owned game data with the author’s packaged installer...');
+    onLog(recipe.prepareWithoutInput ? 'Running the creator’s setup to prepare game data and preserve existing saves...' : 'Preparing your owned game data with the author’s packaged installer...');
     await runScript(script, recipe.args({ gamePath, serial, adbPath, work }), onLog);
     return { apk, updatedOnly: false };
   } finally {

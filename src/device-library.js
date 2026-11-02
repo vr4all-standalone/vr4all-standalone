@@ -105,6 +105,9 @@ const packages = {
   'starship-vr': 'com.starship.vr',
   'crash-bandicoot-vr': 'io.github.matteo842.crashlauncher.runtime',
   'forsaken-vr': 'com.bilko.forsakenvr',
+  'forsaken-gameordie': 'net.gameordie.forsakenvr',
+  'unreal-gold-gameordie': 'net.gameordie.unrealgoldvr',
+  'ut99-gameordie': 'net.gameordie.ut99vr',
   'descent12-vr': 'net.gameordie.descentvr',
   'gothic2-vr': 'com.gothic2vr.quest',
   'gt2-vr': 'io.github.gt2pc.quest',
@@ -156,7 +159,7 @@ const downloadPatterns = {
 
 // Some upstream release tags use unrelated build numbering. Leave these neutral
 // until the project exposes a reliable installed-to-release version mapping.
-const incomparableVersions = new Set(['wii-compiled', 'nfsu2-vr', 'revolt-vr', 'mgs-vr', 'sourcevr', 'hotd2-dreamcast-vr', 'mok-upstream-vr', 'twilight-vr', 'gta-sa-vr', 'rdr1-vr', 'crazy-taxi-vr', 'bioshock-vr']);
+const incomparableVersions = new Set(['unreal-gold-gameordie', 'ut99-gameordie', 'wii-compiled', 'nfsu2-vr', 'revolt-vr', 'mgs-vr', 'sourcevr', 'hotd2-dreamcast-vr', 'mok-upstream-vr', 'twilight-vr', 'gta-sa-vr', 'rdr1-vr', 'crazy-taxi-vr', 'bioshock-vr']);
 
 async function inspectDevice(adb, serial, games, knownPackages = {}) {
   const result = {};
@@ -172,6 +175,20 @@ async function inspectDevice(adb, serial, games, knownPackages = {}) {
     return listCache.get(directory);
   }
   async function hasData(game) {
+    if (game.id === 'forsaken-gameordie') {
+      const base = '/sdcard/Android/data/net.gameordie.forsakenvr/files/data/levels';
+      const levels = await list(base);
+      return levels.includes('levels.dat') && levels.includes('battle.dat')
+        && (await list(`${base}/ship`)).includes('ship.mxv');
+    }
+    if (game.id === 'unreal-gold-gameordie' || game.id === 'ut99-gameordie') {
+      const gold = game.id === 'unreal-gold-gameordie';
+      const base = `/sdcard/Android/data/${gold ? 'net.gameordie.unrealgoldvr' : 'net.gameordie.ut99vr'}/files/UT99`;
+      const system = await list(`${base}/System`);
+      const maps = await list(`${base}/${gold ? 'Unreal/Maps' : 'Maps'}`);
+      return ['Core.u', 'Engine.u', gold ? 'UnrealI.u' : 'Botpack.u'].every((name) => system.includes(name))
+        && maps.includes(gold ? 'Vortex2.unr' : 'CityIntro.unr');
+    }
     if (game.id === 'jurassic-park-arcade-vr') {
       const base = '/sdcard/Android/data/com.jp2015.vr/files';
       const root = await list(base);

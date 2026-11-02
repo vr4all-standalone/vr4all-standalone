@@ -4,6 +4,42 @@ const download = '/sdcard/Download/';
 
 const additions = [
   {
+    id: 'forsaken-gameordie', variantOf: 'forsaken-vr', portLabel: 'Game Or Die', artId: 'forsaken-vr',
+    title: 'Forsaken VR', gameName: 'Forsaken', series: 'GameOrDie007', category: 'PC', color: '#a5d2a0',
+    description: 'Game Or Die’s standalone Forsaken port with tracked aiming and classic ship controls.',
+    projectUrl: 'https://github.com/GameOrDie007/Forsaken-VR',
+    source: { repo: 'GameOrDie007/Forsaken-VR', assetPattern: '^Forsaken-VR-[0-9.]+-Quest\\.zip$' },
+    playerInstall: 'official-zip', releaseKind: 'installer',
+    playerInstallDescription: 'VR4ALL downloads the official Quest ZIP and runs its setup. The creator installer downloads the ForsakenX data (about 130 MB); your own Forsaken Remastered folder is optional for its soundtrack and intro.',
+    data: [{ id: 'gamePath', label: 'Optional Forsaken Remastered game folder', kind: 'directory', optional: true, destination: '/sdcard/Android/data/net.gameordie.forsakenvr/files/', note: 'Optional. Choose your installed Forsaken Remastered folder or an archive of it for the soundtrack and intro. Leave blank to use the creator’s automatic ForsakenX data download.' }],
+    guidance: 'A separate app from PortRoyale’s Forsaken VR. Internet is required for the first data download. The creator setup backs up pilots, saved games and settings and copies changed files on updates. Quest 3 tested by the creator; Quest 3S untested.',
+    afterInstall: 'Open Forsaken VR under Unknown Sources. Choose Modern for tracked aiming or Classic for ship aiming on the first new game.',
+  },
+  {
+    id: 'unreal-gold-gameordie', variantOf: 'unreal-gold-vr', portLabel: 'Game Or Die', artId: 'unreal-gold-vr',
+    title: 'Unreal Gold VR', gameName: 'Unreal Gold', series: 'GameOrDie007', category: 'PC', color: '#b7abdb',
+    description: 'Game Or Die’s standalone Unreal Gold port with tracked weapons and online play.',
+    projectUrl: 'https://github.com/GameOrDie007/Unreal-Gold-VR',
+    source: { repo: 'GameOrDie007/Unreal-Gold-VR', assetPattern: '^Unreal-Gold-VR-[0-9.]+-Quest\\.zip$' },
+    playerInstall: 'official-zip', releaseKind: 'installer',
+    playerInstallDescription: 'VR4ALL downloads the official Quest ZIP and runs its setup. Your Unreal Gold folder is optional: the creator installer can download and verify the original game CD (about 650 MB).',
+    data: [{ id: 'gamePath', label: 'Optional Unreal Gold PC game folder', kind: 'directory', optional: true, destination: '/sdcard/Android/data/net.gameordie.unrealgoldvr/files/UT99/', requiredDirectories: ['System', 'Maps', 'Textures', 'Sounds', 'Music'], note: 'Optional. Choose your installed Unreal Gold folder or an archive of it. The creator uses its maps, textures, sounds and music, and obtains compatible 226 System files when necessary. Leave blank for its automatic original-CD download.' }],
+    guidance: 'A separate app from PortRoyale’s Unreal Gold VR. Internet may be needed for compatible original-game files. The creator setup preserves saved games, VR settings and gun fits on updates. Quest 3 tested by the creator; Quest 3S untested.',
+    afterInstall: 'Open Unreal Gold VR under Unknown Sources. The creator setup prepares the game files before launch.',
+  },
+  {
+    id: 'ut99-gameordie', variantOf: 'ut99-quest', portLabel: 'Game Or Die', artId: 'ut99-quest',
+    title: 'Unreal Tournament 99 VR', gameName: 'Unreal Tournament 1999', series: 'GameOrDie007', category: 'PC', color: '#d5a477',
+    description: 'Game Or Die’s standalone Unreal Tournament 1999 port with tracked weapons, bots and online play.',
+    projectUrl: 'https://github.com/GameOrDie007/Unreal-Tournament-99-VR',
+    source: { repo: 'GameOrDie007/Unreal-Tournament-99-VR', assetPattern: '^Unreal-Tournament-99-VR-[0-9.]+-Quest\\.zip$' },
+    playerInstall: 'official-zip', releaseKind: 'installer',
+    playerInstallDescription: 'VR4ALL downloads the official Quest ZIP and runs its setup. The creator installer downloads and verifies the original Unreal Tournament CD (about 760 MB) and OldUnreal’s 469e patch (about 106 MB). No local game files are required.',
+    data: [],
+    guidance: 'A separate app from GHWST’s UT99 Quest and PortRoyale’s Unreal Tournament VR. Internet is required for the first game-data and patch downloads. The creator setup preserves saves, VR settings, gun fits and Game Tome notes on updates. Quest 3 tested by the creator; Quest 3S untested.',
+    afterInstall: 'Open Unreal Tournament 99 VR under Unknown Sources. Use Start Practice Session for bots or Find Internet Games for online play.',
+  },
+  {
     id: 'max-payne-nightmare-vr', title: 'Max Payne VR: Nightmare Edition', gameName: 'Max Payne', portLabel: 'Nightmare Edition', series: 'HaveliSkywalker', category: 'Android', color: '#b43130',
     description: 'Standalone first-person Quest VR port of the original Max Payne, using your own Max Payne Mobile game files.',
     projectUrl: 'https://drive.google.com/file/d/1_o_Q7EUyWM0OMrTU4itctTIkYyrapCnr/view',
@@ -403,6 +439,7 @@ const additions = [
 ];
 
 const additionFacets = {
+  'forsaken-gameordie': ['PC', 'Space combat'], 'unreal-gold-gameordie': ['PC', 'Shooter'], 'ut99-gameordie': ['PC', 'Shooter'],
   'max-payne-nightmare-vr': ['Android', 'Shooter'],
   'max-payne-mpvr': ['Android', 'Shooter'],
   'project06-vr': ['PC', 'Platformer'],
