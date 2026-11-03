@@ -37,8 +37,7 @@ Installed standalone ports run on your Quest without PC streaming. VR4ALL does n
 
 ## Get started
 
-1. Download `VR4ALL-win-x64.exe` from [Releases](https://github.com/vr4all-standalone/vr4all-standalone/releases). Versions through 0.3.51 need this one manual download to repair their self-updater.
-   On Linux, run `npm install`, then build `VR4ALL-linux-x64.AppImage` with `npm run dist:linux` or run `./start.sh` after installing the tools listed under Requirements; see [Run on Linux](docs/user-guide.md#run-on-linux).
+1. Download `VR4ALL-win-x64.exe` for Windows or `VR4ALL-linux-x64.AppImage` for Linux from [Releases](https://github.com/vr4all-standalone/vr4all-standalone/releases). Versions through 0.3.51 need a manual Windows download to repair their self-updater. On Linux, make the AppImage executable and install the tools listed under Requirements; see [Run on Linux](docs/user-guide.md#run-on-linux).
 2. Enable Developer Mode on your Quest, connect it with a USB data cable, and approve **USB debugging** inside the headset.
 3. Open VR4ALL and select your headset above the library.
 4. Choose a game and add the files requested on its card from a copy you own. VR4ALL shows whether it accepts the input and any extra preparation needed.

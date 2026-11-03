@@ -1,0 +1,59 @@
+name: Package desktop apps
+
+on:
+  workflow_dispatch:
+
+jobs:
+  package:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            command: dist:win
+            asset: dist/VR4ALL-win-x64.exe
+            artifact: vr4all-windows-x64
+          - os: ubuntu-latest
+            command: dist:linux
+            asset: dist/VR4ALL-linux-x64.AppImage
+            artifact: vr4all-linux-x64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install Linux packaging tools
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y p7zip-full
+      - run: npm ci
+      - run: npm run ${{ matrix.command }}
+      - name: Check Windows package
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $file = Get-Item -LiteralPath '${{ matrix.asset }}'
+          if ($file.Length -lt 100MB) { throw 'Windows EXE is unexpectedly small' }
+          $stream = [System.IO.File]::OpenRead($file.FullName)
+          try {
+            if ($stream.ReadByte() -ne 77 -or $stream.ReadByte() -ne 90) { throw 'Missing Windows MZ header' }
+          } finally { $stream.Dispose() }
+          Get-FileHash -Algorithm SHA256 -LiteralPath $file.FullName
+      - name: Check Linux package
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(stat -c '%s' '${{ matrix.asset }}')" -gt 100000000
+          test "$(od -An -tx1 -N4 '${{ matrix.asset }}' | tr -d ' \n')" = '7f454c46'
+          chmod +x '${{ matrix.asset }}'
+          '${{ matrix.asset }}' --appimage-extract >/dev/null
+          find squashfs-root -name app.asar -type f | grep -q .
+          sha256sum '${{ matrix.asset }}'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.asset }}
+          if-no-files-found: error
+          compression-level: 0
