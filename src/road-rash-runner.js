@@ -7,6 +7,8 @@ const { execFile, spawn } = require('node:child_process');
 const { promisify } = require('node:util');
 const { Readable, Transform } = require('node:stream');
 const { pipeline } = require('node:stream/promises');
+const { extractZipSafely } = require('./harry-potter-runner');
+const { installRoadRashLinux, findPackageRoot } = require('./road-rash-linux');
 
 const runFile = promisify(execFile);
 const officialRepo = 'dubrovskiy-yevhen-stakelogic/road-rash-jailbreak';
@@ -212,6 +214,12 @@ async function installRoadRashPlayer(input, options = {}) {
     onLog(`Downloading official Road Rash ${input.release.tag || 'player'} package...`);
     await downloadRelease(releaseUrl, input.release, archive, options.fetchImpl || fetch, input.signal);
     onLog('Official Road Rash package SHA-256 verified.');
+    if ((input.platform || options.platform || process.platform) !== 'win32') {
+      const extracted = await extractZipSafely(archive, path.join(staging, 'package'), { signal: input.signal });
+      const packageRoot = await findPackageRoot(extracted);
+      onLog('Verifying the official Road Rash package and your disc image...');
+      return await installRoadRashLinux(packageRoot, { ...input, onLog, work: path.join(staging, 'disc') }, options);
+    }
     const packageRoot = await extractReleaseZip(archive, path.join(staging, 'package'));
     onLog('Running the official Road Rash Quest installer...');
     return await runInstaller(packageRoot, { ...input, onLog }, options.spawnImpl || spawn);

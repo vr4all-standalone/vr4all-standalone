@@ -7,8 +7,8 @@ const { EventEmitter } = require('node:events');
 const { PassThrough } = require('node:stream');
 const { spawn } = require('node:child_process');
 const { runSdkManager, setupViceCityTools, prepareSdkTools } = require('../src/android-sdk-setup');
-
-const config = { javaExe: 'C:\\tools\\jdk\\bin\\java.exe', javaHome: 'C:\\tools\\jdk', classpath: 'C:\\tools\\sdk\\lib\\sdkmanager-classpath.jar', sdkRoot: 'C:\\tools\\sdk', packages: ['platforms;android-35', 'ndk;27.2.12479018'] };
+const tools = path.resolve(path.sep, 'tools');
+const config = { javaExe: path.join(tools, 'jdk', 'bin', 'java.exe'), javaHome: path.join(tools, 'jdk'), classpath: path.join(tools, 'sdk', 'lib', 'sdkmanager-classpath.jar'), sdkRoot: path.join(tools, 'sdk'), packages: ['platforms;android-35', 'ndk;27.2.12479018'] };
 
 function childProcess() {
   const child = new EventEmitter();
@@ -25,16 +25,17 @@ test('SDK Manager waits for the displayed license decision before sending any in
   const shown = new Promise((resolve) => { presented = resolve; });
   const writes = [];
   const task = runSdkManager(config, () => {}, async (text) => { presented(text); return pending; }, {
+    platform: 'win32',
     spawnImpl: (binary, args, options) => {
       assert.equal(binary, config.javaExe);
       assert.ok(args.includes('--install'));
-      assert.ok(args.includes('--sdk_root=C:\\tools\\sdk'));
+      assert.ok(args.includes(`--sdk_root=${path.join(tools, 'sdk')}`));
       assert.deepEqual(args.slice(-2), config.packages);
       assert.equal(options.stdio[0], 'pipe');
-      assert.equal(options.env.TEMP, 'C:\\tools\\.tmp');
-      assert.equal(options.env.TMP, 'C:\\tools\\.tmp');
-      assert.equal(options.env.ANDROID_USER_HOME, 'C:\\tools\\.android-user');
-      assert.ok(args.includes('-Djava.io.tmpdir=C:\\tools\\.tmp'));
+      assert.equal(options.env.TEMP, path.join(tools, '.tmp'));
+      assert.equal(options.env.TMP, path.join(tools, '.tmp'));
+      assert.equal(options.env.ANDROID_USER_HOME, path.join(tools, '.android-user'));
+      assert.ok(args.includes(`-Djava.io.tmpdir=${path.join(tools, '.tmp')}`));
       child = childProcess();
       child.stdin.on('data', (chunk) => writes.push(String(chunk)));
       queueMicrotask(() => { child.stdout.write('License android-sdk-license:\nActual Google terms\nAccept? (y'); child.stdout.write('/N): '); });
@@ -124,7 +125,8 @@ test('an already prepared SDK needs no license acceptance or installation', asyn
 });
 
 test('PowerShell imports SDK helpers without running the author game installer', { skip: process.platform !== 'win32' }, async (t) => {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-sdk-import-'));
+  // realpath: the Windows temp folder can be an 8.3 short path (RUNNER~1) while PowerShell reports the long one.
+  const root = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-sdk-import-')));
   t.after(() => fs.rm(root, { recursive: true, force: true }));
   const kit = path.join(root, 'kit');
   await fs.mkdir(path.join(kit, 'tools'), { recursive: true });
@@ -155,7 +157,7 @@ function Get-MissingSdkPackages {
 }
 throw 'The game installer entry point must never run during SDK setup'
 `);
-  const metadata = await prepareSdkTools(kit, root, () => {}, { spawnImpl: (binary, args, options) => {
+  const metadata = await prepareSdkTools(kit, root, () => {}, { platform: 'win32', spawnImpl: (binary, args, options) => {
     const helper = args[args.indexOf('-File') + 1];
     assert.ok(helper.startsWith(root + path.sep), 'external PowerShell cannot read a helper inside the packaged app.asar');
     assert.equal(options.env.TEMP, path.join(root, '.tmp'));
@@ -167,13 +169,14 @@ throw 'The game installer entry point must never run during SDK setup'
   assert.equal((await fs.readdir(root)).some((name) => name.startsWith('.vr4all-sdk-helper-')), false);
   await fs.mkdir(path.join(buildTools, 'lib'));
   for (const marker of ['aapt2.exe', 'zipalign.exe', 'lib/apksigner.jar', 'lib/d8.jar', 'source.properties']) await fs.writeFile(path.join(buildTools, marker), 'fixture');
-  const complete = await prepareSdkTools(kit, root, () => {});
+  const complete = await prepareSdkTools(kit, root, () => {}, { platform: 'win32' });
   assert.deepEqual(complete.packages, ['platforms;android-35']);
 });
 
 for (const gameId of ['rdr1-vr', 'gta-sa-vr']) {
 test(`${gameId} bootstrap imports its own SDK requirements without executing the game installer or accepting licenses`, { skip: process.platform !== 'win32' }, async (t) => {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-rdr-sdk-import-'));
+  // realpath: the Windows temp folder can be an 8.3 short path (RUNNER~1) while PowerShell reports the long one.
+  const root = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-rdr-sdk-import-')));
   t.after(() => fs.rm(root, { recursive: true, force: true }));
   const kit = path.join(root, 'kit');
   await fs.mkdir(path.join(kit, 'tools'), { recursive: true });
@@ -197,7 +200,7 @@ function Test-AndroidPackages {
 function Invoke-AndroidSdkLicenses { throw 'Bootstrap must never accept terms' }
 throw 'Game installer must not execute during tool preparation'
 `);
-  const result = await prepareSdkTools(kit, root, () => {}, { gameId });
+  const result = await prepareSdkTools(kit, root, () => {}, { gameId, platform: 'win32' });
   assert.equal(result.javaExe, path.join(root, '.tools', 'jdk', 'bin', 'java.exe'));
   assert.equal(result.classpath, cli);
   assert.deepEqual(result.packages, ['platforms;android-35', 'build-tools;35.0.0', 'ndk;27.2.12479018', 'cmake;3.22.1']);
@@ -226,4 +229,26 @@ test('all three setup flows reuse installed SDK packages and only install a diff
     });
   }
   assert.deepEqual(installed, ['platforms;android-35', 'ndk;27.2.12479018', 'cmake;3.22.1', 'build-tools;34.0.0', 'build-tools;35.0.0']);
+});
+
+test('on Linux SDK Manager runs with the shared temp folder and without relocating the Android user folder', async () => {
+  let child;
+  const task = runSdkManager(config, () => {}, async () => true, {
+    platform: 'linux',
+    spawnImpl: (binary, args, options) => {
+      assert.equal(binary, config.javaExe);
+      assert.deepEqual(args.slice(-3), ['--install', ...config.packages]);
+      assert.equal(options.env.TEMP, path.join(tools, '.tmp'));
+      assert.equal(options.env.TMPDIR, path.join(tools, '.tmp'));
+      assert.equal(options.env.GRADLE_USER_HOME, path.join(tools, '.gradle'));
+      assert.equal(options.env.JAVA_HOME, config.javaHome);
+      assert.equal(options.env.ANDROID_USER_HOME, process.env.ANDROID_USER_HOME, 'adb must keep finding the key the Quest already trusts');
+      assert.ok(args.includes(`-Djava.io.tmpdir=${path.join(tools, '.tmp')}`));
+      assert.ok(args.includes(`--sdk_root=${config.sdkRoot}`));
+      child = childProcess();
+      return child;
+    },
+  });
+  child.emit('close', 0);
+  await task;
 });

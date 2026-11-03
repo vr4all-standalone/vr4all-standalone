@@ -7,8 +7,10 @@ const { PassThrough } = require('node:stream');
 const { validateViceCityInput, runViceCityBuild: buildViceCity } = require('../src/vice-city-runner');
 
 // These tests isolate source validation and process reporting. Real Windows
-// drive mapping and PowerShell extraction are covered in build-path.test.js.
-const runViceCityBuild = (input, roots, log, options) => buildViceCity(input, roots, log, { platform: 'linux', ...options });
+// drive mapping and PowerShell extraction are covered in build-path.test.js, so the
+// Windows flow here hands its path straight through instead of calling subst.exe.
+const runViceCityBuild = (input, roots, log, options) => buildViceCity(input, roots, log,
+  options?.platform ? options : { platform: 'win32', withBuildPath: async (dir, operation) => operation(dir), ...options });
 
 const commit = 'a'.repeat(40);
 const required = ['data', 'TEXT', 'anim', 'txd', 'skins', 'mp3', 'movies', 'models', 'Audio'];
@@ -235,4 +237,106 @@ test('keeps the short build drive until a cancelled child has closed', async (t)
   child.emit('close', null);
   await rejected;
   assert.deepEqual(commands.at(-1), ['Z:', '/D']);
+});
+
+// ---- Linux: the creator's build-and-install.sh ----
+
+const SCRIPT_FLAGS = '--game-dir --serial --non-interactive --work-dir --android-sdk --java-home';
+
+function linuxSourceArchive(script = `# options: ${SCRIPT_FLAGS}\n`) {
+  const root = `vice-city-vr-quest-${commit}/`;
+  return zip([
+    [`${root}tools/build-and-install.sh`, script],
+    [`${root}tools/assemble.sh`, '#!/usr/bin/env bash'],
+    [`${root}overlay/android/app/build.gradle.kts`, 'versionName = "0.5.6"'],
+  ]);
+}
+
+// Stands in for the JDK and SDK that "Set up build tools" installs; the real checks are in linux-build-tools.test.js.
+const linuxTools = (root) => ({
+  platform: 'linux',
+  findTool: () => '/usr/bin/bash',
+  checkHostTools: async () => {},
+  resolveLinuxTools: async () => ({ javaHome: '/opt/jdk-21', sdkRoot: path.join(root, 'work', 'shared', '.android-sdk') }),
+});
+
+test('Linux runs the creator shell script with the shared tools and the selected Quest', async (t) => {
+  const { root, gamePath } = await fixture(t);
+  const logs = [];
+  let call;
+  const result = await runViceCityBuild({ gamePackage: gamePath, serial: 'Quest-1' }, { cacheRoot: path.join(root, 'cache'), workRoot: path.join(root, 'work') }, (line) => logs.push(line), {
+    ...linuxTools(root),
+    fetchImpl: fetchFor(linuxSourceArchive()),
+    spawnImpl: (binary, args, options) => {
+      call = { binary, args, options };
+      return fakeProcess('  % Total    % Received % Xferd  Average Speed\n100  130M  100  130M    0     0  55.1M      0  0:00:02  0:00:02 --:--:-- 55.2M\nVICE CITY VR IS READY.\n');
+    },
+  });
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.sha, commit);
+  assert.equal(call.binary, '/usr/bin/bash');
+  const kit = path.join(root, 'cache', 'vice-city-vr', commit, `vice-city-vr-quest-${commit}`);
+  assert.deepEqual(call.args, [path.join(kit, 'tools', 'build-and-install.sh'), '--game-dir', gamePath, '--serial', 'Quest-1', '--non-interactive',
+    '--work-dir', path.join(root, 'work', 'shared'), '--android-sdk', path.join(root, 'work', 'shared', '.android-sdk'), '--java-home', '/opt/jdk-21']);
+  assert.equal(call.options.cwd, kit);
+  assert.equal(call.options.env.TMPDIR, path.join(root, 'work', 'shared', '.tmp'));
+  assert.equal(call.options.env.GRADLE_USER_HOME, path.join(root, 'work', 'shared', '.gradle'));
+  assert.deepEqual(logs.filter((line) => /Total|Dload|55\.1M/.test(line)), []);
+  assert.ok(logs.includes('VICE CITY VR IS READY.'));
+});
+
+test('Linux reports the last output lines when the creator script fails', async (t) => {
+  const { root, gamePath } = await fixture(t);
+  const text = 'Incompatible installed signature. Interactive confirmation is required before uninstalling com.miamivr.quest.';
+  await assert.rejects(runViceCityBuild({ gamePackage: gamePath, serial: 'Quest-1' }, { cacheRoot: path.join(root, 'cache'), workRoot: path.join(root, 'work') }, () => {}, {
+    ...linuxTools(root), fetchImpl: fetchFor(linuxSourceArchive()), spawnImpl: () => fakeProcess(`step 1\nERROR: ${text}\n`, 1),
+  }), (error) => /^Official Vice City build and install failed \(exit 1\)\. /.test(error.message) && error.message.includes(text));
+});
+
+test('Linux refuses a game folder whose names differ in case from what the app reads, before any process starts', async (t) => {
+  const { root, gamePath } = await fixture(t);
+  await fs.rename(path.join(gamePath, 'data'), path.join(gamePath, 'Data'));
+  await assert.rejects(runViceCityBuild({ gamePackage: gamePath, serial: 'Quest-1' }, { cacheRoot: path.join(root, 'cache'), workRoot: path.join(root, 'work') }, () => {}, {
+    ...linuxTools(root), fetchImpl: fetchFor(linuxSourceArchive()), spawnImpl: () => { throw new Error('unexpected launch'); },
+  }), /Rename Data to data in your Vice City folder before building/);
+});
+
+test('Linux stops before launching when a host tool or the build tools are missing', async (t) => {
+  const { root, gamePath } = await fixture(t);
+  const roots = { cacheRoot: path.join(root, 'cache'), workRoot: path.join(root, 'work') };
+  const spawnImpl = () => { throw new Error('unexpected launch'); };
+  await assert.rejects(runViceCityBuild({ gamePackage: gamePath, serial: 'Quest-1' }, roots, () => {}, {
+    ...linuxTools(root), fetchImpl: fetchFor(linuxSourceArchive()), spawnImpl,
+    checkHostTools: async () => { throw new Error('Missing system tools needed to build on Linux: git (package git).'); },
+  }), /git \(package git\)/);
+  await assert.rejects(runViceCityBuild({ gamePackage: gamePath, serial: 'Quest-1' }, roots, () => {}, {
+    ...linuxTools(root), fetchImpl: fetchFor(linuxSourceArchive()), spawnImpl,
+    resolveLinuxTools: async () => { throw new Error('Build tools are not set up. Click "Set up build tools" first.'); },
+  }), /Set up build tools/);
+});
+
+test('Linux extracts an owned game ZIP privately and passes the extracted folder to the script', async (t) => {
+  const { root } = await fixture(t);
+  const gamePackage = path.join(root, 'owned-game.zip');
+  await fs.writeFile(gamePackage, zip(required.map((name) => [`Vice City/${name}/`, ''])));
+  const input = await validateViceCityInput({ gamePackage, serial: 'Quest-1' });
+  let extracted;
+  await runViceCityBuild(input, { cacheRoot: path.join(root, 'cache'), workRoot: path.join(root, 'work') }, () => {}, {
+    ...linuxTools(root), fetchImpl: fetchFor(linuxSourceArchive()),
+    spawnImpl: (_binary, args) => { extracted = args[args.indexOf('--game-dir') + 1]; return fakeProcess('done\n'); },
+  });
+  assert.equal(path.basename(extracted), 'Vice City');
+  assert.ok(extracted.startsWith(path.join(root, 'work', 'vice-city-vr', '.tmp') + path.sep));
+  assert.equal(await fs.stat(extracted).catch(() => null), null);
+});
+
+test('Linux needs the creator shell script and every option it passes', async (t) => {
+  const { root, gamePath } = await fixture(t);
+  const roots = { cacheRoot: path.join(root, 'cache'), workRoot: path.join(root, 'work') };
+  await assert.rejects(runViceCityBuild({ gamePackage: gamePath, serial: 'Quest-1' }, roots, () => {}, {
+    ...linuxTools(root), fetchImpl: fetchFor(sourceArchive()),
+  }), /missing tools\/build-and-install\.sh/);
+  await assert.rejects(runViceCityBuild({ gamePackage: gamePath, serial: 'Quest-1' }, roots, () => {}, {
+    ...linuxTools(root), fetchImpl: fetchFor(linuxSourceArchive('# options: --game-dir --serial\n')),
+  }), /safe unattended installation/);
 });

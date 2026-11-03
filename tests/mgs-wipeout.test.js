@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
+const { sevenZipBinary } = require('./helpers/seven-zip');
 const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const { getCatalog } = require('../src/catalog');
@@ -64,7 +65,7 @@ test('Wipeout accepts a ZIP containing an owned CUE and its BIN', { skip: proces
   try {
     const { bin, cue } = await makeWipeoutDisc(root);
     const archive = path.join(root, 'disc.zip');
-    const sevenZip = path.join(__dirname, '..', 'vendor', '7zip', '7z.exe');
+    const sevenZip = sevenZipBinary();
     await runFile(sevenZip, ['a', '-tzip', archive, path.basename(bin), path.basename(cue)], { cwd: root });
     assert.match((await inspectWipeoutArchive(archive)).member, /\.cue$/i);
     const wrapped = await extractWipeoutArchive(archive);

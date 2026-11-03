@@ -57,6 +57,15 @@ if (!ownsInstanceLock) {
           const error = await shell.openPath(folder);
           if (error) throw new Error(error);
         },
+        ...(process.platform !== 'win32' && {
+          picker: async (kind, defaultPath) => {
+            const { canceled, filePaths } = await dialog.showOpenDialog(window, {
+              properties: [kind === 'directory' ? 'openDirectory' : 'openFile'],
+              ...(defaultPath && { defaultPath }),
+            });
+            return canceled ? null : filePaths[0] || null;
+          },
+        }),
       });
       server = instance.server;
       getActiveInstallJobs = instance.getActiveInstallJobs;
@@ -104,7 +113,7 @@ if (!ownsInstanceLock) {
         show: false,
         autoHideMenuBar: true,
         backgroundColor: '#0b111c',
-        icon: path.join(__dirname, 'icon.ico'),
+        icon: path.join(__dirname, process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
         webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, preload: path.join(__dirname, 'preload.js') },
       });
       traceStartup('window-created');

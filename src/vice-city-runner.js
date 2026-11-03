@@ -8,7 +8,10 @@ const { pipeline } = require('node:stream/promises');
 const { extractZipSafely } = require('./harry-potter-runner');
 const { withShortBuildPath } = require('./build-path');
 const { buildEnvironment } = require('./build-environment');
-const { withSharedBuildTools, findSharedJavaHome } = require('./shared-build-tools');
+const { withSharedBuildTools, findSharedJavaHome, buildToolsDir } = require('./shared-build-tools');
+const { findOnPath } = require('./find-tool');
+const { runLogged } = require('./run-logged');
+const { checkHostTools, assertLinuxToolsReady, buildShellArgs, isCurlMeterLine } = require('./linux-build-tools');
 
 const repo = 'dubrovskiy-yevhen-stakelogic/vice-city-vr-quest';
 const gameDirs = ['data', 'TEXT', 'anim', 'txd', 'skins', 'mp3', 'movies', 'models', 'Audio'];
@@ -86,17 +89,20 @@ async function downloadSource(fetchImpl, sha, target, signal) {
   if (!bytes) throw new Error('Official Vice City source archive is empty');
 }
 
-async function checkKit(directory) {
-  for (const relative of ['BUILD_AND_INSTALL.bat', 'tools/build-and-install.ps1', 'overlay/android/app/build.gradle.kts']) {
+async function checkKit(directory, platform = process.platform) {
+  const win = platform === 'win32';
+  const script = win ? 'build-and-install.ps1' : 'build-and-install.sh';
+  for (const relative of win ? ['BUILD_AND_INSTALL.bat', 'tools/build-and-install.ps1', 'overlay/android/app/build.gradle.kts']
+    : ['tools/build-and-install.sh', 'tools/assemble.sh', 'overlay/android/app/build.gradle.kts']) {
     const file = path.join(directory, ...relative.split('/'));
     const stat = await fsp.lstat(file).catch(() => null);
     if (!stat?.isFile() || stat.isSymbolicLink() || !stat.size) throw new Error(`Official Vice City source archive is missing ${relative}`);
   }
-  const scriptBytes = await fsp.readFile(path.join(directory, 'tools', 'build-and-install.ps1'));
-  const script = scriptBytes.toString('utf8');
-  if (!/\$Serial\b/.test(script) || !/\$NonInteractive\b/.test(script) || !/\$GameDir\b/.test(script)) {
-    throw new Error('Official Vice City build script does not support safe unattended installation');
-  }
+  const scriptBytes = await fsp.readFile(path.join(directory, 'tools', script));
+  const text = scriptBytes.toString('utf8');
+  const supported = win ? /\$Serial\b/.test(text) && /\$NonInteractive\b/.test(text) && /\$GameDir\b/.test(text)
+    : ['--game-dir', '--serial', '--non-interactive', '--work-dir', '--android-sdk', '--java-home'].every((flag) => new RegExp(`${flag}\\b`).test(text));
+  if (!supported) throw new Error('Official Vice City build script does not support safe unattended installation');
   return crypto.createHash('sha256').update(scriptBytes).digest('hex');
 }
 
@@ -143,7 +149,7 @@ async function acquireViceCitySource(cacheRoot, log = () => {}, options = {}) {
     if (metadata.repo !== repo || metadata.sha !== sha || !/^[a-f0-9]{64}$/.test(metadata.treeSha256 || '')) {
       throw new Error('Vice City source cache marker is invalid');
     }
-    await checkKit(kitDir);
+    await checkKit(kitDir, options.platform);
     const actual = await hashKitTree(kitDir);
     if (actual !== metadata.treeSha256) throw new Error('Vice City source cache failed SHA-256 verification');
     log(`Using cached official Vice City source at ${sha.slice(0, 12)}.`);
@@ -165,7 +171,7 @@ async function acquireViceCitySource(cacheRoot, log = () => {}, options = {}) {
       throw new Error('Official Vice City source archive has an unexpected commit layout');
     }
     const unpackedKit = path.join(extracted, entries[0].name);
-    await checkKit(unpackedKit);
+    await checkKit(unpackedKit, options.platform);
     const treeSha256 = await hashKitTree(unpackedKit);
     await fsp.writeFile(path.join(extracted, '.vr4all-complete'), JSON.stringify({ repo, sha, treeSha256 }), { flag: 'wx' });
     await fsp.rename(extracted, finalRoot);
@@ -190,7 +196,42 @@ function runAuthorScript(input, kit, workDir, log, options = {}) {
   return (options.withBuildPath || withShortBuildPath)(workDir, (shortPath) => runAuthorScriptAtPath(input, kit, shortPath, log, options), log, options);
 }
 
+// Android paths are case-sensitive and the creator's script pushes the folder with its on-disk
+// spelling, so a Linux folder must already use the exact names the app reads.
+async function assertGameFolderCase(gamePath) {
+  const names = await fsp.readdir(gamePath);
+  for (const wanted of gameDirs) {
+    if (names.includes(wanted)) continue;
+    const found = names.find((name) => name.toLowerCase() === wanted.toLowerCase());
+    throw new Error(found ? `Rename ${found} to ${wanted} in your Vice City folder before building` : `Your Vice City folder is missing ${wanted}`);
+  }
+}
+
+// Linux: the creator's own build-and-install.sh, on the tools VR4ALL installed in <workRoot>/shared.
+async function runShellScriptAtPath(input, kit, workDir, log, options) {
+  const toolsDir = buildToolsDir(workDir, options);
+  const findTool = options.findTool || findOnPath;
+  await (options.checkHostTools || checkHostTools)('vice-city-vr', { findTool });
+  const { javaHome, sdkRoot } = await (options.resolveLinuxTools || assertLinuxToolsReady)(kit.directory, toolsDir);
+  await assertGameFolderCase(input.gamePath);
+  const args = buildShellArgs('vice-city-vr', input, kit.directory, { toolsDir, javaHome, sdkRoot });
+  const recent = [];
+  const result = await runLogged(findTool(['bash']), args, {
+    cwd: kit.directory, env: buildEnvironment(toolsDir, options), spawnImpl: options.spawnImpl,
+    onLine: (line) => {
+      if (isCurlMeterLine(line)) return;
+      recent.push(line);
+      if (recent.length > 12) recent.shift();
+      log(line);
+    },
+  });
+  if (result.code === 0) return { exitCode: 0, sha: kit.sha };
+  const status = result.code === null ? `signal ${result.signal}` : `exit ${result.code}`;
+  throw new Error(`Official Vice City build and install failed (${status}). ${recent.join(' ').slice(-1800)}`);
+}
+
 async function runAuthorScriptAtPath(input, kit, workDir, log, options) {
+  if ((options.platform || process.platform) !== 'win32') return runShellScriptAtPath(input, kit, workDir, log, options);
   const args = ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File',
     path.join(kit.directory, 'tools', 'build-and-install.ps1'),
     '-GameDir', input.gamePath, '-Serial', input.serial, '-NonInteractive', '-WorkDir', workDir,
@@ -265,7 +306,7 @@ async function runViceCityBuild(input, roots, log = () => {}, options = {}) {
     }
     await fsp.mkdir(workDir, { recursive: true });
     log(`Building from ${kit.repo} commit ${kit.sha.slice(0, 12)} for Quest ${validated.serial}.`);
-    return await withSharedBuildTools(workDir, () => runAuthorScript({ gamePath, serial: validated.serial }, kit, workDir, log, { ...options, signal }), log);
+    return await withSharedBuildTools(workDir, () => runAuthorScript({ gamePath, serial: validated.serial }, kit, workDir, log, { ...options, signal }), log, options);
   } finally {
     if (gameStage) await fsp.rm(gameStage, { recursive: true, force: true });
   }

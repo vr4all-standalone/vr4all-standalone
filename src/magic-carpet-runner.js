@@ -9,7 +9,7 @@ const { inspectApkPackage } = require('./apk-verification');
 const run = promisify(execFile);
 
 async function installMagicCarpet(input) {
-  const { apkPath, importerZip, gamePath, serial, adb, workRoot = os.tmpdir(), onLog = () => {} } = input || {};
+  const { apkPath, importerZip, gamePath, serial, adb, workRoot = os.tmpdir(), onLog = () => {}, platform = process.platform, exec = run } = input || {};
   if (!/^[A-Za-z0-9._:-]+$/.test(serial || '') || !adb?.run) throw new Error('Choose a connected Quest');
   if (!(await fs.stat(apkPath).catch(() => null))?.isFile()) throw new Error('Official Magic Carpet APK is unavailable');
   const packageId = await (input.inspectApk || inspectApkPackage)(apkPath, adb.getPath?.());
@@ -21,19 +21,26 @@ async function installMagicCarpet(input) {
   }
   const stat = await fs.lstat(gamePath).catch(() => null);
   if (!stat?.isDirectory() || stat.isSymbolicLink() || !(await fs.readdir(gamePath)).length) throw new Error('Drop your installed Magic Carpet game folder');
-  if (!(await fs.stat(importerZip).catch(() => null))?.isFile()) throw new Error('Official Windows importer ZIP is unavailable');
+  if (!(await fs.stat(importerZip).catch(() => null))?.isFile()) throw new Error('Official importer ZIP is unavailable');
   await fs.mkdir(workRoot, { recursive: true });
   const work = await fs.mkdtemp(path.join(workRoot, 'vr4all-player-'));
   try {
     const extracted = path.join(work, 'importer');
     onLog('Extracting the official Magic Carpet importer...');
     await extractPlayerZip(importerZip, extracted);
-    const importer = await findRecipeFile(extracted, 'mgc-import.exe');
+    const importer = await findRecipeFile(extracted, platform === 'win32' ? 'mgc-import.exe' : 'mgc-import');
+    if (platform !== 'win32') {
+      const head = Buffer.alloc(4);
+      const handle = await fs.open(importer, 'r');
+      try { await handle.read(head, 0, 4, 0); } finally { await handle.close(); }
+      if (head.toString('latin1') !== '\x7fELF') throw new Error('Official Magic Carpet importer is not a Linux executable');
+      await fs.chmod(importer, 0o755);
+    }
     const baked = path.join(work, 'baked');
     onLog('Checking your owned Magic Carpet files...');
-    await run(importer, ['scan', gamePath], { windowsHide: true, timeout: 10 * 60 * 1000, maxBuffer: 4 * 1024 * 1024 });
+    await exec(importer, ['scan', gamePath], { windowsHide: true, timeout: 10 * 60 * 1000, maxBuffer: 4 * 1024 * 1024 });
     onLog('Baking Quest game data with the official importer...');
-    await run(importer, ['bake', gamePath, baked], { windowsHide: true, timeout: 45 * 60 * 1000, maxBuffer: 4 * 1024 * 1024 });
+    await exec(importer, ['bake', gamePath, baked], { windowsHide: true, timeout: 45 * 60 * 1000, maxBuffer: 4 * 1024 * 1024 });
     if (!(await fs.stat(baked).catch(() => null))?.isDirectory() || !(await fs.readdir(baked)).length) throw new Error('Official importer produced no baked game data');
     onLog('Copying baked game data to the selected headset...');
     await adb.run(['-s', serial, 'shell', 'mkdir', '-p', '/sdcard/mgcarpet']);

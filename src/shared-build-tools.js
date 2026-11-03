@@ -4,6 +4,9 @@ const crypto = require('node:crypto');
 
 const games = ['vice-city-vr', 'rdr1-vr', 'gta-sa-vr'];
 const directories = ['.tools', '.downloads', '.android-sdk', '.gradle', '.android-user'];
+// Linux has no junctions and the author scripts reject links in their managed
+// directories, so every game uses the one physical `shared` directory itself.
+const linuxDirectories = ['.tools', '.downloads', '.android-sdk', '.gradle', '.tmp'];
 const queues = new Map();
 const inspect = (file) => fs.lstat(file).catch((error) => { if (error.code === 'ENOENT') return null; throw error; });
 
@@ -54,7 +57,7 @@ async function bindDirectory(local, target, log) {
   await fs.symlink(target, local, process.platform === 'win32' ? 'junction' : 'dir');
 }
 
-async function aliasCommandLineTools(shared) {
+async function aliasCommandLineTools(shared, platform) {
   // These authors use different directory names for the same pinned Google
   // release. Sharing this directory also avoids downloading its ZIP twice.
   const cli = path.join(shared, '.android-sdk', 'cmdline-tools');
@@ -63,13 +66,36 @@ async function aliasCommandLineTools(shared) {
     if (await inspect(alias)) continue;
     const properties = await fs.readFile(path.join(source, 'source.properties'), 'utf8').catch(() => '');
     if (!/^Pkg\.Revision\s*=\s*22\.0\s*$/m.test(properties)) continue;
-    const files = ['lib/sdkmanager-classpath.jar', 'bin/sdkmanager.bat'];
+    const files = ['lib/sdkmanager-classpath.jar', platform === 'win32' ? 'bin/sdkmanager.bat' : 'bin/sdkmanager'];
     const ready = await Promise.all(files.map((file) => fs.stat(path.join(source, file)).catch(() => null)));
     if (ready.every((stat) => stat?.isFile() && stat.size)) await fs.symlink(source, alias, process.platform === 'win32' ? 'junction' : 'dir');
   }
 }
 
-async function findSharedJavaHome(workDir) {
+function buildToolsDir(workDir, options = {}) {
+  return (options.platform || process.platform) === 'win32' ? workDir : path.join(path.dirname(workDir), 'shared');
+}
+
+async function usableExecutable(file) {
+  const stat = await fs.stat(file).catch(() => null);
+  if (!stat?.isFile() || !stat.size) return false;
+  return fs.access(file, fs.constants.X_OK).then(() => true, () => false);
+}
+
+// Highest Temurin 21 under <toolsDir>/.tools that has a working java and javac.
+async function findLinuxJavaHome(toolsDir) {
+  const root = path.join(toolsDir, '.tools');
+  const names = (await fs.readdir(root).catch(() => [])).filter((name) => /^(?:temurin-)?jdk-21\.\d+\.\d+\+\d+(?:-linux-x64)?$/.test(name));
+  names.sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
+  for (const name of names) {
+    const home = path.join(root, name);
+    if ((await Promise.all(['java', 'javac'].map((file) => usableExecutable(path.join(home, 'bin', file))))).every(Boolean)) return home;
+  }
+  return null;
+}
+
+async function findSharedJavaHome(workDir, options = {}) {
+  if ((options.platform || process.platform) !== 'win32') return findLinuxJavaHome(buildToolsDir(workDir, options));
   for (const name of ['temurin-jdk-21.0.11+10', 'jdk-21.0.11+10']) {
     const home = path.join(workDir, '.tools', name);
     const files = await Promise.all(['java.exe', 'javac.exe'].map((file) => fs.stat(path.join(home, 'bin', file)).catch(() => null)));
@@ -78,10 +104,8 @@ async function findSharedJavaHome(workDir) {
   return null;
 }
 
-async function withSharedBuildTools(workDir, operation, log = () => {}) {
-  if (!path.isAbsolute(workDir) || !games.includes(path.basename(workDir))) throw new Error('Choose a supported absolute game build directory');
-  await directory(workDir);
-  const parent = await fs.realpath(path.dirname(workDir));
+// One build at a time per parent folder: the games share the same tool directories.
+async function serialized(parent, log, run) {
   const key = process.platform === 'win32' ? parent.toLowerCase() : parent;
   const waiting = queues.has(key);
   const previous = queues.get(key) || Promise.resolve();
@@ -92,6 +116,40 @@ async function withSharedBuildTools(workDir, operation, log = () => {}) {
   if (waiting) log('Waiting for the other build using these shared tools to finish.');
   await previous;
   try {
+    return await run();
+  } finally {
+    release();
+    if (queues.get(key) === queued) queues.delete(key);
+  }
+}
+
+async function checkedGameParent(workDir) {
+  if (!path.isAbsolute(workDir) || !games.includes(path.basename(workDir))) throw new Error('Choose a supported absolute game build directory');
+  await directory(workDir);
+  return fs.realpath(path.dirname(workDir));
+}
+
+function withSharedBuildTools(workDir, operation, log = () => {}, options = {}) {
+  return ((options.platform || process.platform) === 'win32' ? withJunctionedBuildTools : withPhysicalBuildTools)(workDir, operation, log);
+}
+
+async function withPhysicalBuildTools(workDir, operation, log) {
+  const parent = await checkedGameParent(workDir);
+  return serialized(parent, log, async () => {
+    const shared = path.join(parent, 'shared');
+    await directory(shared);
+    for (const name of linuxDirectories) await directory(path.join(shared, name));
+    await aliasCommandLineTools(shared, 'linux');
+    log(`Shared build tools: ${shared}. Installed versions are reused across Vice City, RDR and San Andreas.`);
+    const result = await operation(workDir);
+    await aliasCommandLineTools(shared, 'linux');
+    return result;
+  });
+}
+
+async function withJunctionedBuildTools(workDir, operation, log) {
+  const parent = await checkedGameParent(workDir);
+  return serialized(parent, log, async () => {
     const shared = path.join(parent, 'shared');
     await directory(shared);
     for (const name of directories) {
@@ -124,15 +182,12 @@ async function withSharedBuildTools(workDir, operation, log = () => {}) {
         await bindDirectory(path.join(sibling, name), target, log);
       }
     }
-    await aliasCommandLineTools(shared);
+    await aliasCommandLineTools(shared, 'win32');
     log(`Shared build tools: ${shared}. Installed versions are reused across Vice City, RDR and San Andreas.`);
     const result = await operation(workDir);
-    await aliasCommandLineTools(shared);
+    await aliasCommandLineTools(shared, 'win32');
     return result;
-  } finally {
-    release();
-    if (queues.get(key) === queued) queues.delete(key);
-  }
+  });
 }
 
-module.exports = { withSharedBuildTools, findSharedJavaHome };
+module.exports = { withSharedBuildTools, findSharedJavaHome, findLinuxJavaHome, buildToolsDir };

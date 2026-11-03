@@ -30,7 +30,7 @@ test('tool setup needs no headset, waits for the exact license decision and neve
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-sdk-api-'));
   t.after(() => fs.rm(root, { recursive: true, force: true }));
   let decisions = 0;
-  const app = createApp({ settingsPath: path.join(root, 'settings.json'),
+  const app = createApp({ platform: 'win32', settingsPath: path.join(root, 'settings.json'),
     adb: { listDevices: async () => { throw new Error('Setup must not contact a headset'); } },
     sdkSetup: async (_roots, log, onLicense) => {
       log('Preparing SDK');
@@ -70,7 +70,7 @@ test('declining a displayed license ends setup and releases the game setup lock'
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-sdk-decline-'));
   t.after(() => fs.rm(root, { recursive: true, force: true }));
   const answers = [];
-  const app = createApp({ sdkSetup: async (_roots, _log, onLicense) => {
+  const app = createApp({ platform: 'win32', sdkSetup: async (_roots, _log, onLicense) => {
     const accepted = await onLicense('Declinable Google terms');
     answers.push(accepted);
     if (!accepted) throw new Error('License was not accepted');
@@ -176,7 +176,7 @@ test('setup requires an existing absolute download folder before it can queue wo
   t.after(() => fs.rm(root, { recursive: true, force: true }));
   const file = path.join(root, 'not-a-folder');
   await fs.writeFile(file, 'fixture');
-  const app = createApp({ sdkSetup: async () => { throw new Error('Invalid path must not download'); } });
+  const app = createApp({ platform: 'win32', sdkSetup: async () => { throw new Error('Invalid path must not download'); } });
   t.after(() => app.server.close());
   for (const downloadLocation of [undefined, '', 'relative', path.join(root, 'missing'), file]) {
     const result = await request(app, 'POST', '/api/build-tools', { gameId: 'vice-city-vr', downloadLocation });
@@ -208,14 +208,14 @@ test('the chosen location is reused by Vice City builds after restarting the app
   const settingsPath = path.join(root, 'profile', 'settings.json');
   const expected = { cacheRoot: path.join(location, 'VR4ALL-build-tools', 'source-kits'), workRoot: path.join(location, 'VR4ALL-build-tools', 'builds') };
   let setupRoots;
-  const app = createApp({ settingsPath, sdkSetup: async (roots) => { setupRoots = roots; return { sha: 'a'.repeat(40) }; } });
+  const app = createApp({ platform: 'win32', settingsPath, sdkSetup: async (roots) => { setupRoots = roots; return { sha: 'a'.repeat(40) }; } });
   t.after(() => app.server.close());
   const started = await request(app, 'POST', '/api/build-tools', { gameId: 'vice-city-vr', downloadLocation: location });
   assert.equal(started.status, 202);
   assert.equal((await waitJob(app, started.body.job.id)).status, 'success');
   assert.deepEqual(setupRoots, expected);
   let buildRoots;
-  const restarted = createApp({ settingsPath,
+  const restarted = createApp({ platform: 'win32', settingsPath,
     adb: { listDevices: async () => [{ serial: 'Quest-1', state: 'device' }] },
     viceCityBuilder: async (_input, roots) => { buildRoots = roots; return { sha: 'a'.repeat(40) }; },
   });
@@ -240,7 +240,7 @@ test(`${title} setup displays its license, locks builds, and reuses its chosen t
   let setupRoots;
   let setupGame;
   let buildRoots;
-  const app = createApp({
+  const app = createApp({ platform: 'win32',
     settingsPath: path.join(root, 'settings.json'),
     adb: { listDevices: async () => [{ serial: 'Quest-1', state: 'device' }] },
     sdkSetup: async (roots, _log, onLicense, options) => {
@@ -277,11 +277,11 @@ test('a saved shared tools folder becomes the default for the other games after 
   const settingsPath = path.join(root, 'settings.json');
   const game = path.join(root, 'another game');
   await fs.mkdir(game);
-  const app = createApp({ settingsPath, sdkSetup: async () => ({ sha: 'a'.repeat(40) }) });
+  const app = createApp({ platform: 'win32', settingsPath, sdkSetup: async () => ({ sha: 'a'.repeat(40) }) });
   t.after(() => app.server.close());
   const start = await request(app, 'POST', '/api/build-tools', { gameId: 'rdr1-vr', downloadLocation: root });
   assert.equal((await waitJob(app, start.body.job.id)).status, 'success');
-  const restarted = createApp({ settingsPath });
+  const restarted = createApp({ platform: 'win32', settingsPath });
   t.after(() => restarted.server.close());
   for (const gameId of ['vice-city-vr', 'gta-sa-vr']) {
     const preview = await request(restarted, 'POST', '/api/build-tools/location', { gameId, gamePackage: game });

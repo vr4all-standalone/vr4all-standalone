@@ -2,12 +2,12 @@ const path = require('node:path');
 
 function parseDevices(output) {
   return String(output).split(/\r?\n/).slice(1).map((line) => {
-    const match = line.trim().match(/^(\S+)\s+(device|unauthorized|offline|recovery|sideload)(?:\s+(.*))?$/);
+    const match = line.trim().match(/^(\S+)\s+(device|unauthorized|offline|recovery|sideload|no permissions);?(?:\s+(.*))?$/);
     if (!match) return null;
     const rawModel = match[3]?.match(/\bmodel:(\S+)/)?.[1];
     let model = rawModel ? rawModel.replaceAll('_', ' ') : 'Quest headset';
     if (/^Quest 3S?$/i.test(model)) model = model.replace(/^quest/i, 'Quest');
-    return { serial: match[1], state: match[2], model };
+    return { serial: match[1], state: match[2].replace(' ', '-'), model };
   }).filter(Boolean);
 }
 
@@ -104,7 +104,7 @@ function buildInstallPlan(game, input) {
       if (!copiedEntries.length) throw new Error(`${item.label || item.id} folder has no supported game files`);
       for (const entry of copiedEntries) {
         if (!entry || entry === '.' || entry === '..' || /[\\/]/.test(entry)) throw new Error(`Invalid file in ${item.label || item.id}`);
-        steps.push({ label: `Copy ${item.id}/${entry}`, args: [...prefix, 'push', path.win32.join(source, entry), destination] });
+        steps.push({ label: `Copy ${item.id}/${entry}`, args: [...prefix, 'push', path.join(source, entry), destination] });
       }
     } else {
       steps.push({ label: `Copy ${item.id}`, args: [...prefix, 'push', source, destination] });

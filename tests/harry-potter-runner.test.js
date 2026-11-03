@@ -150,7 +150,7 @@ test('runner verifies downloaded ZIP before invoking the author installer', asyn
   await fs.writeFile(adbPath, 'adb');
   let spawned = false;
   await assert.rejects(installHarryPotterPlayer({ gamePath, serial: 'Quest-1', adbPath, release: releaseFor(releaseZip(), { digest: `sha256:${'0'.repeat(64)}` }) }, {
-    tempRoot: root, fetchImpl: async () => new Response(releaseZip()),
+    tempRoot: root, platform: 'win32', fetchImpl: async () => new Response(releaseZip()),
     spawnImpl: () => { spawned = true; throw new Error('unexpected spawn'); },
   }), /SHA-256/i);
   assert.equal(spawned, false);
@@ -176,7 +176,7 @@ test('runner passes owned folder, selected Quest and ADB to official noninteract
     return child;
   };
   const result = await installHarryPotterPlayer({ gamePath, serial: 'Quest-1', adbPath, release: releaseFor(bytes), onLog: (line) => logs.push(line) }, {
-    tempRoot: root, fetchImpl: async () => new Response(bytes), spawnImpl,
+    tempRoot: root, platform: 'win32', fetchImpl: async () => new Response(bytes), spawnImpl,
   });
   assert.equal(result.exitCode, 0);
   assert.equal(call.binary, 'powershell.exe');
@@ -198,7 +198,7 @@ test('runner accepts a ZIP containing one owned game folder and cleans private e
   const bytes = releaseZip();
   let installedGamePath;
   await installHarryPotterPlayer({ gamePath, serial: 'Quest-1', adbPath, release: releaseFor(bytes) }, {
-    tempRoot: root, fetchImpl: async () => new Response(bytes),
+    tempRoot: root, platform: 'win32', fetchImpl: async () => new Response(bytes),
     spawnImpl: (_binary, args) => {
       installedGamePath = args[args.indexOf('-GamePath') + 1];
       const child = new EventEmitter(); child.stdout = new PassThrough(); child.stderr = new PassThrough();
@@ -217,11 +217,47 @@ test('runner requires installer success marker even when PowerShell exits zero',
   const adbPath = path.join(root, 'adb.exe'); await fs.writeFile(adbPath, 'adb');
   const bytes = releaseZip();
   await assert.rejects(installHarryPotterPlayer({ gamePath, serial: 'Quest-1', adbPath, release: releaseFor(bytes) }, {
-    tempRoot: root, fetchImpl: async () => new Response(bytes),
+    tempRoot: root, platform: 'win32', fetchImpl: async () => new Response(bytes),
     spawnImpl: () => {
       const child = new EventEmitter(); child.stdout = new PassThrough(); child.stderr = new PassThrough();
       queueMicrotask(() => { child.stdout.end('PREPARE=PASS\n'); child.stderr.end(); child.emit('close', 0); });
       return child;
     },
   }), /success|INSTALL=PASS/i);
+});
+
+test('on Linux the runner hands the verified bundle to the Linux installer, never to PowerShell, and cleans staging', async (t) => {
+  const root = await temp(t);
+  const gamePath = await gameFolder(root);
+  const adbPath = path.join(root, 'adb'); await fs.writeFile(adbPath, 'adb');
+  const bytes = releaseZip();
+  const adb = { run: async () => '' };
+  const winePrefix = path.join(root, 'wine-prefix');
+  await assert.rejects(installHarryPotterPlayer({ gamePath, serial: 'Quest-1', adbPath, adb, winePrefix, release: releaseFor(bytes) }, {
+    tempRoot: root, platform: 'linux', fetchImpl: async () => new Response(bytes),
+    findWine: () => null,
+    spawnImpl: () => { throw new Error('PowerShell must not run on Linux'); },
+  }), /release manifest does not list hpvr\.apk/);
+  assert.deepEqual((await fs.readdir(root)).sort(), ['Owned HP', 'adb']);
+});
+
+test('the player manifest may carry a UTF-8 BOM, as Windows PowerShell writes it', async (t) => {
+  const root = await temp(t);
+  const gamePath = await gameFolder(root);
+  const adbPath = path.join(root, 'adb.exe'); await fs.writeFile(adbPath, 'adb');
+  const prefix = 'HPVR-Quest-0.1.4.1/';
+  const bytes = zip([
+    { name: `${prefix}tools/INSTALL-HPVR.ps1`, data: 'param()' },
+    { name: `${prefix}release-manifest.json`, data: `\uFEFF${JSON.stringify({ schema: 1, packageName: 'io.github.hpvr.quest', apk: 'hpvr.apk', files: [] })}` },
+    { name: `${prefix}hpvr.apk`, data: 'APK bytes' },
+  ]);
+  const result = await installHarryPotterPlayer({ gamePath, serial: 'Quest-1', adbPath, release: releaseFor(bytes) }, {
+    tempRoot: root, platform: 'win32', fetchImpl: async () => new Response(bytes),
+    spawnImpl: () => {
+      const child = new EventEmitter(); child.stdout = new PassThrough(); child.stderr = new PassThrough();
+      queueMicrotask(() => { child.stdout.end('INSTALL=PASS DATA_IMPORT=PASS\n'); child.stderr.end(); child.emit('close', 0); });
+      return child;
+    },
+  });
+  assert.equal(result.exitCode, 0);
 });

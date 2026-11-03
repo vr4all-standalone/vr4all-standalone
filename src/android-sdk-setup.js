@@ -5,9 +5,21 @@ const { acquireViceCitySource } = require('./vice-city-runner');
 const { acquireSourceKit } = require('./personal-build');
 const { withShortBuildPath } = require('./build-path');
 const { buildEnvironment } = require('./build-environment');
-const { withSharedBuildTools, findSharedJavaHome } = require('./shared-build-tools');
+const { withSharedBuildTools, findSharedJavaHome, buildToolsDir } = require('./shared-build-tools');
+const { prepareSdkToolsLinux } = require('./linux-build-tools');
+
+function assertSdkMetadata(metadata) {
+  if (!metadata || !['javaExe', 'javaHome', 'classpath', 'sdkRoot'].every((key) => typeof metadata[key] === 'string' && path.isAbsolute(metadata[key]))
+      || !Array.isArray(metadata.packages) || metadata.packages.length > 50
+      || !metadata.packages.every((name) => typeof name === 'string' && /^[a-z][a-z0-9_.-]*(?:;[a-zA-Z0-9_.-]+)*$/.test(name))) {
+    throw new Error('Build tool preparation returned unsupported SDK settings');
+  }
+  return metadata;
+}
 
 async function prepareSdkTools(kitDir, workDir, log, options = {}) {
+  // On Linux `workDir` is already the shared tools directory (see setupBuildTools).
+  if ((options.platform || process.platform) !== 'win32') return assertSdkMetadata(await prepareSdkToolsLinux(kitDir, workDir, log, options));
   await fs.mkdir(path.join(workDir, '.tmp'), { recursive: true });
   // Electron can read embedded files through its ASAR-aware fs, but external
   // PowerShell needs a real file. Keep this copy private to the setup invocation.
@@ -47,18 +59,13 @@ function prepareSdkToolsAtPath(kitDir, workDir, helper, log, options) {
       if (pending) record('\n');
       if (processError) return reject(processError);
       if (code !== 0) return reject(new Error(`Build tool preparation failed (exit ${code}); see activity for details`));
-      if (!metadata || !['javaExe', 'javaHome', 'classpath', 'sdkRoot'].every((key) => typeof metadata[key] === 'string' && path.isAbsolute(metadata[key]))
-          || !Array.isArray(metadata.packages) || metadata.packages.length > 50
-          || !metadata.packages.every((name) => typeof name === 'string' && /^[a-z][a-z0-9_.-]*(?:;[a-zA-Z0-9_.-]+)*$/.test(name))) {
-        return reject(new Error('Build tool preparation returned unsupported SDK settings'));
-      }
-      resolve(metadata);
+      try { resolve(assertSdkMetadata(metadata)); } catch (error) { reject(error); }
     });
   });
 }
 
 function runSdkManager(config, log, onLicense, options = {}) {
-  const env = { ...buildEnvironment(path.dirname(config.sdkRoot)), JAVA_HOME: config.javaHome };
+  const env = { ...buildEnvironment(path.dirname(config.sdkRoot), options), JAVA_HOME: config.javaHome };
   return new Promise((resolve, reject) => {
     const child = (options.spawnImpl || spawn)(config.javaExe, [
       '-Xmx2048m', `-Djava.io.tmpdir=${env.TEMP}`, '-classpath', config.classpath, 'com.android.sdklib.tool.sdkmanager.SdkManagerCli',
@@ -120,12 +127,14 @@ async function setupBuildTools(roots, log, onLicense, options = {}) {
   const acquire = gameId !== 'vice-city-vr' ? (cacheRoot, onLog, config) => acquireSourceKit(gameId, cacheRoot, onLog, config) : acquireViceCitySource;
   const kit = await (options.acquireKit || acquire)(roots.cacheRoot, log, options);
   return withSharedBuildTools(workDir, () => (options.withBuildPath || withShortBuildPath)(workDir, async (shortPath) => {
+    // Windows maps a short drive over the game folder; Linux uses the one shared folder directly.
+    const toolsDir = (options.platform || process.platform) === 'win32' ? shortPath : buildToolsDir(workDir, options);
     const prepare = options.prepareTools || prepareSdkTools;
-    const config = await prepare(kit.directory, shortPath, log, options);
+    const config = await prepare(kit.directory, toolsDir, log, options);
     if (config.packages.length) {
       log(`Checking the licenses for the Android tools required by ${title}.`);
       await (options.installTools || runSdkManager)(config, log, onLicense, options);
-      const verified = await prepare(kit.directory, shortPath, log, options);
+      const verified = await prepare(kit.directory, toolsDir, log, options);
       if (verified.packages.length) throw new Error(`Android tools are still missing: ${verified.packages.join(', ')}`);
     }
     log(`Build tools are ready. You can now build and install ${title}.`);

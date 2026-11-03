@@ -5,7 +5,7 @@ const os = require('node:os');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const {
-  ORIGINAL_NAME, inspectCrazyTaxiOriginal, readApkPackage, downloadVerified, installOnQuest, installCrazyTaxi,
+  ORIGINAL_NAME, inspectCrazyTaxiOriginal, readApkPackage, downloadVerified, prepareXdelta, installOnQuest, installCrazyTaxi,
 } = require('../src/crazy-taxi-runner');
 
 function zip(entries) {
@@ -208,4 +208,39 @@ test('install confirms ADB success and the package on the selected Quest', async
 test('install does not report success when ADB or package check fails', async () => {
   await assert.rejects(installOnQuest({ run: async () => 'Failure [INSTALL_FAILED]' }, 'Q1', 'game.apk'), /ADB.*install/i);
   await assert.rejects(installOnQuest({ run: async (args) => args.includes('install') ? 'Success' : '' }, 'Q1', 'game.apk'), /not found.*Quest/i);
+});
+
+async function xdelta3Tarball(root, firstBytes) {
+  const { execFileSync } = require('node:child_process');
+  const member = 'xdelta3-3.2.2-linux-x86_64/xdelta3';
+  await fs.mkdir(path.join(root, 'src', path.dirname(member)), { recursive: true });
+  await fs.writeFile(path.join(root, 'src', member), Buffer.concat([Buffer.from(firstBytes, 'latin1'), Buffer.alloc(64)]), { mode: 0o644 });
+  const archive = path.join(root, 'xdelta.tar.gz');
+  execFileSync('tar', ['-czf', archive, '-C', path.join(root, 'src'), path.dirname(member)]);
+  const bytes = await fs.readFile(archive);
+  return { bytes, asset: { url: 'https://example.test/xdelta3.tar.gz', sha256: crypto.createHash('sha256').update(bytes).digest('hex'), maxBytes: 1024 * 1024, member } };
+}
+
+test('Linux prepares the pinned xdelta3 tarball as an executable ELF', { skip: process.platform === 'win32' && 'Linux-only install path (POSIX paths, file modes or shell tools)' }, async (t) => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-crazy-taxi-linux-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const { bytes, asset } = await xdelta3Tarball(root, '\x7fELF');
+  const staging = path.join(root, 'staging');
+  await fs.mkdir(staging);
+  const executable = await prepareXdelta(staging, {}, { platform: 'linux', toolLinux: asset, fetchImpl: async (url) => {
+    assert.equal(url, asset.url);
+    return new Response(bytes);
+  } });
+  assert.equal(executable, path.join(staging, asset.member));
+  assert.equal((await fs.stat(executable)).mode & 0o777, 0o755);
+});
+
+test('Linux rejects an xdelta3 member that is not an ELF or a tarball with a wrong digest', async (t) => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-crazy-taxi-linux-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const { bytes, asset } = await xdelta3Tarball(root, 'MZ00');
+  const staging = await fs.mkdtemp(path.join(root, 'a-'));
+  await assert.rejects(prepareXdelta(staging, {}, { platform: 'linux', toolLinux: asset, fetchImpl: async () => new Response(bytes) }), /not a Linux executable/);
+  const other = await fs.mkdtemp(path.join(root, 'b-'));
+  await assert.rejects(prepareXdelta(other, {}, { platform: 'linux', toolLinux: { ...asset, sha256: '0'.repeat(64) }, fetchImpl: async () => new Response(bytes) }), /SHA-256/);
 });

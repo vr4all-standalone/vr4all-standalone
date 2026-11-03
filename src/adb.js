@@ -5,6 +5,7 @@ const { pipeline } = require('node:stream/promises');
 const path = require('node:path');
 const { spawn, spawnSync } = require('node:child_process');
 const { parseDevices } = require('./core');
+const { findOnPath } = require('./find-tool');
 
 function findAdb(configured = '', options = {}) {
   const exe = process.platform === 'win32' ? 'adb.exe' : 'adb';
@@ -20,7 +21,8 @@ function findAdb(configured = '', options = {}) {
     process.platform === 'win32' && process.env.LOCALAPPDATA && path.join(process.env.LOCALAPPDATA, "MRSURVIV0R'S VR HUB", 'Tools', 'AndroidPlatformTools', 'platform-tools', exe),
   ].filter(Boolean);
   for (const candidate of candidates) if (fs.existsSync(candidate)) return candidate;
-  const finder = spawnSync(process.platform === 'win32' ? 'where.exe' : 'which', [exe], { encoding: 'utf8', windowsHide: true });
+  if (process.platform !== 'win32') return findOnPath([exe]);
+  const finder = spawnSync('where.exe', [exe], { encoding: 'utf8', windowsHide: true });
   return finder.status === 0 ? finder.stdout.trim().split(/\r?\n/)[0] : null;
 }
 

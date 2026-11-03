@@ -3,6 +3,7 @@ const path = require('node:path');
 const os = require('node:os');
 const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
+const { findOnPath } = require('./find-tool');
 
 const runFile = promisify(execFile);
 const archiveExtensions = new Set(['.7z', '.rar']);
@@ -18,13 +19,21 @@ function needsZipConversion(item, file) {
   return acceptsZipContents(item) && archiveExtensions.has(path.extname(file).toLowerCase());
 }
 
+// System 7-Zip executable names tried in order on non-Windows hosts.
+const sevenZipNames = ['7zz', '7z', '7za'];
+
 async function sevenZipPath() {
-  const candidates = process.platform === 'win32'
-    ? [process.env.VR4ALL_7ZIP, process.resourcesPath && path.join(process.resourcesPath, '7zip', '7z.exe'), path.join(__dirname, '..', 'vendor', '7zip', '7z.exe'), path.join(process.env.ProgramFiles || 'C:\\Program Files', '7-Zip', '7z.exe'), path.join(process.env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)', '7-Zip', '7z.exe'), '7z.exe']
-    : [process.env.VR4ALL_7ZIP, '7zz', '7z'];
-  for (const candidate of candidates.filter(Boolean)) {
-    if (!path.isAbsolute(candidate)) return candidate;
-    if ((await fs.stat(candidate).catch(() => null))?.isFile()) return candidate;
+  if (process.platform === 'win32') {
+    const candidates = [process.env.VR4ALL_7ZIP, process.resourcesPath && path.join(process.resourcesPath, '7zip', '7z.exe'), path.join(__dirname, '..', 'vendor', '7zip', '7z.exe'), path.join(process.env.ProgramFiles || 'C:\\Program Files', '7-Zip', '7z.exe'), path.join(process.env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)', '7-Zip', '7z.exe'), '7z.exe'];
+    for (const candidate of candidates.filter(Boolean)) {
+      if (!path.isAbsolute(candidate)) return candidate;
+      if ((await fs.stat(candidate).catch(() => null))?.isFile()) return candidate;
+    }
+  } else {
+    const configured = process.env.VR4ALL_7ZIP;
+    if (configured && path.isAbsolute(configured) && (await fs.stat(configured).catch(() => null))?.isFile()) return configured;
+    const found = findOnPath(sevenZipNames);
+    if (found) return found;
   }
   throw new Error('7-Zip is needed to convert .7z or .rar files to ZIP');
 }
@@ -247,13 +256,14 @@ async function packageDirectoryToZip(source, name = path.basename(source)) {
   const manifest = path.join(directory, 'files.txt');
   try {
     await fs.writeFile(manifest, `${topLevel.join('\n')}\n`, 'utf8');
-    const tar = process.platform === 'win32'
-      ? path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'tar.exe')
-      : 'tar';
     try {
-      await runFile(tar, ['-a', '-cf', zipPath, '-C', source, '-T', manifest], {
-        windowsHide: true, timeout: 10 * 60 * 1000, maxBuffer: 10 * 1024 * 1024,
-      });
+      if (process.platform === 'win32') {
+        await runFile(path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'tar.exe'), ['-a', '-cf', zipPath, '-C', source, '-T', manifest], {
+          windowsHide: true, timeout: 10 * 60 * 1000, maxBuffer: 10 * 1024 * 1024,
+        });
+      } else {
+        await runSevenZip(await sevenZipPath(), ['a', '-tzip', '-bd', zipPath, `@${manifest}`], { cwd: source });
+      }
     } catch (error) {
       throw new Error(`Could not package folder as ZIP: ${String(error.stderr || error.message).trim().slice(0, 320)}`);
     }
@@ -297,4 +307,4 @@ async function convertArchiveToZip(source, options = {}) {
   }
 }
 
-module.exports = { needsZipConversion, acceptsZipContents, convertArchiveToZip, packageDirectoryToZip, inspectDirectory, inspectDirectoryArchive, extractDirectoryArchive, inspectSingleFileArchive, extractSingleFileArchive, removeConversionDirectory, inspectListing, inspectRomArchive, testRomArchive, sevenZipPath, runSevenZip };
+module.exports = { needsZipConversion, acceptsZipContents, convertArchiveToZip, packageDirectoryToZip, inspectDirectory, inspectDirectoryArchive, extractDirectoryArchive, inspectSingleFileArchive, extractSingleFileArchive, removeConversionDirectory, inspectListing, inspectRomArchive, testRomArchive, sevenZipPath, sevenZipNames, runSevenZip };

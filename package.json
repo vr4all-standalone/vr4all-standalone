@@ -7,6 +7,7 @@
   "scripts": {
     "start:desktop": "electron .",
     "dist:win": "electron-builder --win portable --x64",
+    "dist:linux": "electron-builder --linux AppImage --x64 --publish never",
     "test": "node --test"
   },
   "devDependencies": {
@@ -27,25 +28,12 @@
       "desktop/update-launcher.ps1",
       "desktop/update-helper.ps1",
       "desktop/icon.ico",
+      "desktop/icon.png",
       "public/**/*",
       "!public/models/**",
       "src/**/*",
       "server.js",
       "package.json"
-    ],
-    "extraResources": [
-      {
-        "from": "vendor/platform-tools",
-        "to": "platform-tools"
-      },
-      {
-        "from": "vendor/7zip",
-        "to": "7zip"
-      },
-      {
-        "from": "vendor/chdman",
-        "to": "chdman"
-      }
     ],
     "directories": {
       "output": "dist"
@@ -60,7 +48,34 @@
           ]
         }
       ],
-      "artifactName": "VR4ALL-win-${arch}.${ext}"
+      "artifactName": "VR4ALL-win-${arch}.${ext}",
+      "extraResources": [
+        {
+          "from": "vendor/platform-tools",
+          "to": "platform-tools"
+        },
+        {
+          "from": "vendor/7zip",
+          "to": "7zip"
+        },
+        {
+          "from": "vendor/chdman",
+          "to": "chdman"
+        }
+      ]
+    },
+    "linux": {
+      "icon": "desktop/icon.png",
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Utility",
+      "artifactName": "VR4ALL-linux-x64.${ext}"
     }
   }
 }

@@ -21,6 +21,16 @@ async function finished(app, id) {
   }
   throw new Error('RDR job did not finish');
 }
+// The server saves settings asynchronously after a job finishes; read until the file holds a complete write.
+async function savedSettings(settingsPath, ready = () => true) {
+  for (let attempt = 0; attempt < 200; attempt++) {
+    // A half-written file fails JSON.parse, so the catch must cover parsing as well as reading.
+    const saved = await fs.readFile(settingsPath, 'utf8').then(JSON.parse).catch(() => null);
+    if (saved && ready(saved)) return saved;
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  throw new Error('Settings were not saved');
+}
 
 test('RDR API blocks an offline selected Quest before building and permits retry after Wi-Fi connects', async (t) => {
   const root = await fs.mkdtemp(path.join(__dirname, '.rdr-network-api-'));
@@ -28,7 +38,7 @@ test('RDR API blocks an offline selected Quest before building and permits retry
   const settingsPath = path.join(root, 'settings.json');
   const gamePackage = path.join(root, 'original.apkm'); await fs.writeFile(gamePackage, 'owned');
   let online = false, builds = 0;
-  const app = createApp({ settingsPath, adb: {
+  const app = createApp({ platform: 'win32', settingsPath, adb: {
     listDevices: async () => [{ serial: 'SELECTED', state: 'device' }, { serial: 'PRESERVED', state: 'device' }],
     run: async (args) => {
       assert.deepEqual(args, ['-s', 'SELECTED', 'shell', 'dumpsys', 'connectivity']);
@@ -43,14 +53,14 @@ test('RDR API blocks an offline selected Quest before building and permits retry
   const offline = await finished(app, response.body.job.id);
   assert.equal(offline.status, 'error'); assert.match(offline.error, /Wi-Fi/);
   assert.equal(builds, 0);
-  assert.deepEqual(JSON.parse(await fs.readFile(settingsPath, 'utf8')).installed, {});
+  assert.deepEqual((await savedSettings(settingsPath)).installed, {});
   online = true;
   response = await request(app, 'POST', '/api/personal-build', input);
   const success = await finished(app, response.body.job.id);
   assert.equal(success.status, 'success', success.error);
   assert.equal(success.internetStatus, 'online'); assert.match(success.afterInstall, /Wi-Fi.*Netflix/);
   assert.equal(builds, 1);
-  const saved = JSON.parse(await fs.readFile(settingsPath, 'utf8'));
+  const saved = await savedSettings(settingsPath, (settings) => settings.jobHistory?.[0]?.afterInstall);
   assert.equal(saved.jobHistory[0].afterInstall, success.afterInstall);
   assert.equal(saved.installed.PRESERVED, undefined);
 });
@@ -61,7 +71,7 @@ test('GTA SA builds without RDR connectivity checks', async (t) => {
   const gamePackage = path.join(root, 'original.apk'), audioSource = path.join(root, 'audio.zip');
   await fs.writeFile(gamePackage, 'owned'); await fs.writeFile(audioSource, 'owned audio');
   let builds = 0;
-  const app = createApp({ adb: { listDevices: async () => [{ serial: 'QUEST', state: 'device' }], run: async () => { throw new Error('RDR diagnostic must not run'); } },
+  const app = createApp({ platform: 'win32', adb: { listDevices: async () => [{ serial: 'QUEST', state: 'device' }], run: async () => { throw new Error('RDR diagnostic must not run'); } },
     personalBuilder: async () => { builds++; return { sha: 'a'.repeat(40) }; } });
   t.after(() => app.server.close());
   const started = await request(app, 'POST', '/api/personal-build', { gameId: 'gta-sa-vr', serial: 'QUEST', gamePackage, audioSource });

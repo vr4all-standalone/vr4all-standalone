@@ -7,6 +7,7 @@ const os = require('node:os');
 const { Transform } = require('node:stream');
 const { pipeline } = require('node:stream/promises');
 const { getCatalog } = require('./src/catalog');
+const { platformSupport } = require('./src/platform-support');
 const { migrateStandaloneSettings } = require('./src/standalone-settings-migration');
 const { buildInstallPlan, safeDestination } = require('./src/core');
 const { createAdb } = require('./src/adb');
@@ -154,6 +155,7 @@ function createApp(options = {}) {
   const defaultScanFolder = path.resolve(options.downloadsPath || path.join(os.homedir(), 'Downloads'));
   const builderHome = settingsPath ? path.dirname(settingsPath) : path.join(os.tmpdir(), 'vr4all-personal-build');
   const builderRoots = options.builderRoots || { cacheRoot: path.join(builderHome, 'source-kits'), workRoot: path.join(builderHome, 'builds') };
+  const winePrefix = path.join(builderHome, 'wine');
   function buildWorkRoot() { return settings.buildWorkspace || builderRoots.workRoot; }
   function personalRoots() { return { ...builderRoots, workRoot: buildWorkRoot() }; }
   function viceCityRoots(downloadLocation) {
@@ -210,6 +212,7 @@ function createApp(options = {}) {
 
   function catalog() { return [...getCatalog(), ...(settings.customGames || [])]; }
   function gameById(id) { return catalog().find((game) => game.id === id); }
+  function requireSupported(game) { const support = platformSupport(game, options.platform, { arch: options.arch, findWine: options.findWine }); if (!support.supported) throw new Error(support.reason); }
   function sourceFor(game) { return game.id === 'victory-heat-rally-vr' ? game.source : settings.sources?.[game.id] || game.source; }
   function saveSettings() {
     if (!settingsPath) return Promise.resolve();
@@ -676,13 +679,13 @@ function createApp(options = {}) {
         convertedGame = await convertArchiveToZip(input.gamePackage, { tempRoot: path.join(viceCityRoots(input.downloadLocation).workRoot, 'vice-city-vr', '.tmp') });
       }
       const kit = game.id === 'vice-city-vr'
-        ? await viceCityBuilder({ ...input, gamePackage: convertedGame?.path || input.gamePackage }, viceCityRoots(input.downloadLocation), log)
+        ? await viceCityBuilder({ ...input, gamePackage: convertedGame?.path || input.gamePackage }, viceCityRoots(input.downloadLocation), log, { platform: options.platform })
         : game.id === 'jurassic-park-arcade-vr'
         ? await jurassicBuilder(input, { workspaceRoot: buildWorkRoot(), sharedToolsRoot: settings.sharedBuildToolsLocation && viceCityRoots(settings.sharedBuildToolsLocation).workRoot,
           adbPath: adb.getPath?.() || settings.adbPath, onLog: log })
         : game.id === 'victory-heat-rally-vr'
-        ? await victoryHeatBuilder({ ...input, releases, source: sourceFor(game), adb, workspaceRoot: buildWorkRoot(), inspectApk, onLog: log })
-        : await personalBuilder(game.id, input, input.downloadLocation ? viceCityRoots(input.downloadLocation) : personalRoots(), log);
+        ? await victoryHeatBuilder({ ...input, releases, source: sourceFor(game), adb, workspaceRoot: buildWorkRoot(), inspectApk, onLog: log, platform: options.platform })
+        : await personalBuilder(game.id, input, input.downloadLocation ? viceCityRoots(input.downloadLocation) : personalRoots(), log, { platform: options.platform });
       job.sourceCommit = kit.sha;
       job.status = 'success';
       log('Author build and Quest installation completed. Start the game on the headset to confirm it plays.');
@@ -724,7 +727,7 @@ function createApp(options = {}) {
         job.license = { id: crypto.randomUUID(), text: String(text) };
         sdkDecisions.set(job.id, { licenseId: job.license.id, resolve });
         log('Review the Google license in the build tools window to continue.');
-      }), { gameId: job.gameId });
+      }), { gameId: job.gameId, platform: options.platform });
       job.sourceCommit = result.sha;
       job.status = 'success';
       log(`Build tools are ready. Click Build and install to retry ${gameById(job.gameId).title}.`);
@@ -784,7 +787,7 @@ function createApp(options = {}) {
     let prepared = null;
     try {
       prepared = await prepareFzeroPaths(input);
-      const result = await fzeroVirtuaInstaller(prepared.prepared, { adb, onLog: log });
+      const result = await fzeroVirtuaInstaller(prepared.prepared, { adb, onLog: log, winePrefix });
       job.status = 'success';
       log('VirtuaVRPort APK and all three prepared game files were transferred. Open it on the Quest to confirm the graphics.');
       settings.installed[input.serial] ||= {};
@@ -803,7 +806,7 @@ function createApp(options = {}) {
       const release = await releases.latest(game.source, { force: true });
       if (!release || release.stale) throw new Error('The current official Road Rash player ZIP could not be confirmed');
       if (path.extname(input.discImage).toLowerCase() === '.rar') convertedDisc = await convertArchiveToZip(input.discImage);
-      const result = await roadRashInstaller({ discImage: convertedDisc?.path || input.discImage, serial: input.serial, adbPath: adb.getPath?.() || settings.adbPath, release, onLog: log });
+      const result = await roadRashInstaller({ discImage: convertedDisc?.path || input.discImage, serial: input.serial, adbPath: adb.getPath?.() || settings.adbPath, adb, release, platform: options.platform, onLog: log });
       job.release = { tag: release.tag, url: release.url, assetName: release.assetName };
       log('Official disc validation and Quest installation completed. Open the game to confirm it plays.');
       settings.installed[input.serial] ||= {};
@@ -831,7 +834,7 @@ function createApp(options = {}) {
       const release = await releases.latest(sourceFor(game), { force: true });
       if (!release || release.stale) throw new Error('The current official Harry Potter player ZIP could not be confirmed');
       if (['.7z', '.rar'].includes(path.extname(input.gamePath).toLowerCase())) convertedGame = await convertArchiveToZip(input.gamePath);
-      await harryPotterInstaller({ gamePath: convertedGame?.path || input.gamePath, serial: input.serial, adbPath: adb.getPath?.() || settings.adbPath, release, onLog: log });
+      await harryPotterInstaller({ gamePath: convertedGame?.path || input.gamePath, serial: input.serial, adbPath: adb.getPath?.() || settings.adbPath, adb, winePrefix, platform: options.platform, release, onLog: log });
       job.release = { tag: release.tag, url: release.url, assetName: release.assetName };
       log('Official game validation and Quest installation completed. Open the game to confirm it plays.');
       settings.installed[input.serial] ||= {};
@@ -880,17 +883,18 @@ function createApp(options = {}) {
       const zipPath = await releases.downloadPackage(release, (done, total) => {
         if (total && done === total) log('Official player ZIP downloaded.');
       });
-      await withSpecialGamePath(game, input.gamePath, (gamePath) => officialPlayerInstaller({
+      const result = await withSpecialGamePath(game, input.gamePath, (gamePath) => officialPlayerInstaller({
         gameId: game.id, gamePath: gamePath || null, serial: input.serial,
-        adbPath: adb.getPath?.() || settings.adbPath, adb, zipPath,
+        adbPath: adb.getPath?.() || settings.adbPath, adb, zipPath, platform: options.platform,
         workRoot: buildWorkRoot(), onLog: log,
       }));
       const installed = (await inspectDevice(adb, input.serial, [game]))[game.id];
       if (!installed) throw new Error('Official installer finished, but its Quest package was not found on the selected headset');
-      if ((input.gamePath || officialPlayerRecipes[game.id].prepareWithoutInput) && !installed.dataReady) throw new Error('Official installer finished, but the required game files were not found on the selected headset');
+      if ((input.gamePath || officialPlayerRecipes[game.id].prepareWithoutInput) && !installed.dataReady && !result?.importPending) throw new Error('Official installer finished, but the required game files were not found on the selected headset');
       job.release = { tag: release.tag, url: release.url, assetName: release.assetName };
       job.status = 'success';
       log('Official Quest player installation completed. Open the game in the headset to confirm it runs.');
+      if (result?.importPending) log('Game data is waiting for the in-headset import; VR4ALL marks the port installed.');
       settings.installed[input.serial] ||= {};
       settings.installed[input.serial][game.id] = { at: new Date().toISOString(), tag: release.tag, packageId: installed.packageId, versionName: installed.versionName };
       await saveSettings();
@@ -902,13 +906,14 @@ function createApp(options = {}) {
     const log = (message) => { job.log.push(String(message).slice(0, 500)); if (job.log.length > 150) job.log.shift(); job.updatedAt = new Date().toISOString(); };
     job.status = 'running';
     try {
-      log(input.gamePath ? 'Checking the official Quest APK and Windows importer releases...' : 'Checking the official Quest APK release...');
+      const win = (options.platform || process.platform) === 'win32';
+      log(input.gamePath ? `Checking the official Quest APK and ${win ? 'Windows importer' : 'importer'} releases...` : 'Checking the official Quest APK release...');
       const apkRelease = await releases.latest(sourceFor(game), { force: true });
-      const importerRelease = input.gamePath ? await releases.latest({ repo: 'NathanaelA/mgcarpet-vr', assetPattern: '^mgc-import-windows\\.zip$' }) : null;
+      const importerRelease = input.gamePath ? await releases.latest({ repo: 'NathanaelA/mgcarpet-vr', assetPattern: win ? '^mgc-import-windows\\.zip$' : '^mgc-import-linux\\.zip$' }) : null;
       if (!apkRelease || apkRelease.stale || input.gamePath && (!importerRelease || importerRelease.stale)) throw new Error('The required official Magic Carpet release could not be confirmed');
       const apkPath = await keepDownloadedApk(game, await releases.download(apkRelease));
       const importerZip = input.gamePath ? await releases.downloadPackage(importerRelease) : null;
-      const result = await withSpecialGamePath(game, input.gamePath, (gamePath) => magicCarpetInstaller({ apkPath, importerZip, gamePath: gamePath || null, serial: input.serial, adb, workRoot: buildWorkRoot(), onLog: log }));
+      const result = await withSpecialGamePath(game, input.gamePath, (gamePath) => magicCarpetInstaller({ apkPath, importerZip, gamePath: gamePath || null, serial: input.serial, adb, platform: options.platform, workRoot: buildWorkRoot(), onLog: log }));
       job.release = { tag: apkRelease.tag, url: apkRelease.url, assetName: apkRelease.assetName };
       job.status = 'success';
       log('Magic Carpet VR is installed. Open it on the headset to confirm play.');
@@ -944,12 +949,13 @@ function createApp(options = {}) {
     try {
       const workRoot = input.gamePath ? await galaxyWorkspacePicker(input.gamePath, path.join(buildWorkRoot(), 'galaxyquest')) : null;
       if (workRoot) log(`Using ${workRoot} for temporary GalaxyQuest conversion files.`);
-      log(input.gamePath ? 'Checking the official GalaxyQuest APK and Windows converter...' : 'Checking the official GalaxyQuest APK release...');
+      const win = (options.platform || process.platform) === 'win32';
+      log(input.gamePath ? `Checking the official GalaxyQuest APK and ${win ? 'Windows converter' : 'converter'}...` : 'Checking the official GalaxyQuest APK release...');
       const apkRelease = await releases.latest(sourceFor(game), { force: true });
-      const toolRelease = input.gamePath ? await releases.latest({ repo: 'bigmak94/GalaxyQuest', assetPattern: '^GalaxyQuest-Installer-windows-x86_64\\.exe$' }) : null;
+      const toolRelease = input.gamePath ? await releases.latest({ repo: 'bigmak94/GalaxyQuest', assetPattern: win ? '^GalaxyQuest-Installer-windows-x86_64\\.exe$' : '^GalaxyQuest-converter\\.zip$' }) : null;
       if (!apkRelease || apkRelease.stale || input.gamePath && (!toolRelease || toolRelease.stale)) throw new Error('The required official GalaxyQuest release could not be confirmed');
       const apkPath = await keepDownloadedApk(game, await releases.download(apkRelease));
-      const converterPath = input.gamePath ? await releases.downloadTool(toolRelease) : null;
+      const converterPath = input.gamePath ? await (win ? releases.downloadTool(toolRelease) : releases.downloadPackage(toolRelease)) : null;
       const result = await withSpecialGamePath(game, input.gamePath, (gamePath) => galaxyQuestInstaller({ apkPath, converterPath, gamePath: gamePath || null, serial: input.serial, adb, workRoot, onLog: log }), { tempRoot: workRoot || os.tmpdir() });
       if (input.gamePath && !(await inspectDevice(adb, input.serial, [game]))[game.id]?.dataReady) {
         throw new Error('GalaxyQuest conversion finished, but the game files were not found on the selected headset');
@@ -1424,6 +1430,7 @@ function createApp(options = {}) {
         const input = await body(req);
         const game = gameById(input.gameId);
         if (!game) throw new Error('Unknown game');
+        requireSupported(game);
         if (game.externalInstaller) throw new Error('This port requires its official build-and-install guide');
         if (game.manualRelease && input.apkMode === 'github') throw new Error('The official GitHub release is an installer ZIP. Use its installer to prepare an APK, then select that APK locally.');
         if (!canQueueInstall(input.serial)) return json(res, 409, { error: 'Another operation is already running on this device' });
@@ -1462,6 +1469,7 @@ function createApp(options = {}) {
         const input = await body(req);
         const game = gameById(input.gameId);
         if (!game || !officialPlayerRecipes[game.id] || game.playerInstall !== 'official-zip') throw new Error('Choose an integrated Quest player');
+        requireSupported(game);
         if (!canQueueInstall(input.serial)) return json(res, 409, { error: 'Another operation is already running on this device' });
 
         try {
@@ -1483,6 +1491,7 @@ function createApp(options = {}) {
         const input = await body(req);
         const game = gameById(input.gameId);
         if (game?.id !== 'magic-carpet-vr') throw new Error('Choose Magic Carpet VR');
+        requireSupported(game);
         if (!canQueueInstall(input.serial)) return json(res, 409, { error: 'Another operation is already running on this device' });
 
         try {
@@ -1524,6 +1533,7 @@ function createApp(options = {}) {
         const input = await body(req);
         const game = gameById(input.gameId);
         if (game?.id !== 'galaxyquest') throw new Error('Choose GalaxyQuest');
+        requireSupported(game);
         if (!canQueueInstall(input.serial)) return json(res, 409, { error: 'Another operation is already running on this device' });
 
         try {
@@ -1570,6 +1580,7 @@ function createApp(options = {}) {
         const input = await body(req);
         const game = gameById(input.gameId);
         if (game?.id !== 'road-rash-vr') throw new Error('Choose Road Rash Jailbreak VR');
+        requireSupported(game);
         if (typeof input.discImage !== 'string' || !['.bin', '.cue', '.zip', '.7z', '.rar'].includes(path.extname(input.discImage).toLowerCase())) {
           throw new Error('Choose an owned USA Road Rash BIN/CUE, ZIP, 7z, or RAR disc image');
         }
@@ -1591,6 +1602,7 @@ function createApp(options = {}) {
         const input = await body(req);
         const game = gameById(input.gameId);
         if (game?.id !== 'harry-potter-vr') throw new Error('Choose Harry Potter VR');
+        requireSupported(game);
         if (typeof input.gamePath !== 'string' || !path.isAbsolute(input.gamePath)) throw new Error('Choose your owned US PC game folder or ZIP');
         const gameStat = await fs.stat(input.gamePath).catch(() => null);
         if (!gameStat || !gameStat.isDirectory() && (!['.zip', '.7z', '.rar'].includes(path.extname(input.gamePath).toLowerCase()) || !gameStat.isFile())) throw new Error('Choose an existing game folder, ZIP, 7z, or RAR');
@@ -1677,6 +1689,7 @@ function createApp(options = {}) {
       if (url.pathname === '/api/build-tools' && req.method === 'POST') {
         const input = await body(req);
         if (!buildToolGames.has(input.gameId)) throw new Error('Choose a supported build tool setup');
+        requireSupported(gameById(input.gameId));
         if (busyBuildGames.has(input.gameId)) return json(res, 409, { error: 'Game tool setup or build is already running' });
         const downloadLocation = await validateBuildToolsLocation(input.downloadLocation);
         if (await gameFolderContainsBuildTools(input.gamePackage, downloadLocation)) throw new Error('Choose a build tools folder outside your game export folder.');
@@ -1753,6 +1766,7 @@ function createApp(options = {}) {
         const requestInput = await body(req);
         const game = gameById(requestInput.gameId);
         if (!game || !['gta-sa-vr', 'rdr1-vr', 'vice-city-vr', 'crazy-taxi-vr', 'fzero-x-virtuavr', 'bioshock-vr', 'victory-heat-rally-vr', 'jurassic-park-arcade-vr'].includes(game.id)) throw new Error('Choose a supported personal build');
+        requireSupported(game);
         const serialBuild = buildToolGames.has(game.id) || game.id === 'jurassic-park-arcade-vr';
         if (serialBuild && busyBuildGames.has(game.id)) return json(res, 409, { error: 'Game tool setup or build is already running' });
         const downloadLocation = buildToolGames.has(game.id) && (game.id === 'vice-city-vr' || buildToolsLocation(game.id))
@@ -1778,7 +1792,7 @@ function createApp(options = {}) {
           ? await validateVictoryHeatInput(requestInput)
           : game.id === 'jurassic-park-arcade-vr'
           ? await validateJurassicInput(requestInput)
-          : await validatePersonalBuildInput(game.id, requestInput);
+          : await validatePersonalBuildInput(game.id, requestInput, { platform: options.platform });
         if (downloadLocation) input.downloadLocation = downloadLocation;
         if (!canQueueInstall(input.serial)) return json(res, 409, { error: 'Another operation is already running on this device' });
         if (serialBuild && busyBuildGames.has(game.id)) return json(res, 409, { error: 'Game tool setup or build is already running' });
@@ -1828,7 +1842,9 @@ if (require.main === module) {
   app.server.listen(4173, '127.0.0.1', () => {
     const address = 'http://127.0.0.1:4173';
     console.log(`VR4ALL is ready at ${address}`);
-    if (process.platform === 'win32') require('node:child_process').execFile('rundll32.exe', ['url.dll,FileProtocolHandler', address], { windowsHide: true }, () => {});
+    const opener = process.platform === 'win32' ? ['rundll32.exe', ['url.dll,FileProtocolHandler', address]]
+      : process.platform === 'linux' ? ['xdg-open', [address]] : null;
+    if (opener) require('node:child_process').execFile(opener[0], opener[1], { windowsHide: true }, () => {});
   });
 }
 

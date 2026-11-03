@@ -4,6 +4,7 @@ const os = require('node:os');
 const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const { inspectSingleFileArchive, extractSingleFileArchive } = require('./archive-conversion');
+const { findOnPath } = require('./find-tool');
 
 const runFile = promisify(execFile);
 const sectorBytes = 2352;
@@ -49,6 +50,11 @@ async function inspectWipeoutFolder(source, workspace) {
 }
 
 async function chdmanPath() {
+  if (process.platform !== 'win32') {
+    const found = findOnPath(['chdman']);
+    if (found) return found;
+    throw new Error('VR4ALL needs chdman to read a Wipeout CHD');
+  }
   const candidates = [process.env.VR4ALL_CHDMAN,
     process.resourcesPath && path.join(process.resourcesPath, 'chdman', 'chdman.exe'),
     path.join(__dirname, '..', 'vendor', 'chdman', 'chdman.exe'), 'chdman.exe'];

@@ -24,6 +24,12 @@ const TOOL = Object.freeze({
   sha256: 'd48f7651d86b78fdca397057b46601f89131f37219675df736db70af44ec3379',
   maxBytes: 2 * 1024 * 1024,
 });
+const TOOL_LINUX = Object.freeze({
+  url: 'https://github.com/jmacd/xdelta/releases/download/v3.2.2/xdelta3-3.2.2-linux-x86_64.tar.gz',
+  sha256: 'a8ce7d2c943ae2b3d308942643cb36d4805a1f16775abe1be64fee292d7c2506',
+  maxBytes: 2 * 1024 * 1024,
+  member: 'xdelta3-3.2.2-linux-x86_64/xdelta3',
+});
 const runFile = promisify(execFile);
 
 async function readAt(handle, length, position) {
@@ -218,6 +224,40 @@ async function installOnQuest(adb, serial, apkPath, onLog = () => {}) {
   if (!/^package:\/\S+\.apk\s*$/m.test(String(paths))) throw new Error('Crazy Taxi VR package was not found on the selected Quest');
 }
 
+async function prepareXdelta(staging, input, options = {}) {
+  const platform = input.platform || options.platform || process.platform;
+  const fetchImpl = options.fetchImpl || fetch;
+  if (platform === 'win32') {
+    const toolZip = path.join(staging, 'xdelta3.zip');
+    await downloadVerified(TOOL, toolZip, fetchImpl, input.signal);
+    (input.onLog || (() => {}))('Official xdelta decoder SHA-256 verified.');
+    const entries = await zipDirectory(toolZip);
+    const executables = entries.filter((entry) => /(?:^|\/)xdelta3\.exe$/i.test(entry.name) && !entry.name.includes('..'));
+    if (executables.length !== 1) throw new Error('Official xdelta package must contain one decoder executable');
+    const executable = path.join(staging, 'xdelta3.exe');
+    const bytes = await readZipEntry(toolZip, executables[0], 5 * 1024 * 1024);
+    if (bytes.subarray(0, 2).toString('ascii') !== 'MZ') throw new Error('Official xdelta decoder is not a Windows executable');
+    await fsp.writeFile(executable, bytes, { flag: 'wx' });
+    return executable;
+  }
+  const tool = options.toolLinux || TOOL_LINUX;
+  const archive = path.join(staging, 'xdelta3.tar.gz');
+  await downloadVerified(tool, archive, fetchImpl, input.signal);
+  (input.onLog || (() => {}))('Official xdelta decoder SHA-256 verified.');
+  const executable = path.join(staging, tool.member);
+  try {
+    await (options.tarImpl || runFile)('tar', ['-xzf', archive, '-C', staging, tool.member], { timeout: 60000 });
+  } catch (error) {
+    throw new Error(`Could not extract the official xdelta decoder; the tar tool is required (${String(error.stderr || error.message).trim().slice(0, 250)})`);
+  }
+  const head = Buffer.alloc(4);
+  const handle = await fsp.open(executable, 'r');
+  try { await handle.read(head, 0, 4, 0); } finally { await handle.close(); }
+  if (head.toString('latin1') !== '\x7fELF') throw new Error('Official xdelta decoder is not a Linux executable');
+  await fsp.chmod(executable, 0o755);
+  return executable;
+}
+
 async function installCrazyTaxi(input, options = {}) {
   if (!/^[A-Za-z0-9._:-]+$/.test(input?.serial || '')) throw new Error('Choose a connected Quest');
   if (!input.adb || typeof input.adb.run !== 'function') throw new Error('ADB is unavailable');
@@ -244,20 +284,11 @@ async function installCrazyTaxi(input, options = {}) {
   const staging = await fsp.mkdtemp(path.join(options.tempRoot || os.tmpdir(), 'vr4all-crazy-taxi-'));
   try {
     const patchFile = path.join(staging, 'crazywilly.xdelta');
-    const toolZip = path.join(staging, 'xdelta3.zip');
     onLog(original.message);
     onLog('Downloading the official Crazy Taxi VR patch...');
     await downloadVerified(PATCH, patchFile, options.fetchImpl || fetch, input.signal);
     onLog('Crazy Taxi VR patch SHA-256 verified.');
-    await downloadVerified(TOOL, toolZip, options.fetchImpl || fetch, input.signal);
-    onLog('Official xdelta decoder SHA-256 verified.');
-    const entries = await zipDirectory(toolZip);
-    const executables = entries.filter((entry) => /(?:^|\/)xdelta3\.exe$/i.test(entry.name) && !entry.name.includes('..'));
-    if (executables.length !== 1) throw new Error('Official xdelta package must contain one decoder executable');
-    const executable = path.join(staging, 'xdelta3.exe');
-    const bytes = await readZipEntry(toolZip, executables[0], 5 * 1024 * 1024);
-    if (bytes.subarray(0, 2).toString('ascii') !== 'MZ') throw new Error('Official xdelta decoder is not a Windows executable');
-    await fsp.writeFile(executable, bytes, { flag: 'wx' });
+    const executable = await prepareXdelta(staging, input, options);
     const stagedApk = path.join(staging, 'Crazy-Taxi-VR-Standalone.apk');
     onLog('Applying the patch to your owned Crazy Taxi APKM...');
     try {
@@ -278,4 +309,4 @@ async function installCrazyTaxi(input, options = {}) {
   } finally { await fsp.rm(staging, { recursive: true, force: true }); }
 }
 
-module.exports = { ORIGINAL_NAME, inspectCrazyTaxiOriginal, readApkPackage, downloadVerified, installOnQuest, installCrazyTaxi };
+module.exports = { ORIGINAL_NAME, inspectCrazyTaxiOriginal, readApkPackage, downloadVerified, prepareXdelta, installOnQuest, installCrazyTaxi };

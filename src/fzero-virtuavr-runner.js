@@ -7,6 +7,8 @@ const { spawn } = require('node:child_process');
 const { inflateRawSync } = require('node:zlib');
 const { extractZipSafely } = require('./harry-potter-runner');
 const { inspectApkPackage } = require('./apk-verification');
+const { runLogged } = require('./run-logged');
+const { findWineLauncher, windowsPath, wineInvocation } = require('./wine');
 
 // The creator's Quest R10 installer extracts two archives from the user's ROM.
 const bundleZipSha256 = '13a1af3db416f296a6d4a6954eba76792c44109463e85317729d2f5eb768741e';
@@ -101,11 +103,31 @@ async function validateVirtuaInput(input) {
   return { serial: input.serial, gamePackage, audioSource: path.resolve(bundle) };
 }
 
-function runExtractor(root, rom, output, log) {
+// The pinned extractor is a Windows console tool. On Linux it runs under Wine with Z: paths,
+// inside the output folder because Torch can drop a stray torch.hash.yml in its working directory.
+function extractorCommand({ platform = process.platform, root, rom, output, launcher, prefixRoot }) {
+  const tool = path.join(root, 'tools', 'gdx-extract.exe');
+  const recipes = path.join(root, 'tools', 'decomp-recipes');
+  if (platform === 'win32') return { command: tool, args: ['o2r', rom, '-s', recipes, '-d', output, '-u', '2027490995'] };
+  const invocation = wineInvocation(launcher, tool, ['o2r', windowsPath(rom), '-s', windowsPath(recipes), '-d', windowsPath(output), '-u', '2027490995'], prefixRoot);
+  return { command: invocation.command, args: invocation.args, env: invocation.env, cwd: output, prefixDir: invocation.prefixDir };
+}
+
+async function runWineExtractor(root, rom, output, log, { launcher = findWineLauncher(), prefixRoot, runner = runLogged }) {
+  if (!launcher) throw new Error('Wine is required to prepare F-Zero X data on Linux. Install wine and retry.');
+  const { command, args, env, cwd, prefixDir } = extractorCommand({ platform: 'linux', root, rom, output, launcher, prefixRoot });
+  await fs.mkdir(prefixDir, { recursive: true });
+  const result = await runner(command, args, { cwd, env: { ...process.env, ...env }, timeoutMs: 10 * 60 * 1000,
+    onLine: (line) => { if (!line.includes('Registered factory')) log(line); } });
+  if (result.code !== 0) throw new Error(`VirtuaVRPort ROM extraction failed (exit ${result.code}); see activity log`);
+  await fs.rm(path.join(output, 'torch.hash.yml'), { force: true });
+}
+
+function runExtractor(root, rom, output, log, options = {}) {
+  if ((options.platform || process.platform) !== 'win32') return runWineExtractor(root, rom, output, log, options);
   return new Promise((resolve, reject) => {
-    const tool = path.join(root, 'tools', 'gdx-extract.exe');
-    const args = ['o2r', rom, '-s', path.join(root, 'tools', 'decomp-recipes'), '-d', output, '-u', '2027490995'];
-    const child = spawn(tool, args, { windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
+    const { command, args } = extractorCommand({ platform: 'win32', root, rom, output });
+    const child = spawn(command, args, { windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
     let tail = '';
     const record = (chunk) => {
       tail += String(chunk);
@@ -174,7 +196,7 @@ async function prepareVirtuaData(root, rom, output, log = () => {}, extract = ru
   return ['baserom.us.rev0.z64', 'fzerox.o2r', 'gdiffuser.o2r'];
 }
 
-async function installVirtuaFzero(input, { adb, onLog = () => {}, extract = runExtractor } = {}) {
+async function installVirtuaFzero(input, { adb, onLog = () => {}, winePrefix, extract = (root, rom, output, log) => runExtractor(root, rom, output, log, { prefixRoot: winePrefix }) } = {}) {
   if (!adb || typeof adb.run !== 'function') throw new Error('ADB is required to install F-Zero X on the selected Quest');
   const validated = await validateVirtuaInput(input);
   const staging = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-fzero-'));
@@ -209,4 +231,4 @@ async function installVirtuaFzero(input, { adb, onLog = () => {}, extract = runE
   }
 }
 
-module.exports = { validateVirtuaInput, findBundleRoot, verifyBundleRoot, prepareVirtuaData, installVirtuaFzero };
+module.exports = { validateVirtuaInput, extractorCommand, runExtractor, findBundleRoot, verifyBundleRoot, prepareVirtuaData, installVirtuaFzero };

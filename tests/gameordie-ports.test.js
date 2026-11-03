@@ -8,6 +8,7 @@ const { getCatalog } = require('../src/catalog');
 const { GitHubReleases } = require('../src/releases');
 const { installOfficialPlayer } = require('../src/official-player-runner');
 const { inspectDevice } = require('../src/device-library');
+const { sevenZipBinary } = require('./helpers/seven-zip');
 
 const ports = [
   { id: 'forsaken-gameordie', parent: 'forsaken-vr', repo: 'Forsaken-VR', version: '1.2', apk: 'ForsakenVR.apk', packageId: 'net.gameordie.forsakenvr', files: { 'data/levels': 'levels.dat\nbattle.dat', 'data/levels/ship': 'ship.mxv' } },
@@ -41,9 +42,9 @@ for (const port of ports) {
       await fs.mkdir(bundle, { recursive: true });
       await fs.writeFile(path.join(bundle, 'setup-quest.ps1'), '# unmodified creator installer fixture');
       await fs.writeFile(path.join(bundle, port.apk), 'creator APK fixture');
-      const packed = spawnSync(path.join(__dirname, '..', 'vendor', '7zip', '7z.exe'), ['a', '-tzip', archive, 'Creator release with spaces'], { cwd: root, windowsHide: true });
+      const packed = spawnSync(sevenZipBinary(), ['a', '-tzip', archive, 'Creator release with spaces'], { cwd: root, windowsHide: true });
       assert.equal(packed.status, 0, String(packed.stderr));
-      const input = { gameId: port.id, serial: 'QUEST-SELECTED', adbPath, zipPath: archive, workRoot: root,
+      const input = { gameId: port.id, serial: 'QUEST-SELECTED', adbPath, zipPath: archive, workRoot: root, platform: 'win32',
         adb: { run: async (args) => { commands.push(args); return 'Success'; } },
         inspectApk: async (file) => { assert.equal(path.basename(file), port.apk); return port.packageId; },
         runScript: async (script, args) => {

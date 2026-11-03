@@ -3,13 +3,14 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
+const { sevenZipBinary } = require('./helpers/seven-zip');
 const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const { installAstroQuest } = require('../src/astroquest-runner');
 const { installGalaxyQuest } = require('../src/galaxyquest-runner');
 const { installSclerosis } = require('../src/sclerosis-runner');
 const runFile = promisify(execFile);
-const bundledZip = path.join(__dirname, '..', 'vendor', '7zip', '7z.exe');
+const bundledZip = sevenZipBinary();
 
 async function fixture() {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-integrated-'));

@@ -3,12 +3,13 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
+const { sevenZipBinary } = require('./helpers/seven-zip');
 const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const { inspectListing, needsZipConversion, inspectDirectory, inspectDirectoryArchive, extractDirectoryArchive, packageDirectoryToZip, removeConversionDirectory, convertArchiveToZip } = require('../src/archive-conversion');
 const runFile = promisify(execFile);
-const sevenZip = path.join(process.env.ProgramFiles || 'C:\\Program Files', '7-Zip', '7z.exe');
-const bundledZip = path.join(__dirname, '..', 'vendor', '7zip', '7z.exe');
+const sevenZip = sevenZipBinary();
+const bundledZip = sevenZipBinary();
 
 test('game archive conversion stays on the selected drive and removes its private files', { skip: process.platform !== 'win32' }, async (t) => {
   const root = await fs.mkdtemp(path.join(__dirname, '.selected-conversion-'));
@@ -89,8 +90,7 @@ test('folder packing rejects links, empty folders, unsafe names, and over-limit 
   } finally { await fs.rm(root, { recursive: true, force: true }); }
 });
 
-test('folder contents are packed at ZIP root with nested paths preserved', { skip: process.platform !== 'win32' }, async () => {
-  if (!(await fs.stat(sevenZip).catch(() => null))?.isFile()) return;
+test('folder contents are packed at ZIP root with nested paths preserved', async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-pack-root-'));
   let converted;
   try {
@@ -101,8 +101,8 @@ test('folder contents are packed at ZIP root with nested paths preserved', { ski
     converted = await packageDirectoryToZip(source, 'timecris');
     const listing = await runFile(sevenZip, ['l', '-slt', converted.path], { windowsHide: true });
     assert.match(listing.stdout, /Path = game\.bin/);
-    assert.match(listing.stdout, /Path = nested\\board\.bin/);
-    assert.doesNotMatch(listing.stdout, /Path = timecris\\game\.bin/);
+    assert.match(listing.stdout, /Path = nested[\\/]board\.bin/);
+    assert.doesNotMatch(listing.stdout, /Path = timecris[\\/]game\.bin/);
   } finally {
     if (converted) await removeConversionDirectory(converted.directory);
     await fs.rm(root, { recursive: true, force: true });
@@ -131,5 +131,19 @@ test('folder ZIP packaging works on Windows without a separate 7-Zip installatio
     }
     if (converted) await removeConversionDirectory(converted.directory);
     await fs.rm(root, { recursive: true, force: true });
+  }
+});
+
+test('packageDirectoryToZip writes a real ZIP (PK signature), not a tar named .zip', async () => {
+  const source = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-zipsig-'));
+  let converted;
+  try {
+    await fs.writeFile(path.join(source, 'game.bin'), 'fixture');
+    converted = await packageDirectoryToZip(source, 'sig');
+    const head = (await fs.readFile(converted.path)).subarray(0, 2).toString('latin1');
+    assert.equal(head, 'PK');
+  } finally {
+    if (converted) await removeConversionDirectory(converted.directory);
+    await fs.rm(source, { recursive: true, force: true });
   }
 });

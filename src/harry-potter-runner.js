@@ -8,6 +8,7 @@ const { Readable, Transform } = require('node:stream');
 const { pipeline } = require('node:stream/promises');
 const { createInflateRaw } = require('node:zlib');
 const { findAdb } = require('./adb');
+const { installHarryPotterLinux } = require('./harry-potter-linux');
 
 const repo = 'dubrovskiy-yevhen-stakelogic/harry-potter-vr';
 const maxZipBytes = 2 * 1024 ** 3;
@@ -206,7 +207,7 @@ async function findBundleRoot(directory) {
     const manifestFile = await fsp.lstat(path.join(candidate, 'release-manifest.json')).catch(() => null);
     if (!script?.isFile() || script.isSymbolicLink() || !manifestFile?.isFile() || manifestFile.isSymbolicLink()) return false;
     let manifest;
-    try { manifest = JSON.parse(await fsp.readFile(path.join(candidate, 'release-manifest.json'), 'utf8')); } catch { return false; }
+    try { manifest = JSON.parse((await fsp.readFile(path.join(candidate, 'release-manifest.json'), 'utf8')).replace(/^\uFEFF/, '')); } catch { return false; }
     if (manifest.schema !== 1 || manifest.packageName !== 'io.github.hpvr.quest' || !/^[A-Za-z0-9_.-]+\.apk$/.test(manifest.apk || '')) return false;
     const apk = await fsp.lstat(path.join(candidate, manifest.apk)).catch(() => null);
     return apk?.isFile() && !apk.isSymbolicLink();
@@ -291,6 +292,10 @@ async function installHarryPotterPlayer(input, options = {}) {
     log('Downloading the official Harry Potter VR player ZIP.');
     await downloadRelease(release, archive, options.fetchImpl || fetch, signal);
     const bundleRoot = await findBundleRoot(await extractZipSafely(archive, path.join(staging, 'player'), { signal }));
+    if ((input.platform || options.platform || process.platform) !== 'win32') {
+      log('Preparing game data and installing with VR4ALL’s Linux installer (the author’s helper tools run under Wine).');
+      return await installHarryPotterLinux({ bundleRoot, gameRoot, serial, adb: input.adb, staging, onLog: log, winePrefix: input.winePrefix }, options);
+    }
     log('Preparing game data and installing with the author\'s Windows installer.');
     return await runInstaller(bundleRoot, gameRoot, serial, adbPath, log, signal, options.spawnImpl || spawn);
   } finally {

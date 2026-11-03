@@ -3,9 +3,13 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
+const { sevenZipBinary } = require('./helpers/seven-zip');
 const { EventEmitter } = require('node:events');
 const { PassThrough } = require('node:stream');
 const { validatePersonalBuildInput, buildPowerShellArgs, acquireSourceKit, runAuthorScript, runPersonalBuild, withCompatibleGamePackage } = require('../src/personal-build');
+
+// The Windows flow maps a short drive with subst.exe unless the test hands the path straight through.
+const withBuildPath = async (dir, operation) => operation(dir);
 
 test('RDR accepts a complete export path and targets exactly the selected Quest', async (t) => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-rdr-input-'));
@@ -72,8 +76,8 @@ test('source kit uses a specific official GitHub commit and caches the verified 
     await fs.mkdir(path.join(repo, 'tools'), { recursive: true });
     await fs.writeFile(path.join(repo, 'tools', 'build-and-install.ps1'), 'param()');
   };
-  const first = await acquireSourceKit('rdr1-vr', root, () => {}, { fetchImpl, extract });
-  const second = await acquireSourceKit('rdr1-vr', root, () => {}, { fetchImpl, extract });
+  const first = await acquireSourceKit('rdr1-vr', root, () => {}, { fetchImpl, extract, platform: 'win32' });
+  const second = await acquireSourceKit('rdr1-vr', root, () => {}, { fetchImpl, extract, platform: 'win32' });
   assert.equal(first.sha, sha);
   assert.equal(first.directory, second.directory);
   assert.equal(extracts, 1);
@@ -96,7 +100,7 @@ test('source kit pins the Git branch SHA when the GitHub API is rate limited', a
     await fs.mkdir(source, { recursive: true });
     await fs.writeFile(path.join(source, 'build-and-install.ps1'), 'param()');
   };
-  const kit = await acquireSourceKit('rdr1-vr', root, () => {}, { fetchImpl, extract });
+  const kit = await acquireSourceKit('rdr1-vr', root, () => {}, { fetchImpl, extract, platform: 'win32' });
   assert.equal(kit.sha, sha);
   assert.ok(urls.some((url) => url.endsWith('/info/refs?service=git-upload-pack')));
   assert.ok(urls.some((url) => url.endsWith(`/zip/${sha}`)));
@@ -117,6 +121,7 @@ test('GTA SA phone export passes base.apk and its sibling splits without scannin
   await runPersonalBuild('gta-sa-vr', { gamePackage, audioSource, serial: 'Q3' }, {
     cacheRoot: path.join(root, 'cache'), workRoot: path.join(root, 'safe-work'),
   }, () => {}, {
+    platform: 'win32',
     fetchImpl: async (url) => new Response(url.includes('/commits/') ? JSON.stringify({ sha }) : 'source zip'),
     extract: async (_zip, destination) => {
       const tools = path.join(destination, 'official-kit', 'tools');
@@ -151,7 +156,7 @@ test('author builder progress and a failed exit are reported through the job log
     });
     return child;
   };
-  await assert.rejects(() => runAuthorScript('rdr1-vr', { gamePackage: 'C:\\game.xapk', serial: 'Q3' }, 'C:\\kit', 'C:\\work', (line) => lines.push(line), { spawnImpl, platform: 'linux' }), /failed \(exit 1\)/);
+  await assert.rejects(() => runAuthorScript('rdr1-vr', { gamePackage: 'C:\\game.xapk', serial: 'Q3' }, 'C:\\kit', 'C:\\work', (line) => lines.push(line), { spawnImpl, platform: 'win32', withBuildPath }), /failed \(exit 1\)/);
   assert.ok(lines.some((line) => line.includes('Validating owned game data')));
   assert.ok(lines.some((line) => line.includes('licenses have not been accepted')));
 });
@@ -169,7 +174,7 @@ for (const gameId of ['rdr1-vr', 'gta-sa-vr']) {
       const sha = 'c'.repeat(40);
       let prepared;
       const options = {
-        platform: 'linux',
+        platform: 'win32', withBuildPath,
         fetchImpl: async (url) => new Response(url.includes('/commits/') ? JSON.stringify({ sha }) : 'source zip'),
         extract: async (_zip, destination) => {
           const tools = path.join(destination, 'official-kit', 'tools');
@@ -227,7 +232,7 @@ test('personal builder reports the author error in the failed job message', asyn
     return child;
   };
   await assert.rejects(() => runAuthorScript('rdr1-vr', { gamePackage: 'C:\\game.zip', serial: 'Q3' },
-    'C:\\kit', 'C:\\work', () => {}, { spawnImpl, platform: 'linux' }), /the game data is incomplete.*world and audio/);
+    'C:\\kit', 'C:\\work', () => {}, { spawnImpl, platform: 'win32', withBuildPath }), /the game data is incomplete.*world and audio/);
 });
 
 test('personal builder reports FAILED messages from the author instead of a generic exit code', async () => {
@@ -239,7 +244,7 @@ test('personal builder reports FAILED messages from the author instead of a gene
     return child;
   };
   await assert.rejects(() => runAuthorScript('rdr1-vr', { gamePackage: 'C:\\game.zip', serial: 'Q3' },
-    'C:\\kit', 'C:\\work', () => {}, { spawnImpl, platform: 'linux' }), /Required Windows build command is unavailable/);
+    'C:\\kit', 'C:\\work', () => {}, { spawnImpl, platform: 'win32', withBuildPath }), /Required Windows build command is unavailable/);
 });
 
 test('GTA SA build failure reports the assembly cause instead of the wrapper command', async () => {
@@ -256,7 +261,7 @@ test('GTA SA build failure reports the assembly cause instead of the wrapper com
   };
   await assert.rejects(() => runAuthorScript('gta-sa-vr', {
     gamePackage: 'D:\\port files\\export', audioSource: 'D:\\port files\\audio.7z', serial: 'Q3',
-  }, 'C:\\kit', 'C:\\work', (line) => lines.push(line), { spawnImpl, platform: 'linux' }),
+  }, 'C:\\kit', 'C:\\work', (line) => lines.push(line), { spawnImpl, platform: 'win32', withBuildPath: async (dir, op) => op(dir) }),
   (error) => {
     assert.match(error.message, /audio archive size mismatch/);
     assert.doesNotMatch(error.message, /Command failed \(1\)/);
@@ -278,14 +283,14 @@ test('personal builder reports a Python exception when the wrapper only names th
   };
   await assert.rejects(() => runAuthorScript('gta-sa-vr', {
     gamePackage: 'D:\\export', audioSource: 'D:\\audio.7z', serial: 'Q3',
-  }, 'C:\\kit', 'C:\\work', () => {}, { spawnImpl, platform: 'linux' }),
+  }, 'C:\\kit', 'C:\\work', () => {}, { spawnImpl, platform: 'win32', withBuildPath: async (dir, op) => op(dir) }),
   /FileNotFoundError: base\.apk was not found/);
 });
 
 test('7z personal game archives reach the builder as ZIP and clean up on failure', { skip: process.platform !== 'win32' }, async (t) => {
   const { promisify } = require('node:util');
   const runFile = promisify(require('node:child_process').execFile);
-  const binary = path.join(__dirname, '..', 'vendor', '7zip', '7z.exe');
+  const binary = sevenZipBinary();
   const root = await fs.mkdtemp(path.join(__dirname, '.personal-7z-'));
   t.after(() => fs.rm(root, { recursive: true, force: true }));
   await fs.writeFile(path.join(root, 'base.apk'), 'owned APK');
@@ -302,4 +307,152 @@ test('7z personal game archives reach the builder as ZIP and clean up on failure
   }), /fixture author rejection/);
   assert.deepEqual(await fs.readdir(tempRoot), []);
   assert.deepEqual(await fs.readFile(source), original);
+});
+
+// ---- Linux: the creator's build-and-install.sh ----
+
+const { buildShellArgs } = require('../src/linux-build-tools');
+
+const scriptFor = (gameId) => `# options: --non-interactive --serial --game-package --work-dir --android-sdk --java-home${gameId === 'gta-sa-vr' ? ' --audio-source --yes' : ''}\n`;
+
+const linuxKit = (gameId, script = scriptFor(gameId)) => async (_zip, destination) => {
+  const tools = path.join(destination, 'official-kit', 'tools');
+  await fs.mkdir(tools, { recursive: true });
+  await fs.writeFile(path.join(tools, 'build-and-install.sh'), script);
+};
+
+function fakeShell({ lines = [], code = 0, signal = null, onSpawn = () => {} } = {}) {
+  return (program, args, spawnOptions) => {
+    onSpawn({ program, args, spawnOptions });
+    const child = new EventEmitter(); child.stdout = new PassThrough(); child.stderr = new PassThrough();
+    queueMicrotask(() => { child.stdout.write(lines.join('\n') + '\n'); child.emit('close', code, signal); });
+    return child;
+  };
+}
+
+const linuxOptions = (extra = {}) => ({
+  platform: 'linux', findTool: () => '/usr/bin/bash', checkHostTools: async () => {},
+  resolveLinuxTools: async () => ({ javaHome: '/opt/jdk-21', sdkRoot: '/work/shared/.android-sdk' }), ...extra,
+});
+
+test('Linux source kit is unzipped, needs build-and-install.sh and every option VR4ALL passes, and is cached', async (t) => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-kit-linux-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const sha = 'd'.repeat(40);
+  const fetchImpl = async (url) => url.includes('/commits/') ? new Response(JSON.stringify({ sha })) : new Response('zip fixture');
+  let extracts = 0;
+  const counted = (extract) => async (...args) => { extracts++; return extract(...args); };
+  const first = await acquireSourceKit('rdr1-vr', root, () => {}, { fetchImpl, extract: counted(linuxKit('rdr1-vr')), platform: 'linux' });
+  const second = await acquireSourceKit('rdr1-vr', root, () => {}, { fetchImpl, extract: counted(linuxKit('rdr1-vr')), platform: 'linux' });
+  assert.equal(first.directory, second.directory);
+  assert.equal(extracts, 1);
+  // GTA also needs --audio-source and --yes; the RDR script text above lacks them.
+  await assert.rejects(acquireSourceKit('gta-sa-vr', root, () => {}, { fetchImpl, extract: linuxKit('gta-sa-vr', scriptFor('rdr1-vr')), platform: 'linux' }), /safe unattended installation on Linux/);
+  await assert.rejects(acquireSourceKit('rdr1-vr', path.join(root, 'ps1'), () => {}, {
+    fetchImpl, platform: 'linux',
+    extract: async (_zip, destination) => { await fs.mkdir(path.join(destination, 'kit', 'tools'), { recursive: true }); await fs.writeFile(path.join(destination, 'kit', 'tools', 'build-and-install.ps1'), 'param()'); },
+  }), /missing its build script/);
+});
+
+test('Linux unpacks the real source archive with the system unzip', async (t) => {
+  const { execFileSync } = require('node:child_process');
+  const { findOnPath } = require('../src/find-tool');
+  const zipTool = findOnPath(['zip']);
+  if (!zipTool || !findOnPath(['unzip'])) return t.skip('zip and unzip are not installed');
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-kit-unzip-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const sha = 'e'.repeat(40);
+  const kit = path.join(root, `rdr1-quest-${sha}`);
+  await fs.mkdir(path.join(kit, 'tools'), { recursive: true });
+  await fs.writeFile(path.join(kit, 'tools', 'build-and-install.sh'), scriptFor('rdr1-vr'));
+  const archive = path.join(root, 'source.zip');
+  execFileSync(zipTool, ['-qr', archive, `rdr1-quest-${sha}`], { cwd: root });
+  const fetchImpl = async (url) => url.includes('/commits/') ? new Response(JSON.stringify({ sha })) : new Response(await fs.readFile(archive));
+  const found = await acquireSourceKit('rdr1-vr', path.join(root, 'cache'), () => {}, { fetchImpl, platform: 'linux' });
+  assert.equal(await fs.readFile(path.join(found.directory, 'tools', 'build-and-install.sh'), 'utf8'), scriptFor('rdr1-vr'));
+});
+
+test('Linux resolves symlinked game inputs to their real files, Windows leaves the path alone', async (t) => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-input-link-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const real = path.join(root, 'real.xapk');
+  const audio = path.join(root, 'audio.zip');
+  await fs.writeFile(real, 'fixture'); await fs.writeFile(audio, 'fixture');
+  await fs.symlink(real, path.join(root, 'link.xapk'));
+  await fs.symlink(audio, path.join(root, 'link-audio.zip'));
+  const input = { gamePackage: path.join(root, 'link.xapk'), audioSource: path.join(root, 'link-audio.zip'), serial: 'Q3' };
+  const linux = await validatePersonalBuildInput('gta-sa-vr', input, { platform: 'linux' });
+  assert.equal(linux.gamePackage, await fs.realpath(real));
+  assert.equal(linux.audioSource, await fs.realpath(audio));
+  const windows = await validatePersonalBuildInput('gta-sa-vr', input, { platform: 'win32' });
+  assert.equal(windows.gamePackage, path.join(root, 'link.xapk'));
+});
+
+for (const gameId of ['rdr1-vr', 'gta-sa-vr']) {
+  test(`Linux ${gameId} runs the creator script with the shared tools and the selected Quest`, { skip: process.platform === 'win32' && 'Linux-only install path (POSIX paths, file modes or shell tools)' }, async () => {
+    const lines = [];
+    let call;
+    const input = { gamePackage: '/games/export.zip', audioSource: gameId === 'gta-sa-vr' ? '/games/audio.7z' : null, serial: 'Q3' };
+    let hostArgs;
+    await runAuthorScript(gameId, input, '/kit', '/work/gta', (line) => lines.push(line), linuxOptions({
+      checkHostTools: async (id, tools) => { hostArgs = { id, needsXz: tools.needsXz }; },
+      spawnImpl: fakeShell({ lines: ['  % Total    % Received % Xferd  Average Speed', '100  130M  100  130M    0     0  55.1M      0  0:00:02  0:00:02 --:--:-- 55.2M', 'INSTALLED AND VERIFIED on Q3.'], onSpawn: (spawned) => { call = spawned; } }),
+    }));
+    assert.equal(call.program, '/usr/bin/bash');
+    assert.deepEqual(call.args, buildShellArgs(gameId, input, '/kit', { toolsDir: '/work/shared', javaHome: '/opt/jdk-21', sdkRoot: '/work/shared/.android-sdk' }));
+    assert.equal(call.args.includes('--yes'), gameId === 'gta-sa-vr');
+    assert.equal(call.args.includes('--audio-source'), gameId === 'gta-sa-vr');
+    assert.equal(call.spawnOptions.cwd, '/kit');
+    assert.equal(call.spawnOptions.env.TMPDIR, '/work/shared/.tmp');
+    assert.deepEqual(lines, ['INSTALLED AND VERIFIED on Q3.']);
+    assert.deepEqual(hostArgs, { id: gameId, needsXz: gameId === 'gta-sa-vr' });
+  });
+}
+
+test('Linux keeps the author’s specific ERROR line, not the closing "Read the ERROR line above"', async () => {
+  const lines = ['ERROR: the game data is incomplete. Export all world and audio files.', 'ERROR: the build failed. Read the ERROR line above; fix it and rerun.', 'FAILED. No failure was treated as success.'];
+  await assert.rejects(() => runAuthorScript('rdr1-vr', { gamePackage: '/games/export.zip', serial: 'Q3' }, '/kit', '/work/rdr1-vr', () => {},
+    linuxOptions({ spawnImpl: fakeShell({ lines, code: 1 }) })), (error) => /\(exit 1\): the game data is incomplete\. Export all world and audio files\.$/.test(error.message));
+});
+
+test('Linux names the signal when the script is killed and points at the activity log when it printed no ERROR', async () => {
+  await assert.rejects(() => runAuthorScript('rdr1-vr', { gamePackage: '/g.zip', serial: 'Q3' }, '/kit', '/work/rdr1-vr', () => {},
+    linuxOptions({ spawnImpl: fakeShell({ lines: ['working'], code: null, signal: 'SIGTERM' }) })), /failed \(signal SIGTERM\); see activity/);
+  await assert.rejects(() => runAuthorScript('rdr1-vr', { gamePackage: '/g.zip', serial: 'Q3' }, '/kit', '/work/rdr1-vr', () => {},
+    linuxOptions({ spawnImpl: fakeShell({ lines: ['working'], code: 3 }) })), /failed \(exit 3\); see activity/);
+});
+
+test('Linux stops before launching when a host tool or the build tools are missing', async () => {
+  const spawnImpl = () => { throw new Error('unexpected launch'); };
+  await assert.rejects(() => runAuthorScript('gta-sa-vr', { gamePackage: '/g.zip', audioSource: '/a.7z', serial: 'Q3' }, '/kit', '/work/gta-sa-vr', () => {},
+    linuxOptions({ spawnImpl, checkHostTools: async () => { throw new Error('Missing system tools needed to build on Linux: xz (package xz).'); } })), /xz \(package xz\)/);
+  await assert.rejects(() => runAuthorScript('rdr1-vr', { gamePackage: '/g.zip', serial: 'Q3' }, '/kit', '/work/rdr1-vr', () => {},
+    linuxOptions({ spawnImpl, resolveLinuxTools: async () => { throw new Error('Build tools are not set up. Click "Set up build tools" first.'); } })), /Set up build tools/);
+});
+
+test('Linux hands APKM to the creator script as ZIP and cleans it up', async (t) => {
+  const root = await fs.mkdtemp(path.join(__dirname, '.personal-apkm-linux-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const source = path.join(root, 'owned-game.apkm');
+  const bytes = Buffer.from('PK\x03\x04 owned APKM fixture');
+  await fs.writeFile(source, bytes);
+  const roots = { cacheRoot: path.join(root, 'source'), workRoot: path.join(root, 'selected drive') };
+  const sha = 'f'.repeat(40);
+  let prepared;
+  await runPersonalBuild('rdr1-vr', { gamePackage: source, audioSource: null, serial: 'Q3' }, roots, () => {}, linuxOptions({
+    fetchImpl: async (url) => new Response(url.includes('/commits/') ? JSON.stringify({ sha }) : 'source zip'),
+    extract: linuxKit('rdr1-vr'),
+    spawnImpl: (_program, args) => {
+      prepared = args[args.indexOf('--game-package') + 1];
+      assert.ok(prepared.startsWith(path.join(roots.workRoot, 'rdr1-vr', '.tmp') + path.sep));
+      assert.equal(path.extname(prepared), '.zip');
+      const child = new EventEmitter(); child.stdout = new PassThrough(); child.stderr = new PassThrough();
+      fs.readFile(prepared).then((actual) => { assert.deepEqual(actual, bytes); child.emit('close', 0, null); }).catch((error) => child.emit('error', error));
+      return child;
+    },
+  }));
+  assert.equal(await fs.stat(prepared).catch(() => null), null);
+  assert.deepEqual(await fs.readdir(path.join(roots.workRoot, 'rdr1-vr', '.tmp')), []);
+  // Linux shares one physical tools folder next to the per-game folders.
+  assert.ok((await fs.lstat(path.join(roots.workRoot, 'shared', '.android-sdk'))).isDirectory());
 });

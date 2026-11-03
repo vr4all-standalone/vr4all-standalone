@@ -35,7 +35,7 @@ for (const [id, packageId, markers] of [
     const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-god-api-'));
     let installed = false;
     let complete = true;
-    const app = createApp({ settingsPath: path.join(root, 'settings.json'),
+    const app = createApp({ platform: 'win32', settingsPath: path.join(root, 'settings.json'),
       adb: { listDevices: async () => [{ serial: 'Q3', state: 'device' }], run: async (args) => {
         assert.equal(args[1], 'Q3');
         const command = args.slice(2).join(' ');
@@ -93,7 +93,7 @@ test('saved install history cannot authorize an APK-only update after Quest data
     if (command.startsWith('shell dumpsys package ')) return 'versionName=0.1.9';
     return '';
   } };
-  const app = createApp({ settingsPath, adb });
+  const app = createApp({ platform: 'win32', settingsPath, adb });
   try {
     const response = await request(app, '/api/galaxyquest-install', { gameId: 'galaxyquest', serial: 'Q3' });
     assert.equal(response.status, 400);
@@ -104,7 +104,7 @@ test('saved install history cannot authorize an APK-only update after Quest data
 test('GalaxyQuest logs rejected install inputs before a job exists', async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-galaxy-rejected-'));
   const settingsPath = path.join(root, 'settings.json');
-  const app = createApp({ settingsPath,
+  const app = createApp({ platform: 'win32', settingsPath,
     adb: { listDevices: async () => [{ serial: 'Q3', state: 'device' }], run: async () => '' },
   });
   try {
@@ -123,7 +123,7 @@ test('GalaxyQuest APK-only update does not check or download the unused Windows 
   await fs.writeFile(apk, 'test APK');
   const releases = [];
   let installerInput;
-  const app = createApp({ settingsPath,
+  const app = createApp({ platform: 'win32', settingsPath,
     adb: { listDevices: async () => [{ serial: 'Q3', state: 'device' }], run: async (args) => {
       const command = args.slice(2).join(' ');
       if (command === 'shell pm list packages -3') return 'package:com.galaxy.quest';
