@@ -1,5 +1,7 @@
 // Read-only probes for catalogued ports on the selected Android headset.
 const packages = {
+  'ratchet-clank-quest-vr': 'dev.ratchetquest.vr',
+  'code-veronica-x-vr': 'org.recvx.vr',
   'daggerfall-unity-vr': 'com.dfworkshop.dfuquest3',
   'star-fox-enhanced-vr': 'com.starfox.enhanced.quest',
   questcraft: 'com.qcxr.qcxr',
@@ -126,6 +128,8 @@ const packages = {
 const packageAliases = { 'rdr1-vr': ['com.rockstargames.rdr', 'com.netflix.NGP.Kamo'] };
 
 const downloadPatterns = {
+  'ratchet-clank-quest-vr': /(?:ratchet.*clank|sces.?50916|scus.?97199).*\.iso$/i,
+  'code-veronica-x-vr': /(?:code.?veronica|slus.?20184).*\.iso$/i,
   'project-honeydew': /pikmin.*\.(?:iso|gcm)$/i,
   'mario-party-4-vr': /(?:mario.party.4|gmpe01|gmpp01).*\.(?:iso|rvz|wia|gcz)$/i,
   'mystical-ninja-vr': /(?:mystical.ninja|goemon).*\.(?:z64|n64|v64)$/i,

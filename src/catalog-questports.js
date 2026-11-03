@@ -3,6 +3,26 @@ const download = '/sdcard/Download/';
 
 const questports = [
   {
+    id: 'ratchet-clank-quest-vr', title: 'Ratchet & Clank Quest VR', gameName: 'Ratchet & Clank', series: 'moistman42069', category: 'PlayStation 2', color: '#dda95f',
+    description: 'Experimental native Quest VR port of the original Ratchet & Clank.',
+    projectUrl: 'https://github.com/moistman42069/RatchetAndClank-Quest-VR',
+    source: { repo: 'moistman42069/RatchetAndClank-Quest-VR', assetPattern: '^RatchetQuestVR-[0-9.]+\\.apk$' },
+    data: [{ id: 'disc', label: 'Owned Ratchet & Clank PS2 ISO', kind: 'file', extensions: ['.iso'], destination: download, renameOnHeadset: true,
+      note: 'Use the original PAL SCES-50916 v2.00 or NTSC-U SCUS-97199 v1.00 ISO. Other revisions and sequels are unsupported. The creator checks the exact disc when you import it.' }],
+    guidance: 'VR4ALL installs the creator’s Quest APK and copies your ISO to Download. The creator recommends Quest 3/3S, about 6 GB of free headset space and a charged headset for the first setup. This is an experimental test build.',
+    afterInstall: 'Open Ratchet & Clank Quest VR under Unknown Sources, choose the ISO in its launcher and let it prepare the levels. Setup can take up to half an hour. Updates keep your prepared game and saves; do not clear the app data.',
+  },
+  {
+    id: 'code-veronica-x-vr', title: 'Resident Evil Code: Veronica X VR', gameName: 'Resident Evil Code: Veronica X', series: 'neto1495mn-sudo', category: 'PlayStation 2', color: '#ba5662',
+    description: 'The original Code: Veronica X in standalone Quest VR.',
+    projectUrl: 'https://github.com/neto1495mn-sudo/recvx-enhanced-port-pcvr',
+    source: { repo: 'neto1495mn-sudo/recvx-enhanced-port-pcvr', assetPattern: '^RE-Code-Veronica-X-VR-v[0-9.]+\\.apk$' },
+    data: [{ id: 'disc', label: 'Owned Code: Veronica X PS2 ISO', kind: 'file', extensions: ['.iso'], destination: download, renameOnHeadset: true,
+      note: 'Use the original NTSC-U PlayStation 2 disc image, SLUS-20184. This is Code: Veronica X, separate from the Survivor 2 arcade game.' }],
+    guidance: 'VR4ALL installs the creator’s Quest APK and copies your original ISO to Download. The creator has tested Quest 2; Quest 3 and 3S are declared supported but have not been tested by the creator.',
+    afterInstall: 'Open Code: Veronica X VR under Unknown Sources, allow All files access when asked, then choose your ISO on the launcher’s Disc tab and press Play.',
+  },
+  {
     id: 'daggerfall-unity-vr', title: 'Daggerfall Unity VR', gameName: 'The Elder Scrolls II: Daggerfall', series: 'rwcrosk-arch', category: 'PC', color: '#b6a179',
     description: 'The original Daggerfall world in an experimental native Quest 3 VR build.',
     projectUrl: 'https://github.com/rwcrosk-arch/dfu-quest3',
@@ -74,6 +94,7 @@ const questports = [
 ];
 
 const questportFacets = {
+  'ratchet-clank-quest-vr': ['PlayStation 2', 'Platformer'], 'code-veronica-x-vr': ['PlayStation 2', 'Horror'],
   'daggerfall-unity-vr': ['PC', 'RPG'], 'star-fox-enhanced-vr': ['Super Nintendo', 'Space combat'],
   questcraft: ['PC', 'Sandbox'], 'outlaws-vr': ['PC', 'Shooter'],
   'age-of-joy': ['Arcade', 'Arcade gallery'], citravr: ['Nintendo 3DS', 'Emulator'],

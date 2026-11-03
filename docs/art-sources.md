@@ -6,6 +6,8 @@ These are project images or media previews. Lupin uses an original software-proj
 
 | Catalog ID | Local file | Exact image source | Context and rights note |
 | --- | --- | --- | --- |
+| `ratchet-clank-quest-vr` | `public/art/ratchet-clank-quest-vr.jpg` | [Ratchet & Clank game image via RAWG](https://media.rawg.io/media/games/a86/a8679c1cb41f6be5cfaa5ab69a7f0943.jpg) | Original game promotional art; redistribution permission is unverified. |
+| `code-veronica-x-vr` | `public/art/code-veronica-x-vr.jpg` | [Code: Veronica article image](https://www.nintendoreporters.com/storage/files/resident-evil-requiems-switch-2-launch-date-is-set-and-the-code-veronic-remake-rumors-are-already-loud-1024x640.jpeg) | Game character art; redistribution permission is unverified. |
 | `project-honeydew` | `public/art/project-honeydew.png` | [Project Honeydew official site cover](https://projecthoneydew.com/assets/cover.png) | Creator's own title artwork. Pikmin naming and references remain with their respective owners; redistribution permission is unverified. |
 | `deus-ex-quest-vr` | `public/art/deus-ex-quest-vr.jpg` | [Deus Ex Game of the Year Steam store header](https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/6910/header.jpg) | Official Deus Ex game art and logo. Game art and trademarks remain with their owners; redistribution permission is unverified. |
 | `bioshock-vr` | `public/art/bioshock-vr.jpg` | [BioShock Steam store header](https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/7670/header.jpg) | Official BioShock game artwork and logo. Game art and trademarks remain with their owners; redistribution permission is unverified. |
