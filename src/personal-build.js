@@ -104,15 +104,18 @@ async function acquireSourceKit(gameId, cacheRoot, log = () => {}, options = {})
   const fetchImpl = options.fetchImpl || fetch;
   const platform = options.platform || process.platform;
   const extract = options.extract || (platform === 'win32' ? extractZip : extractZipLinux);
-  const scriptReady = gameId === 'balatro-vr' ? async (directory) => {
-    for (const name of ['quest/fetch_deps.sh', 'quest/build_client.sh', 'quest/host/build_host.py']) {
-      const stat = await fs.lstat(path.join(directory, name)).catch(() => null);
-      if (!stat?.isFile() || stat.isSymbolicLink() || !stat.size) return false;
+  const scriptReady = async (directory) => {
+    if (gameId === 'balatro-vr') {
+      for (const name of ['quest/fetch_deps.sh', 'quest/build_client.sh', 'quest/host/build_host.py']) {
+        const stat = await fs.lstat(path.join(directory, name)).catch(() => null);
+        if (!stat?.isFile() || stat.isSymbolicLink() || !stat.size) return false;
+      }
+      return true;
     }
-    return true;
-  } : platform === 'win32'
-    ? fs.stat(path.join(directory, 'tools', 'build-and-install.ps1')).then((stat) => stat.isFile(), () => false)
-    : linuxScriptReady(gameId, directory);
+    return platform === 'win32'
+      ? fs.stat(path.join(directory, 'tools', 'build-and-install.ps1')).then((stat) => stat.isFile(), () => false)
+      : linuxScriptReady(gameId, directory);
+  };
   const headers = { Accept: 'application/vnd.github+json', 'User-Agent': 'VR4All-personal-builder' };
   const commitResponse = await fetchImpl(`https://api.github.com/repos/${repo}/commits/main`, { headers, signal: AbortSignal.timeout(20000) });
   let sha;

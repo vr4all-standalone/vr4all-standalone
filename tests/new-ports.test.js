@@ -11,7 +11,7 @@ const expected = [
   'jurassic-park-arcade-vr', 'wakerquest',
   'gunblade-ny-vr', 'hotd-model2-vr', 'behind-enemy-lines-vr',
   'rail-chase-2-vr', 'scud-race-vr',
-  'vtmb-resource',
+  'vtmb-resource', 'balatro-vr',
 ];
 
 test('new Quest ports have distinct cards and actionable source information', () => {
@@ -24,7 +24,7 @@ test('new Quest ports have distinct cards and actionable source information', ()
     assert.ok(game.source || game.externalInstaller || game.personalBuild || id === 'iron-lung-vr', id);
   }
   assert.equal(new Set(catalog.map((entry) => entry.id)).size, catalog.length);
-  assert.equal(catalog.length, 147);
+  assert.equal(catalog.length, 148);
 });
 
 test('Scud Race selects only the Quest release and copies the owned arcade ZIP', () => {

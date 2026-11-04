@@ -4,6 +4,7 @@ const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
 const { getCatalog } = require('../src/catalog');
+const { acquireSourceKit } = require('../src/personal-build');
 const { packages, inspectDevice } = require('../src/device-library');
 const { validateBalatroInput, runBalatroBuild } = require('../src/balatro-runner');
 
@@ -27,6 +28,34 @@ test('Balatro input must be an owned, regular Balatro.exe path and a selected Qu
   await assert.rejects(() => validateBalatroInput({ gamePackage: exe, serial: 'bad serial' }), /Quest/);
   await assert.rejects(() => validateBalatroInput({ gamePackage: path.join(root, 'missing.exe'), serial: 'Q3' }), /Balatro\.exe/);
   await assert.rejects(() => validateBalatroInput({ gamePackage: path.join(root, 'other.exe'), serial: 'Q3' }), /Balatro\.exe/);
+});
+
+test('Balatro source cache pins the official commit and requires all three creator scripts', async (t) => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-balatro-source-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const sha = 'a'.repeat(40);
+  const urls = [];
+  const fetchImpl = async (url) => {
+    urls.push(url);
+    return url.includes('/commits/') ? new Response(JSON.stringify({ sha }), { status: 200 })
+      : new Response('zip fixture', { status: 200 });
+  };
+  let extracts = 0;
+  const extract = async (_archive, destination) => {
+    extracts++;
+    const source = path.join(destination, `BalatroVRMod-Standalone-${sha}`);
+    for (const name of ['quest/fetch_deps.sh', 'quest/build_client.sh', 'quest/host/build_host.py']) {
+      const file = path.join(source, name);
+      await fs.mkdir(path.dirname(file), { recursive: true });
+      await fs.writeFile(file, 'official fixture');
+    }
+  };
+  const first = await acquireSourceKit('balatro-vr', root, () => {}, { fetchImpl, extract, platform: 'win32' });
+  const second = await acquireSourceKit('balatro-vr', root, () => {}, { fetchImpl, extract, platform: 'win32' });
+  assert.equal(first.sha, sha);
+  assert.equal(first.directory, second.directory);
+  assert.equal(extracts, 1);
+  assert.ok(urls.includes(`https://codeload.github.com/BaLaurent/BalatroVRMod-Standalone/zip/${sha}`));
 });
 
 test('Balatro builder runs the creator scripts, verifies both APKs, and installs both', async (t) => {

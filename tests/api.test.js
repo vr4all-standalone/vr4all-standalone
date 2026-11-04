@@ -500,8 +500,12 @@ test('Balatro build button passes the owned exe to its paired-APK builder', asyn
   try {
     const started = await request(app, 'POST', '/api/personal-build', { gameId: 'balatro-vr', serial: 'Q3S', gamePackage });
     assert.equal(started.status, 202, JSON.stringify(started.body));
-    await new Promise((resolve) => setTimeout(resolve, 30));
-    const result = await request(app, 'GET', `/api/jobs/${started.body.job.id}`);
+    let result;
+    for (let attempt = 0; attempt < 50; attempt++) {
+      result = await request(app, 'GET', `/api/jobs/${started.body.job.id}`);
+      if (['success', 'error'].includes(result.body.job.status)) break;
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
     assert.equal(result.body.job.status, 'success', result.body.job.error);
     assert.deepEqual(calls, [{ gamePackage, serial: 'Q3S' }]);
   } finally { app.server.close(); await fs.rm(root, { recursive: true, force: true }); }
