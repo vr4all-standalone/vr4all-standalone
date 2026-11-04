@@ -26,6 +26,7 @@ const { GitHubReleases, validateSource } = require('./src/releases');
 const { prepareReleaseApk } = require('./src/release-apk');
 const { matchesInstalledApk, matchesInstalledDigest } = require('./src/apk-match');
 const { validatePersonalBuildInput, runPersonalBuild } = require('./src/personal-build');
+const { validateBalatroInput, runBalatroBuild } = require('./src/balatro-runner');
 const { validateJurassicInput, resolvePhysxFolder, requiredPhysxFiles, runJurassicBuild } = require('./src/jurassic-runner');
 const { validateVictoryHeatInput, runVictoryHeatBuild } = require('./src/victory-heat-runner');
 const { checkRdrInternet } = require('./src/rdr-connectivity');
@@ -129,6 +130,7 @@ function createApp(options = {}) {
   const inspectApk = options.inspectApkPackage || inspectApkPackage;
   const personalBuilder = options.personalBuilder || runPersonalBuild;
   const jurassicBuilder = options.jurassicBuilder || runJurassicBuild;
+  const balatroBuilder = options.balatroBuilder || runBalatroBuild;
   const victoryHeatBuilder = options.victoryHeatBuilder || runVictoryHeatBuild;
   const bioshockInstaller = options.bioshockInstaller || installBioShock;
   const viceCityBuilder = options.viceCityBuilder || runViceCityBuild;
@@ -328,6 +330,7 @@ function createApp(options = {}) {
   async function localPathAvailable(game, key, local) {
     const stat = await fs.stat(local).catch(() => null);
     if (!stat) return false;
+    if (game.id === 'balatro-vr' && key === 'gamePackage') return Boolean(await validateBalatroInput({ gamePackage: local, serial: 'saved' }).catch(() => null));
     if (game.id === 'jurassic-park-arcade-vr') {
       if (!stat.isDirectory()) return false;
       if (key === 'audioSource') return (await Promise.all(requiredPhysxFiles.map((name) => fs.stat(path.join(local, name)).catch(() => null))))
@@ -683,6 +686,8 @@ function createApp(options = {}) {
         : game.id === 'jurassic-park-arcade-vr'
         ? await jurassicBuilder(input, { workspaceRoot: buildWorkRoot(), sharedToolsRoot: settings.sharedBuildToolsLocation && viceCityRoots(settings.sharedBuildToolsLocation).workRoot,
           adbPath: adb.getPath?.() || settings.adbPath, onLog: log })
+        : game.id === 'balatro-vr'
+        ? await balatroBuilder(input, { workspaceRoot: buildWorkRoot(), adb, inspectApk, onLog: log, platform: options.platform })
         : game.id === 'victory-heat-rally-vr'
         ? await victoryHeatBuilder({ ...input, releases, source: sourceFor(game), adb, workspaceRoot: buildWorkRoot(), inspectApk, onLog: log, platform: options.platform })
         : await personalBuilder(game.id, input, input.downloadLocation ? viceCityRoots(input.downloadLocation) : personalRoots(), log, { platform: options.platform });
@@ -1222,10 +1227,14 @@ function createApp(options = {}) {
           const current = (await inspectDevice(adb, input.serial, [game], known))[game.id];
           if (!current) throw new Error('This port is no longer installed on the selected headset. Scan the headset to refresh its status.');
           if (current.packageId !== input.packageId) throw new Error('The installed Quest app changed. Scan the headset and confirm the uninstall again.');
-          const output = await adb.run(['-s', input.serial, 'uninstall', current.packageId]);
-          if (!/^Success\b/m.test(output)) throw new Error(`ADB did not confirm the uninstall: ${output || 'no response'}`);
+          const packagesToRemove = game.id === 'balatro-vr'
+            ? [current.packageId, 'io.github.balaurent.balatroinvr'] : [current.packageId];
+          for (const packageId of packagesToRemove) {
+            const output = await adb.run(['-s', input.serial, 'uninstall', packageId]);
+            if (!/^Success\b/m.test(output)) throw new Error(`ADB did not confirm the uninstall of ${packageId}: ${output || 'no response'}`);
+          }
           const installedText = await adb.run(['-s', input.serial, 'shell', 'pm', 'list', 'packages', '-3']);
-          if (installedText.split(/\r?\n/).some((line) => line.trim() === `package:${current.packageId}`)) throw new Error('ADB reported success, but the Quest still lists this app. Reconnect and scan the headset.');
+          if (installedText.split(/\r?\n/).some((line) => packagesToRemove.some((packageId) => line.trim() === `package:${packageId}`))) throw new Error('ADB reported success, but the Quest still lists this app. Reconnect and scan the headset.');
           const removedGameIds = catalog().filter((entry) => entry.id === game.id || packages[entry.id] === current.packageId
             || settings.installed?.[input.serial]?.[entry.id]?.packageId === current.packageId).map((entry) => entry.id);
           for (const id of removedGameIds) delete settings.installed?.[input.serial]?.[id];
@@ -1765,9 +1774,9 @@ function createApp(options = {}) {
       if (url.pathname === '/api/personal-build' && req.method === 'POST') {
         const requestInput = await body(req);
         const game = gameById(requestInput.gameId);
-        if (!game || !['gta-sa-vr', 'rdr1-vr', 'vice-city-vr', 'crazy-taxi-vr', 'fzero-x-virtuavr', 'bioshock-vr', 'victory-heat-rally-vr', 'jurassic-park-arcade-vr'].includes(game.id)) throw new Error('Choose a supported personal build');
+        if (!game || !['gta-sa-vr', 'rdr1-vr', 'vice-city-vr', 'crazy-taxi-vr', 'fzero-x-virtuavr', 'bioshock-vr', 'victory-heat-rally-vr', 'jurassic-park-arcade-vr', 'balatro-vr'].includes(game.id)) throw new Error('Choose a supported personal build');
         requireSupported(game);
-        const serialBuild = buildToolGames.has(game.id) || game.id === 'jurassic-park-arcade-vr';
+        const serialBuild = buildToolGames.has(game.id) || ['jurassic-park-arcade-vr', 'balatro-vr'].includes(game.id);
         if (serialBuild && busyBuildGames.has(game.id)) return json(res, 409, { error: 'Game tool setup or build is already running' });
         const downloadLocation = buildToolGames.has(game.id) && (game.id === 'vice-city-vr' || buildToolsLocation(game.id))
           ? await validateBuildToolsLocation(buildToolsLocation(game.id)) : null;
@@ -1792,6 +1801,8 @@ function createApp(options = {}) {
           ? await validateVictoryHeatInput(requestInput)
           : game.id === 'jurassic-park-arcade-vr'
           ? await validateJurassicInput(requestInput)
+          : game.id === 'balatro-vr'
+          ? await validateBalatroInput(requestInput)
           : await validatePersonalBuildInput(game.id, requestInput, { platform: options.platform });
         if (downloadLocation) input.downloadLocation = downloadLocation;
         if (!canQueueInstall(input.serial)) return json(res, 409, { error: 'Another operation is already running on this device' });

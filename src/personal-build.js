@@ -17,6 +17,7 @@ const { checkHostTools, assertLinuxToolsReady, buildShellArgs, isCurlMeterLine }
 const profiles = Object.freeze({
   'gta-sa-vr': Object.freeze({ repo: 'dubrovskiy-yevhen-stakelogic/gta-sa-vr-quest', audio: true }),
   'rdr1-vr': Object.freeze({ repo: 'dubrovskiy-yevhen-stakelogic/rdr1-quest', audio: false }),
+  'balatro-vr': Object.freeze({ repo: 'BaLaurent/BalatroVRMod-Standalone', audio: false }),
 });
 const gameExtensions = new Set(['.apk', '.apks', '.zip', '.xapk', '.apkm', '.7z', '.rar']);
 const audioExtensions = new Set(['.7z', '.zip', '.rar']);
@@ -103,7 +104,13 @@ async function acquireSourceKit(gameId, cacheRoot, log = () => {}, options = {})
   const fetchImpl = options.fetchImpl || fetch;
   const platform = options.platform || process.platform;
   const extract = options.extract || (platform === 'win32' ? extractZip : extractZipLinux);
-  const scriptReady = (directory) => platform === 'win32'
+  const scriptReady = gameId === 'balatro-vr' ? async (directory) => {
+    for (const name of ['quest/fetch_deps.sh', 'quest/build_client.sh', 'quest/host/build_host.py']) {
+      const stat = await fs.lstat(path.join(directory, name)).catch(() => null);
+      if (!stat?.isFile() || stat.isSymbolicLink() || !stat.size) return false;
+    }
+    return true;
+  } : platform === 'win32'
     ? fs.stat(path.join(directory, 'tools', 'build-and-install.ps1')).then((stat) => stat.isFile(), () => false)
     : linuxScriptReady(gameId, directory);
   const headers = { Accept: 'application/vnd.github+json', 'User-Agent': 'VR4All-personal-builder' };

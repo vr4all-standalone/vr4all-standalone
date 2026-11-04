@@ -1,5 +1,6 @@
 // Read-only probes for catalogued ports on the selected Android headset.
 const packages = {
+  'balatro-vr': 'io.github.balaurent.balatrovr.host',
   'ratchet-clank-quest-vr': 'dev.ratchetquest.vr',
   'code-veronica-x-vr': 'org.recvx.vr',
   'daggerfall-unity-vr': 'com.dfworkshop.dfuquest3',
@@ -418,6 +419,8 @@ async function inspectDevice(adb, serial, games, knownPackages = {}) {
     return true;
   }
   for (const game of games) {
+    // A host without its separate VR client cannot launch the port.
+    if (game.id === 'balatro-vr' && !installedPackages.has('io.github.balaurent.balatroinvr')) continue;
     const packageId = [...(packageAliases[game.id] || []), packages[game.id], knownPackages[game.id]]
       .find((candidate) => candidate && installedPackages.has(candidate));
     if (!packageId) continue;

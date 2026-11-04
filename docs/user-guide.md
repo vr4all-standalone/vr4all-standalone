@@ -114,6 +114,12 @@ Opening a game docks its details beside the library. **Change theme** also opens
 
 The integrated installers run the authors' packaged Quest installers for Descent 1 & 2, Gothic II, GT2, and Animal Crossing. Magic Carpet uses its official importer (Windows or Linux build); GalaxyQuest uses its official converter (Windows `.exe` or its Python converter on Linux); AstroQuest accepts the author's required extracted CUSA12392 folder; Sclerosis accepts a creator APK and an owned Amnesia folder. QuestZDoom and RazeXR install their engine and launcher APKs together. Tiberian Dawn MR installs its Quest Spatial APK and places both owned disc ISOs for its in-headset importer. Gothic II and Tiberian Dawn still need the user to choose the prepared files inside the headset; AstroQuest does not accept an encrypted PS4 package or raw disc. See [the integrated installer notes](integrated-installers-2026-10-22.md).
 
+### Balatro in VR
+
+Supply your owned Steam `Balatro.exe` version 1.0.1o. VR4ALL downloads the creator's source, runs its build steps, checks the VR client and host package IDs, then installs both to the selected Quest 3 or 3S. The creator has no prebuilt APK.
+
+On Windows, install and configure WSL2 Ubuntu first. Inside WSL or native Linux, the build needs Godot 4.7.2, Android SDK platforms 34 and 36, build-tools 35.0.0, NDK 25.2.9519653, JDK 17, Python 3, Git, curl and unzip. Set `ANDROID_HOME` and Godot's Android SDK/JDK editor paths as in the [creator's install guide](https://github.com/BaLaurent/BalatroVRMod-Standalone/blob/main/INSTALL.md). The first build downloads large dependencies. VR4ALL handles the creator's build commands and Windows ADB installs after those tools are configured. The host APK includes your game; keep it private.
+
 ## Development
 
 The browser preview needs no npm install. Run `node --test` for tests and `node --check public/app.js` for a JavaScript syntax check. The preview server binds to `127.0.0.1:4173`; the desktop app chooses a free loopback port. Both require a random per-run token for changes. Neither calls a shell with user-entered paths.

@@ -5,6 +5,20 @@ const n64 = ['.z64', '.n64', '.v64'];
 
 const newPorts = [
   {
+    id: 'balatro-vr', title: 'Balatro in VR', gameName: 'Balatro', series: 'BaLaurent', category: 'PC', color: '#8b3b5f',
+    description: 'Play your owned Balatro PC game in standalone VR on Quest 3 or Quest 3S.',
+    projectUrl: 'https://github.com/BaLaurent/BalatroVRMod-Standalone',
+    personalBuild: {
+      gameLabel: 'Owned Steam Balatro.exe (version 1.0.1o)', fileOnly: true,
+      gameHint: 'Choose Balatro.exe from your own Steam installation. The creator currently requires game version 1.0.1o. VR4ALL builds two personal Quest APKs from it; neither contains a downloadable copy of the game.',
+      inputStep: 'Add your Balatro.exe', actionLabel: 'Build and install',
+      processDescription: 'VR4ALL fetches the creator’s current source, runs the official dependency, VR client and host build scripts, verifies both package IDs, and installs both APKs. The creator’s build currently requires Linux or WSL2 with Godot 4.7.2, Android SDK/NDK, JDK 17, Python and Git configured. The first build downloads large tools; do not share the generated APKs.',
+    },
+    data: [],
+    guidance: 'There is no official prebuilt Quest APK. This source build needs Linux or WSL2 and the creator’s build prerequisites. Only Quest 3 and Quest 3S are documented. VR4ALL installs the VR client and your personal game host together.',
+    afterInstall: 'Open Balatro VR Host under Unknown Sources; it starts the VR client.',
+  },
+  {
     id: 'vtmb-resource', title: 'VtMB VR [re:Source]', gameName: 'Vampire: The Masquerade – Bloodlines', series: 'alex-nax', category: 'PC', color: '#9c3038',
     description: 'Early Vulkan Quest 3 port of the original Bloodlines PC game.',
     projectUrl: 'https://github.com/alex-nax/resource',
@@ -217,6 +231,7 @@ const newPorts = [
 ];
 
 const newPortFacets = {
+  'balatro-vr': ['PC', 'Card game'],
   'vtmb-resource': ['PC', 'RPG'],
   'gunblade-ny-vr': ['Arcade', 'Rail shooter'], 'hotd-model2-vr': ['Arcade', 'Rail shooter'],
   'behind-enemy-lines-vr': ['Arcade', 'Rail shooter'], 'rail-chase-2-vr': ['Arcade', 'Rail shooter'],

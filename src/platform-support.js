@@ -16,6 +16,7 @@ const NOT_ON_LINUX = Object.freeze({
 // wine: the creator's Windows helper tools run through Wine, so it must be installed.
 // tested: a user has completed this install end to end from Linux, so it carries no experimental note.
 const LINUX_PORTS = Object.freeze({
+  'balatro-vr': { x64: true },
   'crazy-taxi-vr': { x64: true },
   'magic-carpet-vr': { x64: true },
   'galaxyquest': {},
@@ -40,6 +41,8 @@ function needsWindows(game) {
 }
 
 function platformSupport(game, platform = process.platform, host = {}) {
+  if (platform === 'win32' && game.id === 'balatro-vr') return { supported: true, experimental: true,
+    note: 'The creator builds Balatro VR in Linux. On Windows, VR4ALL needs WSL2 with Ubuntu, Godot 4.7.2, Android SDK/NDK and JDK 17 configured before Build and install.' };
   if (platform === 'win32' || !needsWindows(game)) return { supported: true };
   if (platform !== 'linux') return { supported: false, reason: WINDOWS_ONLY_REASON };
   if (NOT_ON_LINUX[game.id]) return { supported: false, reason: NOT_ON_LINUX[game.id] };

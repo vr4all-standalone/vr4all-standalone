@@ -488,6 +488,25 @@ test('Victory Heat Rally build button reaches its builder with the selected game
   } finally { app.server.close(); await fs.rm(root, { recursive: true, force: true }); }
 });
 
+test('Balatro build button passes the owned exe to its paired-APK builder', async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-balatro-api-'));
+  const gamePackage = path.join(root, 'Balatro.exe');
+  await fs.writeFile(gamePackage, 'owned fixture');
+  const calls = [];
+  const app = createApp({ platform: 'win32', settingsPath: path.join(root, 'settings.json'),
+    adb: { listDevices: async () => [{ serial: 'Q3S', state: 'device' }] },
+    balatroBuilder: async (input) => { calls.push(input); return { sha: 'a'.repeat(40), packageId: 'io.github.balaurent.balatrovr.host' }; },
+  });
+  try {
+    const started = await request(app, 'POST', '/api/personal-build', { gameId: 'balatro-vr', serial: 'Q3S', gamePackage });
+    assert.equal(started.status, 202, JSON.stringify(started.body));
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    const result = await request(app, 'GET', `/api/jobs/${started.body.job.id}`);
+    assert.equal(result.body.job.status, 'success', result.body.job.error);
+    assert.deepEqual(calls, [{ gamePackage, serial: 'Q3S' }]);
+  } finally { app.server.close(); await fs.rm(root, { recursive: true, force: true }); }
+});
+
 test('F-Zero X VirtuaVRPort personal install uses its own ROM preparation flow and selected Quest', async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-fzero-api-'));
   const rom = path.join(root, 'F-Zero X (USA).z64');
