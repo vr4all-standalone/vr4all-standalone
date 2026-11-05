@@ -23,6 +23,11 @@
         <select id="deviceSelect" aria-label="Choose connected headset"><option value="">Checking USB…</option></select>
         <div class="headsets-footer"><span id="sidebarDeviceStatus" aria-live="polite">Looking for your headset</span><button id="refreshDevices" type="button" title="Refresh headsets" aria-label="Refresh headsets">↻</button></div>
         <button id="connectionHelpButton" class="sidebar-connection-help" type="button">Connection help</button>
+        <div id="headsetStorage" class="headset-storage" hidden>
+          <div class="headset-storage-heading"><span>HEADSET STORAGE</span><span id="headsetStorageFree">Reading…</span></div>
+          <div id="headsetStorageTrack" class="headset-storage-track" role="progressbar" aria-label="Headset storage used" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="headsetStorageFill"></span></div>
+          <div id="headsetStorageUsage" class="headset-storage-usage"></div>
+        </div>
       </section>
       <label class="sidebar-label" for="libraryScope">LIBRARY</label>
       <select id="libraryScope" class="library-scope" aria-label="Library view"><option value="all">All games</option><option value="new">New games</option><option value="emulators">Emulators</option><option value="available">Ready to install</option></select>

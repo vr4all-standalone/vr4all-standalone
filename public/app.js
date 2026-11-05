@@ -121,6 +121,7 @@ async function confirmUninstall() {
     state.uninstallTarget = null;
     renderCategories(); renderGrid(); renderBulkMatches(); updateBulkUpdateButton();
     renderReadinessNote(); renderExistingFilesNote(); renderUninstallAction(); updateInstallEnabled();
+    void refreshSelectedStorage();
     setActivity('uninstall', `${game?.title || 'Port'} uninstalled from the Quest.`, false);
     toast(`${game?.title || 'Port'} uninstalled from the Quest.`);
   } catch (error) {
@@ -519,6 +520,39 @@ async function refreshDeviceLibrary(serial, { checkReleases = true } = {}) {
   } catch (error) { toast(`Could not read headset library: ${error.message}`, true); return false; }
 }
 
+let storageRefreshEpoch = 0;
+let storageSerial = '';
+const storageGb = (bytes) => `${(bytes / 1e9).toFixed(1)} GB`;
+async function refreshSelectedStorage() {
+  const serial = state.selectedSerial;
+  const epoch = ++storageRefreshEpoch;
+  const panel = $('#headsetStorage');
+  panel.hidden = !serial;
+  if (!serial) { storageSerial = ''; return; }
+  if (storageSerial !== serial) {
+    storageSerial = serial;
+    $('#headsetStorageFree').textContent = 'Reading…';
+    $('#headsetStorageUsage').textContent = '';
+    $('#headsetStorageFill').style.width = '0%';
+    $('#headsetStorageTrack').setAttribute('aria-valuenow', '0');
+  }
+  try {
+    const { storage } = await api(`/api/device-storage?serial=${encodeURIComponent(serial)}`);
+    if (epoch !== storageRefreshEpoch || serial !== state.selectedSerial) return;
+    const percent = Math.min(100, Math.max(0, Math.round(storage.usedBytes / storage.totalBytes * 100)));
+    $('#headsetStorageFree').textContent = `${storageGb(storage.freeBytes)} free`;
+    $('#headsetStorageUsage').textContent = `${storageGb(storage.usedBytes)} used of ${storageGb(storage.totalBytes)} total`;
+    $('#headsetStorageFill').style.width = `${percent}%`;
+    $('#headsetStorageTrack').setAttribute('aria-valuenow', String(percent));
+  } catch {
+    if (epoch !== storageRefreshEpoch || serial !== state.selectedSerial) return;
+    $('#headsetStorageFree').textContent = 'Unavailable';
+    $('#headsetStorageUsage').textContent = 'Refresh the headset to try again';
+    $('#headsetStorageFill').style.width = '0%';
+    $('#headsetStorageTrack').setAttribute('aria-valuenow', '0');
+  }
+}
+
 async function refreshDevices({ scanLibrary = true, checkReleases = true } = {}) {
   const result = await api('/api/devices');
   const previousSelected = state.selectedSerial;
@@ -575,6 +609,7 @@ async function refreshDevices({ scanLibrary = true, checkReleases = true } = {})
   }
   if (state.selectedId) updateInstallEnabled();
   renderUninstallAction();
+  void refreshSelectedStorage();
   if (state.selectedSerial && (scanLibrary || state.selectedSerial !== previousSelected || !wasReady)) return refreshDeviceLibrary(state.selectedSerial, { checkReleases });
   return null;
 }
@@ -1812,6 +1847,7 @@ async function pollJob(id) {
         state.installed = result.installed || {};
         renderGrid();
         await refreshDeviceLibrary(job.serial);
+        void refreshSelectedStorage();
       }
       else toast(job.error || 'Install failed', true);
       const stagedApk = state.jobApks[id];

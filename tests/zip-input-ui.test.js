@@ -11,7 +11,7 @@ function appHarness() {
   const listeners = new Map();
   function element(key) {
     if (!elements.has(key)) elements.set(key, {
-      value: '', textContent: '', innerHTML: '', hidden: false, disabled: false, checked: false,
+      value: '', textContent: '', innerHTML: '', hidden: false, disabled: false, checked: false, style: {},
       classList: { add() {}, remove() {}, toggle() {} },
       addEventListener(type, handler) { listeners.set(`${key}:${type}`, handler); },
       setAttribute() {}, scrollIntoView() {}, showModal() {}, close() {}, querySelector() { return null; },
@@ -86,6 +86,27 @@ test('manual headset scan waits for installed packages before reporting completi
   await scan;
   assert.match(elements.get('#updateStatus').textContent, /scan complete/i);
   assert.equal(vm.runInContext("state.deviceLibrary.QUEST['hotd-vr'].packageId", context), 'io.port0r.houseofthedead');
+});
+
+test('selected headset shows total, used and free storage and clears on disconnect', async () => {
+  const { context, elements } = appHarness();
+  let connected = true;
+  context.fetch = async (url) => {
+    if (url === '/api/devices') return { ok: true, json: async () => ({ devices: connected ? [{ serial: 'QUEST', state: 'device', model: 'Quest 3' }] : [] }) };
+    if (url.startsWith('/api/device-storage?')) return { ok: true, json: async () => ({ storage: { totalBytes: 128e9, usedBytes: 50e9, freeBytes: 78e9 } }) };
+    if (url.startsWith('/api/device-library?')) return { ok: true, json: async () => ({ games: {} }) };
+    return { ok: true, json: async () => ({}) };
+  };
+  vm.runInContext('state.games = [];', context);
+  await vm.runInContext('refreshDevices({ scanLibrary: false, checkReleases: false })', context);
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(elements.get('#headsetStorage').hidden, false);
+  assert.equal(elements.get('#headsetStorageFree').textContent, '78.0 GB free');
+  assert.equal(elements.get('#headsetStorageUsage').textContent, '50.0 GB used of 128.0 GB total');
+  assert.equal(elements.get('#headsetStorageFill').style.width, '39%');
+  connected = false;
+  await vm.runInContext('refreshDevices({ scanLibrary: false })', context);
+  assert.equal(elements.get('#headsetStorage').hidden, true);
 });
 
 for (const id of ['forsaken-gameordie', 'unreal-gold-gameordie', 'ut99-gameordie']) {

@@ -11,6 +11,7 @@ const { platformSupport } = require('./src/platform-support');
 const { migrateStandaloneSettings } = require('./src/standalone-settings-migration');
 const { buildInstallPlan, safeDestination } = require('./src/core');
 const { createAdb } = require('./src/adb');
+const { parseDeviceStorage } = require('./src/device-storage');
 const { inspectDevice, packages } = require('./src/device-library');
 const { verifyGameFile } = require('./src/file-verification');
 const { verifyPushedFile } = require('./src/transfer-verification');
@@ -1201,6 +1202,15 @@ function createApp(options = {}) {
       if (url.pathname === '/api/devices' && req.method === 'GET') {
         try { return json(res, 200, { adbPath: adb.getPath?.() || settings.adbPath || null, devices: (await adb.listDevices()).filter(isHeadsetListing) }); }
         catch (error) { return json(res, 200, { adbPath: null, devices: [], error: error.message }); }
+      }
+      if (url.pathname === '/api/device-storage' && req.method === 'GET') {
+        const serial = url.searchParams.get('serial');
+        if (!serial || !(await adb.listDevices()).some((device) => device.serial === serial && device.state === 'device' && isHeadsetListing(device))) {
+          return json(res, 400, { error: 'Choose a connected, authorized headset' });
+        }
+        const storage = parseDeviceStorage(await adb.run(['-s', serial, 'shell', 'df', '-k', '/data'], undefined, { timeoutMs: 10000 }));
+        if (!storage) return json(res, 503, { error: 'Headset storage is unavailable' });
+        return json(res, 200, { storage });
       }
       if (url.pathname === '/api/device-library' && req.method === 'GET') {
         const serial = url.searchParams.get('serial');

@@ -89,6 +89,23 @@ test('mutating API calls require the local session token', async () => {
   assert.equal(response.status, 403);
 });
 
+test('headset storage reads only the selected authorized Quest', async () => {
+  const runs = [];
+  const app = createApp({ adb: {
+    listDevices: async () => [{ serial: 'READY', state: 'device' }, { serial: 'WAITING', state: 'unauthorized' }],
+    run: async (args) => { runs.push(args); return 'Filesystem 1K-blocks Used Available Use% Mounted on\n/dev/block/dm-8 100000000 40000000 60000000 40% /data'; },
+  } });
+  try {
+    const blocked = await request(app, 'GET', '/api/device-storage?serial=WAITING');
+    assert.equal(blocked.status, 400);
+    assert.equal(runs.length, 0);
+    const response = await request(app, 'GET', '/api/device-storage?serial=READY');
+    assert.equal(response.status, 200);
+    assert.deepEqual(response.body.storage, { totalBytes: 102400000000, usedBytes: 40960000000, freeBytes: 61440000000 });
+    assert.deepEqual(runs, [['-s', 'READY', 'shell', 'df', '-k', '/data']]);
+  } finally { app.server.close(); }
+});
+
 test('library shell shows the current app version beside its top-left brand', async () => {
   const app = createApp({ adb: { listDevices: async () => [] }, releases: {} });
   try {

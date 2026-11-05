@@ -110,6 +110,13 @@ body[data-theme] a.sidebar-action{text-decoration:none}
 body[data-theme] .sidebar-footer-heading{margin-bottom:5px}
 body[data-theme] .sidebar-connection-help{margin-top:7px;padding:0;border:0;background:none;color:var(--ui-accent);font-size:10px;font-weight:600;text-align:left}
 body[data-theme] .sidebar-connection-help:hover{text-decoration:underline}
+body[data-theme] .headset-storage{margin-top:12px;padding-top:11px;border-top:1px solid var(--app-line);font-size:10px;color:var(--app-secondary)}
+body[data-theme] .headset-storage[hidden]{display:none}
+body[data-theme] .headset-storage-heading{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:9px;font-weight:700}
+body[data-theme] .headset-storage-heading span:first-child{color:var(--app-muted);letter-spacing:1px}
+body[data-theme] .headset-storage-track{height:5px;margin-top:8px;overflow:hidden;border-radius:10px;background:var(--app-line-strong)}
+body[data-theme] .headset-storage-track span{display:block;height:100%;border-radius:inherit;background:var(--ui-accent);transition:width .2s ease}
+body[data-theme] .headset-storage-usage{margin-top:6px;color:var(--app-muted);font-size:9px}
 body[data-theme] .sidebar-foot{color:var(--app-muted)}
 body[data-theme] .job-actions{display:flex;justify-content:flex-end;margin-top:12px}
 body[data-theme] .pulse-dot{background:var(--positive);box-shadow:none}
