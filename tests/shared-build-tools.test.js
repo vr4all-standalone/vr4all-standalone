@@ -169,7 +169,8 @@ test('Linux rejects a shared tool directory that is a link without touching its 
   const outside = path.join(root, 'unrelated');
   await fs.mkdir(outside);
   await fs.mkdir(path.join(root, 'shared'));
-  await fs.symlink(outside, path.join(root, 'shared', '.tools'), 'dir');
+  try { await fs.symlink(outside, path.join(root, 'shared', '.tools'), 'dir'); }
+  catch (error) { if (process.platform === 'win32' && error.code === 'EPERM') { t.skip('Windows account cannot create symbolic links'); return; } throw error; }
   await assert.rejects(linux(path.join(root, 'rdr1-vr'), async () => { throw new Error('must not run'); }), /link|unexpected/i);
   assert.deepEqual(await fs.readdir(outside), []);
 });

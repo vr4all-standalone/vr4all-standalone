@@ -1,5 +1,22 @@
 # Artwork sources
 
+## Quest additions — 8 November 2026
+
+- South Park VR: [creator banner](https://github.com/VistaLargaGames/South-Park-Quest-VR/blob/main/banner.jpg).
+- Mario 64 MR: reuses the existing Super Mario 64 card image for the same original game.
+- LSD: Dream Emulator: [original PlayStation cover](https://en.wikipedia.org/wiki/LSD:_Dream_Emulator).
+- Bully VR: [original Bully cover](https://en.wikipedia.org/wiki/Bully_(video_game)).
+- Little Big Adventure 2 VR: [creator Quest port image](https://github.com/simsas-experiments/lba2-classic-quest/blob/main/docs/images/quest-port.jpg).
+- Xonotic VR: [official Xonotic screenshot](https://xonotic.org/images/).
+- PrimedGun Echoes: [original Metroid Prime 2 cover](https://en.wikipedia.org/wiki/Metroid_Prime_2:_Echoes).
+- Urban Terror VR: [game screenshot](https://www.mobygames.com/game/27408/urban-terror/screenshots/linux/397276/).
+- OpenArena VR: [official game screenshot](https://openarena.ws/media.html).
+- Project Honeydew 2: [creator cover](https://projecthoneydew.com/#honeydew2-install-quest).
+- OpenMoHAA VR: [creator project screenshot](https://github.com/bearstonem/openmohaa-vr/blob/main/docs/assets/images/v0.60.0-x86_64/training_1.png).
+- Let's Go Jungle! and The House of the Dead 4 Special: [creator project screenshots](https://github.com/lialan/lindbergh-recomp-ports/tree/main/docs).
+
+These images identify the original games or community ports. Rights remain with their respective owners; redistribution permission has not been independently verified.
+
 - `balatro-vr`: creator's [Balatro in VR logo](https://github.com/BaLaurent/BalatroVRMod-Standalone/blob/main/client/icon_src/logo_icon_1024.png), from the official project. The repository is GPL-3.0; Balatro's underlying art and trademarks remain with their owners.
 
 The Game Or Die alternate choices for Forsaken, Unreal Gold and UT99 reuse those games’ existing catalog artwork listed below. These identify the games and are not presented as captures of the new developer’s port.

@@ -7,7 +7,7 @@ const { pipeline } = require('node:stream/promises');
 const { selectRelease } = require('./core');
 
 function validateSource(source) {
-  if (source?.provider === 'project-honeydew') return source;
+  if (['project-honeydew', 'project-honeydew-2'].includes(source?.provider)) return source;
   if (!source || !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(source.repo || '')) throw new Error('Enter a release owner/repository');
   if (source.provider && source.provider !== 'gitlab') throw new Error('Unsupported release provider');
   if (!source.assetPattern || source.assetPattern.length > 180) throw new Error('Enter an APK asset pattern');
@@ -41,7 +41,19 @@ function gitLabRelease(entry, source) {
   };
 }
 
-function honeydewRelease(html) {
+function honeydewRelease(html, provider = 'project-honeydew') {
+  if (provider === 'project-honeydew-2') {
+    const section = html.match(/<li\b[^>]*\bid="honeydew2-quest"[^>]*>[\s\S]*?<\/li>/i)?.[0];
+    const asset = section?.match(/href="(\/downloads\/ProjectHoneydew2-(\d+\.\d+\.\d+)-quest\.apk)"/i);
+    const hash = section?.match(/<code\b[^>]*\bid="honeydew2-sha256-quest"[^>]*>([a-f0-9]{64})<\/code>/i)?.[1];
+    if (!asset || !hash) throw new Error('Honeydew 2 site has no verified Quest APK');
+    return {
+      tag: asset[2], title: `Project Honeydew 2 ${asset[2]}`, url: 'https://projecthoneydew.com/#honeydew2-install-quest',
+      assetName: path.posix.basename(asset[1]), downloadUrl: `https://projecthoneydew.com${asset[1]}`,
+      digest: `sha256:${hash.toLowerCase()}`, size: null, downloadCount: null, totalDownloads: null,
+      publishedAt: null, prerelease: true,
+    };
+  }
   const section = html.match(/<details\b[^>]*class="[^"]*\brelease-quest\b[^"]*"[^>]*>[\s\S]*?<\/details>/i)?.[0];
   const asset = section?.match(/<a\b[^>]*href="(\/downloads\/ProjectHoneydew-(\d+\.\d+\.\d+)-quest\.apk)"[^>]*>[\s\S]*?<\/a>\s*<code>([a-f0-9]{64})<\/code>/i);
   if (!asset || !new RegExp(`\\bVersion\\s+${asset[2].replaceAll('.', '\\.')}\\b`, 'i').test(section)) throw new Error('Honeydew site has no verified Quest APK');
@@ -122,7 +134,7 @@ class GitHubReleases {
 
   async cachedLatest(source) {
     validateSource(source);
-    if (source.provider === 'project-honeydew') return this.siteResolved.get(source.provider)?.release || null;
+    if (['project-honeydew', 'project-honeydew-2'].includes(source.provider)) return this.siteResolved.get(source.provider)?.release || null;
     if (source.provider === 'gitlab') {
       const key = `gitlab:${source.repo}:${source.assetPattern}`;
       const cached = this.siteResolved.get(key);
@@ -245,14 +257,14 @@ class GitHubReleases {
         throw error;
       }
     }
-    if (source.provider === 'project-honeydew') {
+    if (['project-honeydew', 'project-honeydew-2'].includes(source.provider)) {
       const cached = this.siteResolved.get(source.provider);
       if (!force && cached && Date.now() - cached.at < 15 * 60 * 1000) return cached.release;
       const response = await fetch('https://projecthoneydew.com/', { headers: { 'User-Agent': 'vr4all/0.2' }, signal: AbortSignal.timeout(15000) });
       if (!response.ok) throw new Error(`Honeydew release check failed (${response.status})`);
       const html = await response.text();
       if (html.length > 2 * 1024 * 1024) throw new Error('Honeydew release page is unexpectedly large');
-      const release = { ...honeydewRelease(html), checkedAt: new Date().toISOString(), stale: false };
+      const release = { ...honeydewRelease(html, source.provider), checkedAt: new Date().toISOString(), stale: false };
       this.siteResolved.set(source.provider, { at: Date.now(), release });
       return release;
     }
@@ -347,7 +359,7 @@ class GitHubReleases {
   }
 
   targetFor(release, allowZip = false, allowExe = false) {
-    const websiteApk = /^https:\/\/projecthoneydew\.com\/downloads\/ProjectHoneydew-\d+\.\d+\.\d+-quest\.apk$/i.test(release?.downloadUrl || '');
+    const websiteApk = /^https:\/\/projecthoneydew\.com\/downloads\/ProjectHoneydew2?-\d+\.\d+\.\d+-quest\.apk$/i.test(release?.downloadUrl || '');
     const gitLabApk = /^https:\/\/gitlab\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+\/-\/releases\/[A-Za-z0-9_.-]+\/downloads\/[A-Za-z0-9_.() -]+\.apk$/i.test(release?.downloadUrl || '');
     if (!/^https:\/\/github\.com\//i.test(release?.downloadUrl || '') && !websiteApk && !gitLabApk) throw new Error('Untrusted release URL');
     if (websiteApk && !/^sha256:[a-f0-9]{64}$/i.test(release.digest || '')) throw new Error('Honeydew APK needs the creator SHA-256');
@@ -394,4 +406,4 @@ class GitHubReleases {
   }
 }
 
-module.exports = { GitHubReleases, validateSource };
+module.exports = { GitHubReleases, validateSource, honeydewRelease };

@@ -68,6 +68,7 @@ test('an HTTP error and a symlink destination are refused', async (t) => {
   const real = path.join(root, 'real.bin');
   await fs.writeFile(real, 'x');
   const link = path.join(root, 'link.bin');
-  await fs.symlink(real, link);
+  try { await fs.symlink(real, link); }
+  catch (error) { if (process.platform === 'win32' && error.code === 'EPERM') { t.skip('Windows account cannot create symbolic links'); return; } throw error; }
   await assert.rejects(downloadPinned({ name: 'Tool', url: 'u', sha256: sha('x'), maxBytes: 10, destination: link, fetchImpl: () => { throw new Error('must not fetch'); } }), /must not be a link/);
 });

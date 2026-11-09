@@ -135,7 +135,8 @@ test('readKitPins reads tools/build-and-install.sh and rejects a missing script 
   await assert.rejects(readKitPins(root), /no tools\/build-and-install\.sh/);
   await fs.mkdir(path.join(root, 'tools'));
   await fs.writeFile(path.join(root, 'real.sh'), GTA_KIT);
-  await fs.symlink(path.join(root, 'real.sh'), path.join(root, 'tools', 'build-and-install.sh'));
+  try { await fs.symlink(path.join(root, 'real.sh'), path.join(root, 'tools', 'build-and-install.sh')); }
+  catch (error) { if (process.platform === 'win32' && error.code === 'EPERM') { t.skip('Windows account cannot create symbolic links'); return; } throw error; }
   await assert.rejects(readKitPins(root), /no tools\/build-and-install\.sh/);
   await fs.rm(path.join(root, 'tools', 'build-and-install.sh'));
   await fs.writeFile(path.join(root, 'tools', 'build-and-install.sh'), GTA_KIT);

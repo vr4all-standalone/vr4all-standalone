@@ -378,7 +378,8 @@ test('Linux resolves symlinked game inputs to their real files, Windows leaves t
   const real = path.join(root, 'real.xapk');
   const audio = path.join(root, 'audio.zip');
   await fs.writeFile(real, 'fixture'); await fs.writeFile(audio, 'fixture');
-  await fs.symlink(real, path.join(root, 'link.xapk'));
+  try { await fs.symlink(real, path.join(root, 'link.xapk')); }
+  catch (error) { if (process.platform === 'win32' && error.code === 'EPERM') { t.skip('Windows account cannot create symbolic links'); return; } throw error; }
   await fs.symlink(audio, path.join(root, 'link-audio.zip'));
   const input = { gamePackage: path.join(root, 'link.xapk'), audioSource: path.join(root, 'link-audio.zip'), serial: 'Q3' };
   const linux = await validatePersonalBuildInput('gta-sa-vr', input, { platform: 'linux' });
