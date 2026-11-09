@@ -44,13 +44,11 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 .brand-mark {
   flex: 0 0 52px;
   width: 52px;
-  height: 48px;
-  border: 1px solid #d9f36c66;
-  border-radius: 14px 6px 14px 6px;
-  background: linear-gradient(145deg, #41445c, #1e2630 55%, #172b2a);
-  box-shadow: inset 0 1px #ffffff37, 0 12px 25px #0005, 0 0 22px #d9f36c14;
+  height: 52px;
+  border-radius: 11px;
+  overflow: hidden;
 }
-.brand-mark img { display: block; width: 44px; height: 36px; object-fit: contain; }
+.brand-mark img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .brand strong {
   font: 800 21px/.95 'Segoe UI Variable Display', 'Segoe UI', sans-serif;
   letter-spacing: -.65px;

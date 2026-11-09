@@ -60,11 +60,11 @@ body[data-theme] .sidebar{
 body[data-theme] .sidebar::before{width:1px;background:linear-gradient(var(--ui-accent),transparent 58%);opacity:.6}
 body[data-theme] .brand{gap:10px;padding:0 8px 24px}
 body[data-theme] .brand-mark{
-  flex:0 0 37px;width:37px;height:37px;border:1px solid color-mix(in srgb,var(--accent-base) 50%,#ffffff50);
-  border-radius:10px;background:linear-gradient(150deg,#d5f0ff80,color-mix(in srgb,var(--accent-base) 45%,#263c5175) 42%,#1b3a5291);
-  box-shadow:inset 0 1px #ffffff9c,inset 0 -2px #0d30564d,0 6px 15px #0003;
+  flex:0 0 38px;width:38px;height:38px;border:0;
+  border-radius:9px;background:transparent;
+  box-shadow:0 4px 12px #0003;
 }
-body[data-theme] .brand-mark img{width:32px;height:27px}
+body[data-theme] .brand-mark img{width:100%;height:100%;object-fit:cover}
 body[data-theme] .brand-mark::after{display:none}
 body[data-theme] .brand strong{font:800 16px/1 'Segoe UI Variable Display','Segoe UI',sans-serif;letter-spacing:-.7px;color:var(--app-text);font-style:normal;text-shadow:none}
 body[data-theme] .brand-version{margin-left:3px;color:var(--app-muted);font:600 9px/1 Bahnschrift,'Segoe UI',sans-serif;letter-spacing:0;white-space:nowrap}
@@ -260,7 +260,7 @@ body[data-theme] .update-status.checking::before{border-color:var(--ui-accent);b
 body[data-theme] .bulk-dialog #bulkProgress:not(:empty){border-color:var(--app-line-strong);background:var(--app-dialog);color:var(--app-text)}
 body[data-theme] :is(button,a,input,select,.bulk-drop-zone):focus-visible{outline:2px solid var(--ui-accent);outline-offset:3px}
 body[data-theme="graphite"] :is(.brand-mark,.primary-button,.browse-switch button.active,.source-toggle button.active){box-shadow:none}
-body[data-theme="graphite"] .brand-mark{border-color:var(--app-line-strong);background:var(--app-field)}
+body[data-theme="graphite"] .brand-mark{border:0;background:transparent}
 body[data-theme="graphite"] .primary-button{border-color:transparent;background:var(--accent-base);color:#152129;text-shadow:none}
 body[data-theme="frost"] .primary-button{border-color:transparent;background:linear-gradient(180deg,color-mix(in srgb,var(--accent-deep) 88%,white),var(--accent-deep));color:#fff;text-shadow:none;box-shadow:inset 0 1px #ffffff35,0 3px 8px #23445c25}
 body[data-theme="frost"] .app-dialog::backdrop{background:#2f475e45}
