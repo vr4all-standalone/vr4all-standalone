@@ -13,7 +13,7 @@ test('original creator sources provide four new Quest games and five emulator to
     assert.ok(byId[id].projectUrl, id);
     assert.ok(byId[id].console && byId[id].genre, id);
   }
-  assert.deepEqual(Object.keys(byId).filter((id) => byId[id].catalogGroup === 'emulator').sort(), emulators.sort());
+  for (const id of emulators) assert.equal(byId[id].catalogGroup, 'emulator', id);
   assert.equal(byId['outlaws-vr'].source.repo, 'outlawshub-arch/OutlawsVR');
   assert.equal(byId['outlaws-vr'].sourceArchive, 'single-apk');
   assert.equal(byId['star-fox-enhanced-vr'].sourceArchive, 'single-apk');

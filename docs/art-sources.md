@@ -182,3 +182,12 @@ These images identify the underlying games. Rights remain with their respective 
 - PPSSPP VR and WinlatorXR: creator app icons from their SideQuest listings; the download links in VR4ALL point to the creators' own sites.
 
 Game cover and project images identify the underlying titles and projects. Rights remain with their respective owners except where a license is stated.
+
+## Quest ports and tools — 8 November 2026
+
+- Fate of the Galaxy, Wing Commander Saga, Wipeout Pure, SuperTuxKart, Visual Pinball and ARMSX2 3D: images from the respective [Port Royale creator pages](https://portroyale.online/).
+- Atari Star Wars Arcade: [Arcade Club game image](https://www.arcadeclub.co.uk/games/star-wars/).
+- Morrowind: [original Xbox cover in xemu's game database](https://xemu.app/titles/42530001/).
+- Ultima IV: [original cover shown by the University of Chicago Library](https://www.lib.uchicago.edu/about/news/charting-imaginary-worlds-why-fantasy-and-games-are-inseparable/).
+
+These images identify the original games and creator projects. Artwork rights remain with their respective owners.

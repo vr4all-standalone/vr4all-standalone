@@ -1,5 +1,14 @@
 // Read-only probes for catalogued ports on the selected Android headset.
 const packages = {
+  'fate-of-the-galaxy-vr': 'com.bilko.fotgvr',
+  'wing-commander-saga-vr': 'com.bilko.wcsagavr',
+  'wipeout-pure-vr': 'online.portroyale.wipeoutpurevr',
+  'star-wars-arcade-vr': 'com.cyberheater.starwars',
+  'supertuxkart-vr': 'portroyale.online.supertuxkart',
+  'openmw-quest-vr': 'org.openmw.vr',
+  'ankh-vr': 'com.SwivelChairGames.ANKHVR',
+  'vpinball-vr': 'org.vpinball.vpinball_bgfx',
+  'armsx2-3d': 'com.armsx2',
   'south-park-vr': 'com.southpark.recompiled',
   'bully-vr': 'org.dolphinemu.dolphinemu.quest.bully.recover2',
   'xonotic-vr': 'com.sgtbilko.xonoticquest',
