@@ -431,6 +431,16 @@ function renderCategories() {
   $('#browseGenre').setAttribute('aria-pressed', String(facet === 'genre'));
 }
 
+function youtubeVideoId(game) {
+  const id = game?.video?.youtubeId;
+  return typeof id === 'string' && /^[A-Za-z0-9_-]{11}$/.test(id) ? id : '';
+}
+
+function creatorClipUrl(game) {
+  const url = game?.video?.clipUrl;
+  return typeof url === 'string' && /^https:\/\/v\.redd\.it\/[a-z0-9]+\/[A-Z_0-9]+\.mp4(?:\?source=fallback)?$/.test(url) ? url : '';
+}
+
 function renderGrid() {
   const query = state.search.toLowerCase().trim();
   const games = libraryGames().filter((game) => matchesScope(game) && (state.category === 'All games' || (game[state.browseMode] || 'Other') === state.category) && (!query || `${game.title} ${game.gameName || ''} ${portFamily(game).map((entry) => entry.portLabel || entry.series).join(' ')} ${game.console} ${game.genre} ${game.description}`.toLowerCase().includes(query)));
@@ -463,9 +473,34 @@ function renderGrid() {
     const variants = portFamily(game).length > 1 ? ` · ${portFamily(game).length} ports` : '';
     const count = state.sortMode === 'downloads' ? githubDownloads(game) : null;
     const downloads = count === null ? '' : `<div class="card-downloads">${count.toLocaleString()} GitHub downloads</div>`;
-    return `<button class="game-card ${presentation.status}" data-id="${escapeHtml(game.id)}" title="${escapeHtml(statusExplanation(presentation.profile))}" style="--accent:${escapeHtml(game.color || '#aaa6ff')}"><div class="card-art"><img src="${escapeHtml(game.art || '/art/custom.svg')}" alt="Artwork for ${escapeHtml(game.title)}" loading="lazy"><span class="card-tag">${escapeHtml(game[state.browseMode] || 'Other')}</span></div><div class="card-info"><div class="card-series">${escapeHtml(game.console || 'Other')} · ${escapeHtml(game.genre || 'Other')}</div><div class="card-title-row"><span class="card-title">${escapeHtml(game.gameName || game.title)}</span><span class="card-arrow">↗</span></div>${downloads}<div class="card-bottom"><span>${contents}${variants}</span>${releaseLabel(presentation.profile, presentation.status)}</div></div></button>`;
+    const preview = youtubeVideoId(profile) || creatorClipUrl(profile) ? `<button type="button" class="card-video-badge" data-preview-game="${escapeHtml(game.id)}" aria-label="Play video for ${escapeHtml(profile.title)}">▶ Preview</button>` : '';
+    return `<div class="game-card-entry"><button class="game-card ${presentation.status}" data-id="${escapeHtml(game.id)}" title="${escapeHtml(statusExplanation(presentation.profile))}" style="--accent:${escapeHtml(game.color || '#aaa6ff')}"><div class="card-art"><img src="${escapeHtml(game.art || '/art/custom.svg')}" alt="Artwork for ${escapeHtml(game.title)}" loading="lazy"><span class="card-tag">${escapeHtml(game[state.browseMode] || 'Other')}</span></div><div class="card-info"><div class="card-series">${escapeHtml(game.console || 'Other')} · ${escapeHtml(game.genre || 'Other')}</div><div class="card-title-row"><span class="card-title">${escapeHtml(game.gameName || game.title)}</span><span class="card-arrow">↗</span></div>${downloads}<div class="card-bottom"><span>${contents}${variants}</span>${releaseLabel(presentation.profile, presentation.status)}</div></div></button>${preview}</div>`;
   }).join('');
   updateBulkUpdateButton();
+}
+
+function detailArtHtml(game) {
+  const poster = `<img src="${escapeHtml(game.art || '/art/custom.svg')}" alt="Artwork for ${escapeHtml(game.title)}">`;
+  if (!youtubeVideoId(game) && !creatorClipUrl(game)) return `<div class="detail-art">${poster}</div>`;
+  const label = game.video.originalGame ? 'Play original game footage'
+    : game.video.relatedFootage ? 'Play related footage' : 'Play video';
+  return `<div class="detail-art"><button type="button" class="detail-video-poster" data-play-card-video aria-label="${label} for ${escapeHtml(game.title)}">${poster}<span class="detail-video-label">▶ ${label}</span></button></div>`;
+}
+
+function playCardVideo(art, game) {
+  const id = youtubeVideoId(game);
+  const clip = creatorClipUrl(game);
+  if (!art || (!id && !clip)) return;
+  const title = escapeHtml(game.title);
+  const player = clip
+    ? `<video class="detail-video-frame" src="${escapeHtml(clip)}" aria-label="${title} video" controls autoplay playsinline></video>`
+    : `<iframe class="detail-video-frame" src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&amp;playsinline=1" title="${title} video" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-presentation" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
+  const watchUrl = clip || `https://www.youtube.com/watch?v=${id}`;
+  const watchLabel = clip ? 'Open video' : game.video.originalGame ? 'Original game footage on YouTube'
+    : game.video.relatedFootage ? 'Related footage on YouTube' : 'Watch on YouTube';
+  art.innerHTML = `${player}<div class="detail-video-actions"><a href="${escapeHtml(watchUrl)}" target="_blank" rel="noopener noreferrer">${watchLabel} ↗</a><button type="button" class="inline-link" data-stop-card-video>Close video</button></div>`;
+  art.classList?.add('playing-card-video');
+  art.querySelector?.('iframe, video')?.focus();
 }
 
 function confirmedBulkUpdates() {
@@ -686,7 +721,7 @@ function personalBuildHtml(game) {
   const build = game.personalBuild;
   const phoneExportCard = ['rdr1-vr', 'gta-sa-vr'].includes(game.id) ? `<div class="sdk-setup-card"><strong>Game installed on your Android phone?</strong><p class="field-help">${game.id === 'rdr1-vr' ? 'Check your Google Play or Netflix installation over USB before copying. Complete phone APKs need no extra source. If world, cutscene or audio packs are private, you need matching Additional RDR game data or existing root access. VR4ALL does not supply a data download, and another edition is not guaranteed to fix missing files.' : 'Export the complete Google Play game over USB, then VR4ALL selects the saved folder for you.'}</p><button id="exportPhoneButton" type="button" class="small-button">Export game from phone</button></div>` : '';
   const inputBlock = (target, label, hint, value) => `<div class="requirement build-requirement"><div class="requirement-top"><span class="requirement-name">${escapeHtml(label)}</span><span class="format-chip">${build.fileOnly && target === 'gamePackage' ? 'FILE' : 'FILE OR FOLDER'}</span></div><p class="field-help">${escapeHtml(hint)}</p>${target === 'audioSource' && build.audioDownloadUrl ? `<div class="build-pickers"><a class="small-button" href="${escapeHtml(build.audioDownloadUrl)}" target="_blank" rel="noopener noreferrer">Download required audio pack ↗</a></div><p class="field-help">Expected file: <code>${escapeHtml(build.audioFileName)}</code></p>` : ''}<input id="${target === 'gamePackage' ? 'buildGamePath' : 'buildAudioPath'}" class="text-input build-path-input" value="${escapeHtml(value || '')}" placeholder="Choose or drop your own ${escapeHtml(label.toLowerCase())}"><div class="build-pickers"><button type="button" class="small-button build-browse-btn" data-build-kind="file" data-build-target="${target}">Choose file</button>${build.fileOnly && target === 'gamePackage' ? '' : `<button type="button" class="small-button build-browse-btn" data-build-kind="directory" data-build-target="${target}">Choose folder</button>`}</div><div class="drop-zone build-drop-zone" data-build-target="${target}">Drop ${escapeHtml(label.toLowerCase())} here</div>${state.savedPaths[game.id]?.[target] && state.pathAvailability[game.id]?.[target] === false ? '<p class="file-check error">Saved path is missing or has the wrong format. Reconnect its drive or choose it again.</p>' : ''}</div>`;
-  return `<div class="detail-art"><img src="${escapeHtml(game.art)}" alt="Artwork for ${escapeHtml(game.title)}"></div><div class="detail-series">${escapeHtml(game.console)} · ${escapeHtml(game.genre)} · ${escapeHtml(game.series)}</div><h2 class="detail-title">${escapeHtml(game.title)}</h2><p class="detail-description">${escapeHtml(game.description)}</p>${portChoiceHtml(game)}<div class="detail-divider"></div><div class="detail-step"><span class="step-number">1</span> ${escapeHtml(build.inputStep || 'Drop your original game export')}</div>${phoneExportCard}${inputBlock('gamePackage', build.gameLabel, build.gameHint, values.gamePackage)}${build.audioLabel ? `<div class="detail-step build-second-step"><span class="step-number">2</span> ${escapeHtml(build.audioStep || (game.id === 'fzero-x-virtuavr' ? 'Add the creator’s installer package' : 'Add the required audio pack'))}</div>${inputBlock('audioSource', build.audioLabel, build.audioHint, values.audioSource)}` : ''}<div class="guide-note">${escapeHtml(game.guidance)}</div><p class="field-help"><a href="${escapeHtml(game.projectUrl)}" target="_blank" rel="noopener noreferrer">${game.id === 'fzero-x-virtuavr' ? 'Download official Quest R10 package' : "Read the author's requirements"} ↗</a>${build.toolUrl ? ` · <a href="${escapeHtml(build.toolUrl)}" target="_blank" rel="noopener noreferrer">Official DeltaPatcher on GitHub ↗</a>` : ''}${build.decoderUrl ? ` · <a href="${escapeHtml(build.decoderUrl)}" target="_blank" rel="noopener noreferrer">xdelta3 decoder source ↗</a>` : ''}. ${escapeHtml(build.processDescription || 'VR4ALL downloads the author’s current source, validates your files through the official builder, and installs only to the selected Quest. First builds can download several GB of tools.')}</p>${game.releaseKind === 'patch' || game.id === 'bioshock-vr' ? '<div id="releaseCard" class="release-card"></div>' : ''}<div class="detail-divider"></div><div class="detail-step"><span class="step-number">${build.audioLabel ? '3' : '2'}</span> ${escapeHtml(build.actionLabel || 'Build and install')} to your Quest</div><button type="button" id="personalBuildButton" class="primary-button install-button">${escapeHtml(build.actionLabel || 'Build and install')} <span>→</span></button>${game.afterInstall ? `<p class="after-note">${escapeHtml(game.afterInstall)}</p>` : ''}<div id="jobContainer"></div>`;
+  return `${detailArtHtml(game)}<div class="detail-series">${escapeHtml(game.console)} · ${escapeHtml(game.genre)} · ${escapeHtml(game.series)}</div><h2 class="detail-title">${escapeHtml(game.title)}</h2><p class="detail-description">${escapeHtml(game.description)}</p>${portChoiceHtml(game)}<div class="detail-divider"></div><div class="detail-step"><span class="step-number">1</span> ${escapeHtml(build.inputStep || 'Drop your original game export')}</div>${phoneExportCard}${inputBlock('gamePackage', build.gameLabel, build.gameHint, values.gamePackage)}${build.audioLabel ? `<div class="detail-step build-second-step"><span class="step-number">2</span> ${escapeHtml(build.audioStep || (game.id === 'fzero-x-virtuavr' ? 'Add the creator’s installer package' : 'Add the required audio pack'))}</div>${inputBlock('audioSource', build.audioLabel, build.audioHint, values.audioSource)}` : ''}<div class="guide-note">${escapeHtml(game.guidance)}</div><p class="field-help"><a href="${escapeHtml(game.projectUrl)}" target="_blank" rel="noopener noreferrer">${game.id === 'fzero-x-virtuavr' ? 'Download official Quest R10 package' : "Read the author's requirements"} ↗</a>${build.toolUrl ? ` · <a href="${escapeHtml(build.toolUrl)}" target="_blank" rel="noopener noreferrer">Official DeltaPatcher on GitHub ↗</a>` : ''}${build.decoderUrl ? ` · <a href="${escapeHtml(build.decoderUrl)}" target="_blank" rel="noopener noreferrer">xdelta3 decoder source ↗</a>` : ''}. ${escapeHtml(build.processDescription || 'VR4ALL downloads the author’s current source, validates your files through the official builder, and installs only to the selected Quest. First builds can download several GB of tools.')}</p>${game.releaseKind === 'patch' || game.id === 'bioshock-vr' ? '<div id="releaseCard" class="release-card"></div>' : ''}<div class="detail-divider"></div><div class="detail-step"><span class="step-number">${build.audioLabel ? '3' : '2'}</span> ${escapeHtml(build.actionLabel || 'Build and install')} to your Quest</div><button type="button" id="personalBuildButton" class="primary-button install-button">${escapeHtml(build.actionLabel || 'Build and install')} <span>→</span></button>${game.afterInstall ? `<p class="after-note">${escapeHtml(game.afterInstall)}</p>` : ''}<div id="jobContainer"></div>`;
 }
 
 function romRequirementHelp(game, item) {
@@ -735,8 +770,8 @@ function detailHtml(game) {
     const setup = `<div class="sdk-setup-card"><strong>Build tools</strong><p class="field-help">Vice City, RDR and San Andreas reuse tools from the same download folder. Setup checks what is already installed and downloads only missing versions.</p><button id="setupBuildToolsButton" type="button" class="small-button"${unsupported ? ' disabled' : ''}>Set up build tools</button></div>`;
     return gated.replace('<button type="button" id="personalBuildButton"', `${setup}<button type="button" id="personalBuildButton"`);
   }
-  if (game.externalInstaller) return `<div class="detail-art"><img src="${escapeHtml(game.art || '/art/custom.svg')}" alt="Artwork for ${escapeHtml(game.title)}"></div><div class="detail-series">${escapeHtml(game.console)} · ${escapeHtml(game.genre)} · ${escapeHtml(game.series)}</div><h2 class="detail-title">${escapeHtml(game.title)}</h2><p class="detail-description">${escapeHtml(game.description)}</p><div class="detail-divider"></div><div class="guide-note">${escapeHtml(game.guidance)}</div><a class="primary-button install-button" href="${escapeHtml(game.projectUrl)}" target="_blank" rel="noopener noreferrer">${game.developmentPreview ? 'Follow development ↗' : 'Open official setup ↗'}</a>`;
-  return `<div class="detail-art"><img src="${escapeHtml(game.art || '/art/custom.svg')}" alt="Artwork for ${escapeHtml(game.title)}"></div><div class="detail-series">${escapeHtml(game.console || 'Other')} · ${escapeHtml(game.genre || 'Other')} · ${escapeHtml(game.series)}</div><h2 class="detail-title">${escapeHtml(game.title)}</h2><p class="detail-description">${escapeHtml(game.description)}</p>${portChoiceHtml(game)}<div class="detail-divider"></div>
+  if (game.externalInstaller) return `${detailArtHtml(game)}<div class="detail-series">${escapeHtml(game.console)} · ${escapeHtml(game.genre)} · ${escapeHtml(game.series)}</div><h2 class="detail-title">${escapeHtml(game.title)}</h2><p class="detail-description">${escapeHtml(game.description)}</p>${portChoiceHtml(game)}<div class="detail-divider"></div><div class="guide-note">${escapeHtml(game.guidance)}</div><a class="primary-button install-button" href="${escapeHtml(game.projectUrl)}" target="_blank" rel="noopener noreferrer">${game.developmentPreview ? 'Follow development ↗' : 'Open official setup ↗'}</a>`;
+  return `${detailArtHtml(game)}<div class="detail-series">${escapeHtml(game.console || 'Other')} · ${escapeHtml(game.genre || 'Other')} · ${escapeHtml(game.series)}</div><h2 class="detail-title">${escapeHtml(game.title)}</h2><p class="detail-description">${escapeHtml(game.description)}</p>${portChoiceHtml(game)}<div class="detail-divider"></div>
     <div class="detail-step"><span class="step-number">1</span> ${game.playerInstall ? 'Use the official player release' : 'Choose the port APK'}</div>
     ${game.playerInstall ? `<p class="guide-note">${escapeHtml(game.playerInstallDescription) || (game.playerInstall === 'beef-raider' ? 'VR4ALL installs the official Quest APK for the demo. For the full game, use the author’s extractor on your owned files, then VR4ALL transfers its output after you launch the app once.' : `VR4ALL downloads ${['road-rash', 'harry-potter'].includes(game.playerInstall) ? 'the official player installer ZIP' : game.playerInstall === 'jkxr' ? 'both official Quest APKs' : game.playerInstall === 'official-zip' ? 'the official Quest player ZIP' : 'the official Quest APK'} and prepares your owned game files.`)}</p>` : game.manualRelease ? '<p class="guide-note">The official GitHub release is an installer ZIP, not a directly installable APK. Follow its installer instructions to prepare the game, then select a local APK here.</p>' : source ? `<div class="source-toggle"><button type="button" class="source-choice ${mode === 'github' ? 'active' : ''}" data-mode="github">${honeydewSource(source) ? 'Latest from creator' : `Latest on ${releaseProviderName(source)}`}</button><button type="button" class="source-choice ${mode === 'local' ? 'active' : ''}" data-mode="local">Local APK</button></div>` : `<div class="guide-note"><strong>Manual creator APK.</strong> This mod does not publish a verified Quest APK through a GitHub release that VR4ALL can auto-update. Download the APK from the creator, then drop it below. VR4ALL remembers its path for later installs.</div>`}
     <div id="releaseCard" class="release-card" ${mode === 'local' && !game.manualRelease ? 'hidden' : ''}></div>
@@ -1911,6 +1946,24 @@ async function saveSettings() {
 }
 
 document.addEventListener('click', async (event) => {
+  const preview = event.target.closest('[data-preview-game]');
+  if (preview) {
+    selectGame(preview.dataset.previewGame);
+    playCardVideo($('#detailBody .detail-art'), selectedGame());
+    return;
+  }
+  const playVideo = event.target.closest('[data-play-card-video]');
+  if (playVideo) { playCardVideo(playVideo.closest('.detail-art'), selectedGame()); return; }
+  const stopVideo = event.target.closest('[data-stop-card-video]');
+  if (stopVideo) {
+    const art = stopVideo.closest('.detail-art');
+    const game = selectedGame();
+    if (art && game) {
+      art.outerHTML = detailArtHtml(game);
+      $('[data-play-card-video]')?.focus();
+    }
+    return;
+  }
   const copyRequirement = event.target.closest('.copy-requirement');
   if (copyRequirement) {
     const game = selectedGame();
@@ -1999,7 +2052,13 @@ function setBrowseMode(mode) { state.browseMode = mode; state.category = 'All ga
 $('#browseConsole').addEventListener('click', () => setBrowseMode('console'));
 $('#browseGenre').addEventListener('click', () => setBrowseMode('genre'));
 $('#libraryScope').addEventListener('change', (event) => { state.libraryScope = event.target.value; state.category = 'All games'; renderCategories(); renderGrid(); });
-$('#closeDetail').addEventListener('click', () => { rememberInputs(); $('#detailPanel').hidden = true; state.selectedId = ''; applyDetailLayout(); });
+$('#closeDetail').addEventListener('click', () => {
+  rememberInputs();
+  $('#detailPanel').hidden = true;
+  $('#detailBody').innerHTML = '';
+  state.selectedId = '';
+  applyDetailLayout();
+});
 $('#refreshDevices').addEventListener('click', () => refreshDevices().catch((error) => toast(error.message, true)));
 $('#deviceSelect').addEventListener('change', (event) => { state.selectedSerial = event.target.value; refreshDevices().catch((error) => toast(error.message, true)); });
 function updateGameSearch(value, scrollToResults = false) {
