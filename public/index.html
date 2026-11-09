@@ -38,20 +38,25 @@
       <div class="browse-switch" role="group" aria-label="Browse games by"><button id="browseGenre" class="active" type="button" aria-pressed="true">Genre</button><button id="browseConsole" type="button" aria-pressed="false">Console</button></div>
       <nav id="categoryNav" class="nav-list" aria-label="Game categories"></nav>
       <div class="sidebar-spacer"></div>
-      <div class="sidebar-divider"></div>
-      <div class="sidebar-label sidebar-footer-heading">HELP &amp; APPEARANCE</div>
-      <button id="changeThemeButton" class="sidebar-action" type="button"><span aria-hidden="true">◐</span> Change theme</button>
-      <button id="pcBuildFolderButton" class="sidebar-action" type="button"><span aria-hidden="true">▣</span> PC build folder</button>
-      <a class="sidebar-action" href="https://github.com/vr4all-standalone/vr4all-standalone/issues/new?template=port_suggestion.yml" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">＋</span> Request a port</a>
-      <a class="sidebar-action" href="https://github.com/vr4all-standalone/vr4all-standalone/issues/new?template=bug_report.yml" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">⚑</span> Report a bug</a>
-      <a class="sidebar-action" href="https://github.com/vr4all-standalone/vr4all-standalone/blob/main/docs/user-guide.md" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">?</span> Help &amp; guide</a>
       <div class="sidebar-foot"><span class="pulse-dot"></span><span>Your own files</span></div>
     </aside>
 
     <div class="main-column">
       <header class="topbar">
         <div class="breadcrumbs">Library <span>/</span> <strong id="crumbCategory">All games</strong></div>
-        <div class="topbar-right"><span class="topbar-label">TARGET</span><strong id="topbarDeviceName" class="topbar-device-name">Checking USB…</strong></div>
+        <div class="topbar-right"><span class="topbar-label">TARGET</span><strong id="topbarDeviceName" class="topbar-device-name">Checking USB…</strong>
+          <details id="topbarMenu" class="topbar-menu">
+            <summary aria-label="Open app menu" title="App menu"><span aria-hidden="true">☰</span> Menu</summary>
+            <div class="topbar-menu-panel">
+              <div class="topbar-menu-heading">HELP &amp; APPEARANCE</div>
+              <button id="changeThemeButton" class="topbar-menu-action" type="button"><span aria-hidden="true">◐</span> Change theme</button>
+              <button id="pcBuildFolderButton" class="topbar-menu-action" type="button"><span aria-hidden="true">▣</span> PC build folder</button>
+              <a class="topbar-menu-action" href="https://github.com/vr4all-standalone/vr4all-standalone/issues/new?template=port_suggestion.yml" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">＋</span> Request a port</a>
+              <a class="topbar-menu-action" href="https://github.com/vr4all-standalone/vr4all-standalone/issues/new?template=bug_report.yml" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">⚑</span> Report a bug</a>
+              <a class="topbar-menu-action" href="https://github.com/vr4all-standalone/vr4all-standalone/blob/main/docs/user-guide.md" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">?</span> Help &amp; guide</a>
+            </div>
+          </details>
+        </div>
       </header>
 
       <main class="content">
@@ -65,6 +70,11 @@
 
         <section id="library" class="library-section">
           <div class="section-heading"><div><div class="eyebrow muted">GAME LIBRARY</div><h2>All ports <span id="gameCount"></span></h2></div><div class="library-tools"><label class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="Find a game or port" aria-label="Search games"></label><div class="sort-controls"><select id="librarySort" class="library-sort" aria-label="Sort games"><option value="name-asc">A–Z</option><option value="name-desc">Z–A</option><option value="latest">Latest release</option><option value="downloads">Most downloaded</option></select><label class="installed-first-toggle"><input id="installedFirst" type="checkbox">Installed first</label></div></div></div>
+          <section class="discord-banner" aria-label="VR4ALL Discord community">
+            <span class="discord-banner-icon" aria-hidden="true"><img src="/discord-symbol.svg" alt=""></span>
+            <div class="discord-banner-copy"><span>VR4ALL COMMUNITY</span><strong>Join the VR4ALL Discord</strong><p>Get install help, share ports, and follow new releases.</p></div>
+            <a class="discord-banner-link" href="https://discord.gg/TMs5HD7ZYT" target="_blank" rel="noopener noreferrer">Join the Discord <span aria-hidden="true">↗</span></a>
+          </section>
           <div id="bulkUpdatePanel" class="bulk-update-panel" hidden><button id="bulkUpdateButton" class="primary-button bulk-update-page-button" type="button" disabled><span>↥</span> Update all installed games</button><div id="bulkUpdateStatus" class="bulk-update-status" role="status" aria-live="polite" hidden><i class="bulk-update-spinner" aria-hidden="true"></i><span id="bulkUpdateStatusText"></span></div></div>
           <p id="libraryScopeNote" class="library-scope-note" hidden></p>
           <div class="status-legend"><span><i class="legend-dot current"></i>Ready on selected headset</span><span><i class="legend-dot update"></i>APK update available</span><span><i class="legend-dot staged"></i>Local file matched · install available</span><span><i class="legend-dot ready-unverified"></i>Ready · version unverified</span></div>

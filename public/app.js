@@ -2134,6 +2134,15 @@ $('#savedLibraryFiles').addEventListener('click', async (event) => {
   } catch (error) { toast(error.message, true); }
 });
 $('#bulkRunButton').addEventListener('click', () => runBulkInstall().catch((error) => { state.bulkRunning = false; $('#closeBulkButton').disabled = false; toast(error.message, true); }));
+const topbarMenu = $('#topbarMenu');
+topbarMenu.addEventListener('click', (event) => { if (event.target.closest('.topbar-menu-action')) topbarMenu.open = false; });
+document.addEventListener('pointerdown', (event) => { if (topbarMenu.open && !topbarMenu.contains(event.target)) topbarMenu.open = false; });
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && topbarMenu.open) {
+    topbarMenu.open = false;
+    topbarMenu.querySelector('summary').focus();
+  }
+});
 $('#changeThemeButton').addEventListener('click', () => openSettings('appearance'));
 $('#pcBuildFolderButton').addEventListener('click', () => openSettings('workspace'));
 $('#connectionHelpButton').addEventListener('click', () => openSettings('connection'));

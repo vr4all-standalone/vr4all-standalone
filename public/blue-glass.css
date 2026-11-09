@@ -130,6 +130,17 @@ body[data-theme] .breadcrumbs strong{color:var(--app-text);font-weight:650}
 body[data-theme] .topbar-right{flex:none}
 body[data-theme] .topbar-label{color:var(--app-subtle);font-size:9px;letter-spacing:1.2px}
 body[data-theme] .topbar-device-name{color:var(--app-secondary);font-size:11px}
+body[data-theme] .topbar-menu{position:relative;margin-left:10px;color:var(--app-text)}
+body[data-theme] .topbar-menu summary{display:flex;align-items:center;gap:7px;min-height:31px;padding:0 10px;border:1px solid var(--app-line-strong);border-radius:var(--app-chrome-radius);background:var(--app-field);color:var(--app-secondary);font-size:11px;font-weight:650;list-style:none;cursor:pointer;user-select:none}
+body[data-theme] .topbar-menu summary::-webkit-details-marker{display:none}
+body[data-theme] .topbar-menu summary:hover,body[data-theme] .topbar-menu[open] summary{border-color:var(--ui-accent);color:var(--app-text)}
+body[data-theme] .topbar-menu summary:focus-visible{outline:2px solid var(--ui-accent);outline-offset:2px}
+body[data-theme] .topbar-menu summary span{font-size:15px;line-height:1}
+body[data-theme] .topbar-menu-panel{position:absolute;top:calc(100% + 9px);right:0;z-index:10;width:min(220px,calc(100vw - 24px));padding:8px;border:1px solid var(--app-line-strong);border-radius:var(--app-chrome-radius);background:var(--app-dialog);box-shadow:var(--app-elevation-high);-webkit-backdrop-filter:var(--app-filter);backdrop-filter:var(--app-filter)}
+body[data-theme] .topbar-menu-heading{padding:7px 9px 9px;color:var(--app-muted);font:700 9px Bahnschrift,'Segoe UI',sans-serif;letter-spacing:1.1px}
+body[data-theme] .topbar-menu-action{display:flex;align-items:center;gap:10px;width:100%;min-height:36px;padding:7px 9px;border:0;border-radius:5px;background:none;color:var(--app-secondary);font-size:11px;font-weight:600;text-align:left;text-decoration:none}
+body[data-theme] .topbar-menu-action:hover,body[data-theme] .topbar-menu-action:focus-visible{background:var(--app-hover);color:var(--app-text)}
+body[data-theme] .topbar-menu-action span{display:inline-block;min-width:16px;color:var(--ui-accent);font-size:14px;text-align:center}
 body[data-theme] .content{padding:25px 34px 70px}
 body[data-theme] .overview-row{display:block}
 body[data-theme] .hero{display:none}
@@ -146,6 +157,15 @@ body[data-theme] .device-banner.warn .banner-icon{color:var(--warning)}
 body[data-theme] .device-banner span:last-child{max-width:750px}
 body[data-theme] .library-section{padding-top:21px}
 body[data-theme] .section-heading{align-items:end;margin-bottom:17px;gap:18px}
+body[data-theme] .discord-banner{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:0 0 14px;padding:13px 15px;border:1px solid color-mix(in srgb,#8990f6 36%,var(--app-line-strong));border-radius:var(--app-chrome-radius);background:linear-gradient(105deg,color-mix(in srgb,#5865f2 16%,var(--app-card)),var(--app-card) 78%);box-shadow:inset 0 1px var(--app-highlight)}
+body[data-theme] .discord-banner-icon{display:grid;flex:0 0 38px;place-items:center;width:38px;height:38px;border:1px solid #818af8;border-radius:10px;background:#5865f2}
+body[data-theme] .discord-banner-icon img{display:block;width:23px;height:auto}
+body[data-theme] .discord-banner-copy{flex:1 1 230px;min-width:0}
+body[data-theme] .discord-banner-copy>span{display:block;margin-bottom:3px;color:#aeb4ff;font:700 9px Bahnschrift,'Segoe UI',sans-serif;letter-spacing:1.3px}
+body[data-theme] .discord-banner-copy strong{display:block;color:var(--app-text);font-size:13px;line-height:1.25}
+body[data-theme] .discord-banner-copy p{margin:3px 0 0;color:var(--app-secondary);font-size:11px;line-height:1.35}
+body[data-theme] .discord-banner-link{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:36px;margin-left:auto;padding:0 13px;border:1px solid #8990f6;border-radius:7px;background:#5865f2;color:#fff;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;transition:background .16s ease,border-color .16s ease}
+body[data-theme] .discord-banner-link:hover{border-color:#adb3ff;background:#707af5}
 body[data-theme] .eyebrow{color:var(--ui-accent);font:700 9px Bahnschrift,'Segoe UI',sans-serif;letter-spacing:1.55px}
 body[data-theme] .eyebrow.muted{color:var(--app-muted)}
 body[data-theme] .section-heading h2{margin-top:5px;color:var(--app-text);font:690 30px/1.1 'Segoe UI Variable Display','Segoe UI',sans-serif;letter-spacing:-.8px;text-transform:none}
