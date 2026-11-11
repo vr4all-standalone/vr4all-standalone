@@ -2,10 +2,26 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { getCatalog } = require('../src/catalog');
 const { buildInstallPlan, selectRelease } = require('../src/core');
+const { packages } = require('../src/device-library');
 
 const byId = Object.fromEntries(getCatalog().map((port) => [port.id, port]));
 const games = ['daggerfall-unity-vr', 'star-fox-enhanced-vr', 'questcraft', 'outlaws-vr'];
 const emulators = ['age-of-joy', 'citravr', 'dolphinxr', 'ppsspp-vr', 'winlatorxr'];
+
+test('DolphinXR uses the current creator Quest release and its APK package ID', () => {
+  const release = selectRelease([
+    { tag_name: 'v0.5', published_at: '2026-11-03T00:00:00Z', assets: [{
+      name: 'DolphinVR-Redux-v0.5-Quest.apk',
+      browser_download_url: 'https://github.com/iChris4/dolphinXR/releases/download/v0.5/DolphinVR-Redux-v0.5-Quest.apk',
+    }] },
+    { tag_name: 'v0.2', published_at: '2026-05-01T00:00:00Z', assets: [{
+      name: 'Dolphin-VR-Redux-app-quest-debug.apk',
+      browser_download_url: 'https://github.com/iChris4/dolphinXR/releases/download/v0.2/Dolphin-VR-Redux-app-quest-debug.apk',
+    }] },
+  ], byId.dolphinxr.source);
+  assert.equal(release?.assetName, 'DolphinVR-Redux-v0.5-Quest.apk');
+  assert.equal(packages.dolphinxr, 'org.dolphinemu.dolphinemu.quest.debug');
+});
 
 test('original creator sources provide four new Quest games and five emulator tools', () => {
   for (const id of [...games, ...emulators]) {

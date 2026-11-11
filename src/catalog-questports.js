@@ -75,7 +75,7 @@ const questports = [
     id: 'dolphinxr', catalogGroup: 'emulator', title: 'DolphinXR', gameName: 'GameCube and Wii', series: 'iChris4', category: 'GameCube', color: '#6faab9',
     description: 'Experimental GameCube and Wii emulator for standalone Quest.',
     projectUrl: 'https://github.com/iChris4/dolphinXR',
-    source: { repo: 'iChris4/dolphinXR', assetPattern: '^Dolphin-VR-Redux-app-quest-debug\\.apk$' },
+    source: { repo: 'iChris4/dolphinXR', assetPattern: '^DolphinVR-Redux-v[0-9.]+-Quest\\.apk$' },
     data: [], guidance: 'VR4ALL installs the creator’s Quest APK. Add your own GameCube or Wii discs in DolphinXR and configure controls on the headset. No games are included.',
   },
   {

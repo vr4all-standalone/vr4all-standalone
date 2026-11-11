@@ -28,7 +28,7 @@ const packages = {
   questcraft: 'com.qcxr.qcxr',
   'outlaws-vr': 'com.outlawsvr.OutlawsUE',
   'age-of-joy': 'com.curif.AgeOfJoy',
-  dolphinxr: 'org.dolphinemu.dolphinemu.quest',
+  dolphinxr: 'org.dolphinemu.dolphinemu.quest.debug',
   'vtmb-resource': 'diy.resource.vtmb.vulkan',
   'gunblade-ny-vr': 'com.vrlightgunhub.gunbladeny',
   'hotd-model2-vr': 'com.vrlightgunhub.hotdmodel2',
