@@ -29,6 +29,7 @@ const packages = {
   'outlaws-vr': 'com.outlawsvr.OutlawsUE',
   'age-of-joy': 'com.curif.AgeOfJoy',
   dolphinxr: 'org.dolphinemu.dolphinemu.quest.debug',
+  'silent-scope-vr': 'com.vrlightgunhub.silentscope',
   'vtmb-resource': 'diy.resource.vtmb.vulkan',
   'gunblade-ny-vr': 'com.vrlightgunhub.gunbladeny',
   'hotd-model2-vr': 'com.vrlightgunhub.hotdmodel2',
@@ -201,6 +202,10 @@ async function inspectDevice(adb, serial, games, knownPackages = {}) {
     return listCache.get(directory);
   }
   async function hasData(game) {
+    if (game.id === 'silent-scope-vr') {
+      const imported = await list('/sdcard/Android/data/com.vrlightgunhub.silentscope/files/games/dreamcast');
+      return game.data[0].requiredEntries.every((name) => imported.includes(name));
+    }
     if (game.id === 'forsaken-gameordie') {
       const base = '/sdcard/Android/data/net.gameordie.forsakenvr/files/data/levels';
       const levels = await list(base);

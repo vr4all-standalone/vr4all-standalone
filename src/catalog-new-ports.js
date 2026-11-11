@@ -31,6 +31,22 @@ const newPorts = [
     afterInstall: 'Open the app once under Unknown Sources and grant All files access if asked. Keep the app installed when updating so your saves and game files remain on the headset.',
   },
   {
+    id: 'silent-scope-vr', title: 'Silent Scope VR', gameName: 'Silent Scope', series: 'vr4all-standalone', category: 'Dreamcast', color: '#8385bc',
+    description: 'The Dreamcast sniper game in standalone stereo VR, with a tracked rifle and live scope view.',
+    projectUrl: 'https://github.com/vr4all-standalone/silent-scope-vr',
+    source: { repo: 'vr4all-standalone/silent-scope-vr', assetPattern: '^silent-scope-vr-quest\\.apk$' },
+    verifyApkHash: true,
+    data: [{
+      id: 'game', label: 'Owned Silent Scope (USA) Dreamcast disc files', kind: 'directory',
+      destination: '/sdcard/Download/SilentScope/',
+      requiredEntries: ['Silent Scope (USA).cue', 'Silent Scope (USA) (Track 1).bin', 'Silent Scope (USA) (Track 2).bin', 'Silent Scope (USA) (Track 3).bin'],
+      copyEntries: ['Silent Scope (USA).cue', 'Silent Scope (USA) (Track 1).bin', 'Silent Scope (USA) (Track 2).bin', 'Silent Scope (USA) (Track 3).bin'],
+      note: 'Choose a folder or ZIP/7z/RAR containing the US Dreamcast V1.000 CUE and all three matching BIN tracks. The arcade set and Silent Scope 2 are different games.',
+    }],
+    guidance: 'VR4ALL installs the creator’s Quest APK and stages your four owned disc files in Download/SilentScope. The headset app validates and imports the exact Dreamcast US V1.000 disc; no BIOS or PC build is needed.',
+    afterInstall: 'Open Silent Scope - VR4ALL on your Quest, choose disc files, and select the staged CUE plus all three BIN tracks from Download/SilentScope. Let the game validate and import them before entering VR. Later APK updates keep the imported files.',
+  },
+  {
     id: 'gunblade-ny-vr', title: 'Gunblade NY VR', gameName: 'Gunblade NY', series: 'vr4all-standalone', category: 'Arcade', color: '#5c91bc',
     description: 'The Sega Model 2 lightgun game in standalone stereo VR, with tracked aiming and the original arcade play.',
     projectUrl: 'https://github.com/vr4all-standalone/gunblade-ny-vr',
@@ -233,6 +249,7 @@ const newPorts = [
 const newPortFacets = {
   'balatro-vr': ['PC', 'Card game'],
   'vtmb-resource': ['PC', 'RPG'],
+  'silent-scope-vr': ['Dreamcast', 'Rail shooter'],
   'gunblade-ny-vr': ['Arcade', 'Rail shooter'], 'hotd-model2-vr': ['Arcade', 'Rail shooter'],
   'behind-enemy-lines-vr': ['Arcade', 'Rail shooter'], 'rail-chase-2-vr': ['Arcade', 'Rail shooter'],
   'scud-race-vr': ['Arcade', 'Racing'],
