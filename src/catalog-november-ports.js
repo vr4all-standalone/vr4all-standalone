@@ -12,7 +12,7 @@ const novemberPorts = [
     guidance: 'The creator documents Quest 3. Some geometry can flicker, and co-op is beta.',
   },
   {
-    id: 'mario64mr', variantOf: 'sm64-vr', portLabel: 'Mario 64 MR', artId: 'sm64-vr', title: 'Mario 64 MR', gameName: 'Super Mario 64', series: 'Lucas Martinic', category: 'Nintendo 64', color: '#84b4d6',
+    id: 'mario64mr', portLabel: 'Mario 64 MR', artId: 'sm64-vr', title: 'Mario 64 MR', gameName: 'Super Mario 64', series: 'Lucas Martinic', category: 'Nintendo 64', color: '#84b4d6',
     description: 'Mixed reality Super Mario 64 for Quest 2, 3 and 3S.',
     projectUrl: 'https://github.com/lucas-martinic/mario64mr', externalInstaller: true,
     data: [],

@@ -78,10 +78,22 @@ async function verifyGameFile(game, item, file) {
   const handle = await fs.open(file, 'r');
   let bytes;
   try {
-    const buffer = Buffer.alloc(game.id === 'wii-compiled' && extension === '.wbfs' ? 520 : item.romRequirement?.discSha1 ? 124 : 64);
+    const buffer = Buffer.alloc(['wii-compiled', 'umbrella-chronicles-vr'].includes(game.id) && extension === '.wbfs' ? 520 : item.romRequirement?.discSha1 ? 124 : 64);
     const { bytesRead } = await handle.read(buffer, 0, buffer.length, 0);
     bytes = buffer.subarray(0, bytesRead);
   } finally { await handle.close(); }
+  if (game.id === 'umbrella-chronicles-vr' && item.id === 'key') {
+    if ((await fs.stat(file)).size !== 16) throw new Error('Wii common-key.bin must be exactly 16 bytes');
+    return { level: 'size', message: 'Wii common-key.bin has the required 16-byte length; key validity is checked by the port on launch' };
+  }
+  if (game.id === 'umbrella-chronicles-vr' && item.id === 'disc') {
+    const wbfs = extension === '.wbfs';
+    const offset = wbfs ? 512 : 0;
+    if (wbfs && bytes.toString('ascii', 0, 4) !== 'WBFS' || bytes.toString('ascii', offset, offset + 6) !== 'RBUE08') {
+      throw new Error('Umbrella Chronicles VR requires the NTSC-U RBUE08 Wii image');
+    }
+    return { level: 'title', message: 'Umbrella Chronicles NTSC-U RBUE08 disc header matches; the port checks the complete encrypted image on launch' };
+  }
   if (extension === '.chd' && item.romRequirement?.discSha1) {
     const requirement = item.romRequirement;
     if (bytes.length < 108 || bytes.toString('ascii', 0, 8) !== 'MComprHD') throw new Error(`${requirement.set} needs a readable CHD header`);

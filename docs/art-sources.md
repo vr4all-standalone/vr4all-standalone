@@ -1,5 +1,11 @@
 # Artwork sources
 
+## Quest additions — 12 November 2026
+
+- Umbrella Chronicles VR: [North American Wii cover](https://gamehoard.com/cdn/shop/files/MV5BZmRkNWE2Y2YtYmMwOS00ZjYwLTljYjYtYjkxZmUwNmYyNTBkXkEyXkFqcGdeQXVyNTk1ODMyNjA_._V1.jpg?v=1686979689) for the original game. Capcom artwork; redistribution permission is unverified.
+- Jedi Academy Diorama MR: reuses the Jedi Outcast / Jedi Academy card image for the same original game.
+- Mario 64 MR: has its own card and reuses the Super Mario 64 card image.
+
 ## Quest additions — 8 November 2026
 
 - South Park VR: [creator banner](https://github.com/VistaLargaGames/South-Park-Quest-VR/blob/main/banner.jpg).

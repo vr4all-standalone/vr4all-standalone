@@ -89,10 +89,10 @@ test('every built-in port profile has a valid video source entry', () => {
   assert.equal(missing.length, 0, missing.join(', '));
 });
 
-test('a guided alternate port keeps the other video profiles selectable', () => {
+test('a separate guided MR card keeps its video preview', () => {
   const { context } = appContext();
   context.catalog = getCatalog();
   const html = vm.runInContext('state.games = catalog; detailHtml(catalog.find(g => g.id === "mario64mr"))', context);
-  assert.match(html, /data-port-id="sm64-vr"/);
+  assert.doesNotMatch(html, /data-port-id="sm64-vr"/);
   assert.match(html, /data-play-card-video/);
 });

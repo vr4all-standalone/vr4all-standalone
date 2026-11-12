@@ -1,5 +1,7 @@
 // Read-only probes for catalogued ports on the selected Android headset.
 const packages = {
+  'umbrella-chronicles-vr': 'org.uc.umbrellachronicles.vr',
+  'jedi-academy-diorama-mr': 'com.galateainteractive.jkxrdioramamr',
   'fate-of-the-galaxy-vr': 'com.bilko.fotgvr',
   'wing-commander-saga-vr': 'com.bilko.wcsagavr',
   'wipeout-pure-vr': 'online.portroyale.wipeoutpurevr',
@@ -150,6 +152,7 @@ const packages = {
 const packageAliases = { 'rdr1-vr': ['com.rockstargames.rdr', 'com.netflix.NGP.Kamo'] };
 
 const downloadPatterns = {
+  'umbrella-chronicles-vr': /\.(?:iso|wbfs)$/i,
   'ratchet-clank-quest-vr': /(?:ratchet.*clank|sces.?50916|scus.?97199).*\.iso$/i,
   'code-veronica-x-vr': /(?:code.?veronica|slus.?20184).*\.iso$/i,
   'project-honeydew': /pikmin.*\.(?:iso|gcm)$/i,

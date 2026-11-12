@@ -5,6 +5,32 @@ const n64 = ['.z64', '.n64', '.v64'];
 
 const newPorts = [
   {
+    id: 'umbrella-chronicles-vr', title: 'Umbrella Chronicles VR', gameName: 'Resident Evil: The Umbrella Chronicles', series: 'lialan', category: 'Wii', color: '#a44e50',
+    description: 'The original Wii rail shooter in standalone Quest 3 VR, using your own North American disc image.',
+    projectUrl: 'https://github.com/lialan/reuc-vr',
+    source: { repo: 'lialan/reuc-vr', releasePattern: 'quest-v[0-9]', assetPattern: '^UmbrellaChroniclesVR-[0-9.]+\\.apk$' },
+    fileAccessPackage: 'org.uc.umbrellachronicles.vr', verifyApkHash: true,
+    data: [
+      { id: 'disc', label: 'Owned NTSC-U Umbrella Chronicles Wii image', kind: 'file', extensions: ['.iso', '.wbfs'], destination: '/sdcard/UmbrellaChronicles/', note: 'North American RBUE08 disc as one ISO or WBFS file. RVZ, CISO, WIA and split WBF1 are not supported by this Quest build.' },
+      { id: 'key', label: 'Wii common-key.bin from your own Wii', kind: 'file', extensions: ['.bin'], destination: '/sdcard/UmbrellaChronicles/common-key.bin', note: 'Exactly 16 bytes. Put the key next to the disc image; VR4ALL names it common-key.bin on the headset.' },
+    ],
+    guidance: 'VR4ALL selects only the creator’s Quest release, checks the RBUE08 disc header and 16-byte key, installs the APK and copies both files together. The author has not yet tested a real encrypted image and key end to end; this Quest 3 release is experimental.',
+    afterInstall: 'On first launch, grant All files access, return to Unknown Sources and start Umbrella Chronicles VR again. Newer APKs keep saves and VR settings.',
+  },
+  {
+    id: 'jedi-academy-diorama-mr', title: 'Jedi Academy Diorama MR', gameName: 'Star Wars Jedi Knight: Jedi Academy', series: 'Galatea Interactive', category: 'PC', color: '#99bde0', artId: 'jkxr',
+    description: 'Play Jedi Academy as a room-scale mixed reality miniature, with immersive JKXR VR mode also available.',
+    projectUrl: 'https://github.com/galateainteractive/Diorama-MR-Mods-Releases/releases',
+    source: { repo: 'galateainteractive/Diorama-MR-Mods-Releases', releasePattern: 'jedi-academy-v[0-9]', assetPattern: '^JKXR-Diorama-MR-[0-9.]+(?:-(?:alpha|beta)\\.[0-9]+)?\\.apk$' },
+    fileAccessPackage: 'com.galateainteractive.jkxrdioramamr', verifyApkHash: true,
+    data: [{ id: 'game', label: 'Owned Jedi Academy GameData/base folder', kind: 'directory', destination: '/sdcard/Diorama-MR/JK3/base/',
+      requiredEntries: ['assets0.pk3', 'assets1.pk3', 'assets2.pk3', 'assets3.pk3'],
+      copyEntries: ['assets0.pk3', 'assets1.pk3', 'assets2.pk3', 'assets3.pk3'],
+      note: 'Choose the base folder from your own PC Jedi Academy installation, or a ZIP/7z/RAR containing its four original assets*.pk3 archives. VR4ALL copies only those four archives.' }],
+    guidance: 'VR4ALL downloads the creator’s Quest APK, installs its separate package and copies your original Jedi Academy archives to the Diorama-MR/JK3/base folder used by the creator’s installer. This is an early alpha; the full campaign has not been tested end to end.',
+    afterInstall: 'Launch Jedi Academy Diorama MR under Unknown Sources. In Setup, choose Diorama MR or immersive VR mode. Your Team Beef JKXR app is separate.',
+  },
+  {
     id: 'balatro-vr', title: 'Balatro in VR', gameName: 'Balatro', series: 'BaLaurent', category: 'PC', color: '#8b3b5f',
     description: 'Play your owned Balatro PC game in standalone VR on Quest 3 or Quest 3S.',
     projectUrl: 'https://github.com/BaLaurent/BalatroVRMod-Standalone',
@@ -247,6 +273,8 @@ const newPorts = [
 ];
 
 const newPortFacets = {
+  'umbrella-chronicles-vr': ['Wii', 'Rail shooter'],
+  'jedi-academy-diorama-mr': ['PC', 'Adventure'],
   'balatro-vr': ['PC', 'Card game'],
   'vtmb-resource': ['PC', 'RPG'],
   'silent-scope-vr': ['Dreamcast', 'Rail shooter'],
