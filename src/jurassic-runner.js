@@ -140,7 +140,10 @@ function runProgram(executable, args, { cwd, env, log, timeout = 2 * 60 * 60 * 1
 
 function bashArgs(step, inputs) {
   const variables = step.inputs.map((name, index) => `"$(cygpath -u "$${index + 1}")"`).join(' ');
-  return ['-c', `set -eu; export MSYS_NO_PATHCONV=1 ANDROID_SDK="$(cygpath -u "$VR4ALL_SDK_WIN")" JAVA_HOME="$(cygpath -u "$VR4ALL_JAVA_WIN")" ADB="$(cygpath -u "$VR4ALL_ADB_WIN")"; exec sh ${step.script}${variables ? ` ${variables}` : ''}`,
+  // Native Python/Clang need Git Bash's argument conversion. The author's
+  // install.sh disables it locally for ADB and converts its host files itself.
+  // apksigner.bat reads JAVA_HOME directly, so keep that value Windows-compatible.
+  return ['-c', `set -eu; unset MSYS_NO_PATHCONV MSYS2_ARG_CONV_EXCL MSYS2_ENV_CONV_EXCL; export ANDROID_SDK="$(cygpath -u "$VR4ALL_SDK_WIN")" JAVA_HOME="$(cygpath -m "$VR4ALL_JAVA_WIN")" ADB="$(cygpath -u "$VR4ALL_ADB_WIN")"; exec sh ${step.script}${variables ? ` ${variables}` : ''}`,
     '--', ...step.inputs.map((name) => inputs[name])];
 }
 
