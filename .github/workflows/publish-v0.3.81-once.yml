@@ -1,0 +1,196 @@
+name: Publish approved VR4ALL v0.3.81 once
+
+on: workflow_dispatch
+
+permissions:
+  contents: read
+
+jobs:
+  publish-approved-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      actions: read
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      RELEASE_ID: '443851490'
+      SOURCE_SHA: b170e1e82949e6b9c7cf78a675ef2609bf05a053
+      PACKAGE_RUN: '43368263157'
+      TEST_RUN: '43368257094'
+    steps:
+      - name: Guard the one approved draft and tested source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = vr4all-standalone/vr4all-standalone
+          cat > "$RUNNER_TEMP/verify-v0.3.81-tag.sh" <<'SH'
+          set -euo pipefail
+          ref_file="$RUNNER_TEMP/v0.3.81-tag-ref.json"
+          status="$(curl --silent --show-error -H "Authorization: Bearer $GH_TOKEN" \
+            -o "$ref_file" -w '%{http_code}' 'https://api.github.com/repos/vr4all-standalone/vr4all-standalone/git/ref/tags/v0.3.81-beta')"
+          if [ "$status" = 404 ] && [ "${REQUIRE_TAG:-0}" = 0 ]; then exit 0; fi
+          test "$status" = 200
+          type="$(jq -r .object.type "$ref_file")"
+          sha="$(jq -r .object.sha "$ref_file")"
+          if [ "$type" = tag ]; then
+            object="$(gh api "repos/vr4all-standalone/vr4all-standalone/git/tags/$sha")"
+            type="$(jq -r .object.type <<<"$object")"
+            sha="$(jq -r .object.sha <<<"$object")"
+          fi
+          test "$type" = commit
+          test "$sha" = b170e1e82949e6b9c7cf78a675ef2609bf05a053
+          SH
+          bash "$RUNNER_TEMP/verify-v0.3.81-tag.sh"
+          release="$(gh api "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID")"
+          test "$(jq -r .draft <<<"$release")" = true
+          test "$(jq -r .tag_name <<<"$release")" = v0.3.81-beta
+          test "$(jq -r .target_commitish <<<"$release")" = "$SOURCE_SHA"
+          for run_id in "$PACKAGE_RUN" "$TEST_RUN"; do
+            run="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run_id")"
+            test "$(jq -r .head_sha <<<"$run")" = "$SOURCE_SHA"
+            test "$(jq -r .conclusion <<<"$run")" = success
+          done
+      - uses: actions/checkout@v4
+        with:
+          ref: b170e1e82949e6b9c7cf78a675ef2609bf05a053
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/download-artifact@v4
+        with:
+          name: vr4all-windows-x64
+          run-id: 43368263157
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: downloads/windows
+      - uses: actions/download-artifact@v4
+        with:
+          name: vr4all-linux-x64
+          run-id: 43368263157
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: downloads/linux
+      - name: Prepare package inspection tools
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          if ! command -v 7z >/dev/null; then sudo apt-get update && sudo apt-get install -y p7zip-full; fi
+      - name: Verify both packaged versions and production source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p verify/windows verify/linux release receipt
+          7z x downloads/windows/VR4ALL-win-x64.exe -overify/windows/nsis -y >/dev/null
+          7z x 'verify/windows/nsis/$PLUGINSDIR/app-64.7z' -overify/windows/app -y >/dev/null
+          chmod +x downloads/linux/VR4ALL-linux-x64.AppImage
+          (cd verify/linux && ../../downloads/linux/VR4ALL-linux-x64.AppImage --appimage-extract >/dev/null)
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const crypto = require('node:crypto');
+          const assert = require('node:assert/strict');
+          const asar = require('@electron/asar');
+          const checked = ['src/jurassic-runner.js','desktop/main.js','server.js','src/catalog-questports-extra.js','src/releases.js','desktop/app-updater.js'];
+          function findArchives(folder) {
+            return fs.readdirSync(folder,{withFileTypes:true}).flatMap(e => e.isDirectory() ? findArchives(path.join(folder,e.name)) : e.name === 'app.asar' ? [path.join(folder,e.name)] : []);
+          }
+          const linuxArchives = findArchives('verify/linux/squashfs-root');
+          assert.equal(linuxArchives.length,1);
+          const archives = ['verify/windows/app/resources/app.asar',linuxArchives[0]];
+          for (const archive of archives) {
+            const meta = JSON.parse(asar.extractFile(archive,'package.json'));
+            assert.equal(meta.version,'0.3.81'); assert.equal(meta.name,'vr4all'); assert.equal(meta.main,'desktop/main.js');
+            for (const file of checked) assert.equal(asar.extractFile(archive,file).toString().replaceAll('\r\n','\n'),fs.readFileSync(file,'utf8').replaceAll('\r\n','\n'),archive+': '+file);
+          }
+          const packages = [];
+          for (const [platform,file,magic] of [['windows','downloads/windows/VR4ALL-win-x64.exe','4d5a'],['linux','downloads/linux/VR4ALL-linux-x64.AppImage','7f454c46']]) {
+            const bytes = fs.readFileSync(file);
+            assert.ok(bytes.length > 100000000);
+            assert.equal(bytes.subarray(0,magic.length/2).toString('hex'),magic);
+            packages.push({platform,file,size:bytes.length,digest:'sha256:'+crypto.createHash('sha256').update(bytes).digest('hex')});
+          }
+          fs.writeFileSync('receipt/package-verification.json',JSON.stringify({source:process.env.SOURCE_SHA,packageRun:process.env.PACKAGE_RUN,testRun:process.env.TEST_RUN,version:'0.3.81',archives,checked,packages},null,2));
+          console.log(JSON.stringify(packages));
+          NODE
+          cp downloads/windows/VR4ALL-win-x64.exe release/
+          cp release/VR4ALL-win-x64.exe release/VR4ALL-0.3.81-win-x64.exe
+          cp downloads/linux/VR4ALL-linux-x64.AppImage release/
+          (cd release && sha256sum VR4ALL-win-x64.exe VR4ALL-0.3.81-win-x64.exe VR4ALL-linux-x64.AppImage > SHA256SUMS.txt)
+          cp release/SHA256SUMS.txt receipt/
+      - name: Upload only the approved draft assets and publish
+        shell: bash
+        run: |
+          set -euo pipefail
+          release="$(gh api "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID")"
+          test "$(jq -r .draft <<<"$release")" = true
+          test "$(jq -r .target_commitish <<<"$release")" = "$SOURCE_SHA"
+          test "$(jq -r .tag_name <<<"$release")" = v0.3.81-beta
+          for file in release/VR4ALL-win-x64.exe release/VR4ALL-0.3.81-win-x64.exe release/VR4ALL-linux-x64.AppImage release/SHA256SUMS.txt; do
+            name="$(basename "$file")"
+            digest="sha256:$(sha256sum "$file" | cut -d' ' -f1)"
+            assets="$(gh api "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets")"
+            asset="$(jq -c --arg name "$name" '.[] | select(.name == $name)' <<<"$assets")"
+            if [ -z "$asset" ]; then
+              asset="$(curl --fail-with-body --silent --show-error --max-time 300 \
+                -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' \
+                -H 'Content-Type: application/octet-stream' --data-binary "@$file" \
+                "https://uploads.github.com/repos/vr4all-standalone/vr4all-standalone/releases/443851490/assets?name=$name")"
+            fi
+            test "$(jq -r .state <<<"$asset")" = uploaded
+            test "$(jq -r .size <<<"$asset")" = "$(stat -c %s "$file")"
+            test "$(jq -r .digest <<<"$asset")" = "$digest"
+            echo "Verified upload: $name $digest"
+          done
+          release="$(gh api "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID")"
+          test "$(jq '.assets | length' <<<"$release")" = 4
+          bash "$RUNNER_TEMP/verify-v0.3.81-tag.sh"
+          gh api --method PATCH "repos/vr4all-standalone/vr4all-standalone/releases/443851490" -F draft=false -F prerelease=true > receipt/published-release.json
+          test "$(jq -r .draft receipt/published-release.json)" = false
+          REQUIRE_TAG=1 bash "$RUNNER_TEMP/verify-v0.3.81-tag.sh"
+      - name: Verify public downloads and the production updater
+        shell: bash
+        run: |
+          set -euo pipefail
+          unset GH_TOKEN GITHUB_TOKEN
+          mkdir public-downloads
+          for name in VR4ALL-win-x64.exe VR4ALL-0.3.81-win-x64.exe VR4ALL-linux-x64.AppImage SHA256SUMS.txt; do
+            curl --fail --location --silent --show-error --retry 6 --retry-all-errors --retry-delay 5 --max-time 300 \
+              "https://github.com/vr4all-standalone/vr4all-standalone/releases/download/v0.3.81-beta/$name" -o "public-downloads/$name"
+          done
+          cmp release/SHA256SUMS.txt public-downloads/SHA256SUMS.txt
+          (cd public-downloads && sha256sum --check SHA256SUMS.txt)
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const crypto = require('node:crypto');
+          const assert = require('node:assert/strict');
+          const {GitHubReleases} = require('./src/releases');
+          const {AppUpdater} = require('./desktop/app-updater');
+          (async () => {
+            const releases = new GitHubReleases(path.resolve('verify/updater-download'));
+            const updater = new AppUpdater({releases,currentVersion:'0.3.80',portablePath:'C:/VR4ALL/VR4ALL.exe',platform:'win32'});
+            let update, lastError;
+            for(let attempt=0;attempt<6;attempt++) {
+              try { update = await updater.check(); lastError = null; }
+              catch (error) { lastError = error; }
+              if(update?.available && update.version === '0.3.81') break;
+              await new Promise(resolve=>setTimeout(resolve,10000));
+            }
+            if(lastError) throw lastError;
+            assert.equal(update.available,true); assert.equal(update.version,'0.3.81');
+            const file = await updater.download();
+            const digest = 'sha256:'+crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+            assert.equal(digest,updater.pending.digest);
+            const current = new AppUpdater({releases,currentVersion:'0.3.81',portablePath:'C:/VR4ALL/VR4ALL.exe',platform:'win32'});
+            assert.equal((await current.check()).available,false);
+            const checks = fs.readdirSync('public-downloads').map(name=>({name,digest:'sha256:'+crypto.createHash('sha256').update(fs.readFileSync(path.join('public-downloads',name))).digest('hex')}));
+            fs.writeFileSync('receipt/public-verification.json',JSON.stringify({source:process.env.SOURCE_SHA,release:'https://github.com/vr4all-standalone/vr4all-standalone/releases/tag/v0.3.81-beta',checks,update,updaterDownloadDigest:digest,currentVersionOffersUpdate:false,noReplacementOrHeadsetInstall:true},null,2));
+            console.log('Public downloads and production updater verified.');
+          })().catch(error=>{console.error(error);process.exitCode=1;});
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vr4all-0.3.81-publication-receipt
+          path: receipt/
+          if-no-files-found: warn
