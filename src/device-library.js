@@ -1,5 +1,7 @@
 // Read-only probes for catalogued ports on the selected Android headset.
 const packages = {
+  'bugdom-vr': 'io.jor.bugdom',
+  'bugdom2-vr': 'io.jor.bugdom2',
   'umbrella-chronicles-vr': 'org.uc.umbrellachronicles.vr',
   'jedi-academy-diorama-mr': 'com.galateainteractive.jkxrdioramamr',
   'fate-of-the-galaxy-vr': 'com.bilko.fotgvr',

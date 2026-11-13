@@ -2,6 +2,8 @@
 
 ## Quest additions — 12 November 2026
 
+- Bugdom VR: [creator's in-game title image](https://portroyale.online/images/bugdom/1-title.jpg), captured on Quest 3. Bugdom art belongs to its creators; reuse permission for VR4ALL is unverified.
+- Bugdom 2 VR: [creator's in-game title image](https://portroyale.online/images/bugdom2/1-title.jpg), captured on Quest 3. Bugdom 2 art belongs to its creators; reuse permission for VR4ALL is unverified.
 - Umbrella Chronicles VR: [North American Wii cover](https://gamehoard.com/cdn/shop/files/MV5BZmRkNWE2Y2YtYmMwOS00ZjYwLTljYjYtYjkxZmUwNmYyNTBkXkEyXkFqcGdeQXVyNTk1ODMyNjA_._V1.jpg?v=1686979689) for the original game. Capcom artwork; redistribution permission is unverified.
 - Jedi Academy Diorama MR: reuses the Jedi Outcast / Jedi Academy card image for the same original game.
 - Mario 64 MR: has its own card and reuses the Super Mario 64 card image.

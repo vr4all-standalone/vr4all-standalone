@@ -1,4 +1,4 @@
-// Creator releases and install notes checked on 8 November 2026.
+// Creator releases and install notes checked through 12 November 2026.
 const questportsExtra = [
   {
     id: 'fate-of-the-galaxy-vr', title: 'Fate of the Galaxy VR', gameName: 'Fate of the Galaxy', series: 'SgtBilko76', category: 'PC', color: '#7594c8',
@@ -58,9 +58,22 @@ const questportsExtra = [
     projectUrl: 'https://github.com/SgtBilko76/ARMSX2-3D', source: { repo: 'SgtBilko76/ARMSX2-3D', assetPattern: '^ARMSX2-3D-[0-9.]+-beta\\.apk$' },
     data: [], guidance: 'VR4ALL installs the creator’s Quest APK. Add your own PlayStation 2 BIOS and game backups inside the emulator; neither is bundled.',
   },
+  {
+    id: 'bugdom-vr', title: 'Bugdom VR', gameName: 'Bugdom', series: 'SgtBilko76', category: 'PC', color: '#79b85f',
+    description: 'Pangea Software’s 1999 platformer in stereoscopic standalone Quest VR.',
+    projectUrl: 'https://github.com/SgtBilko76/Bugdom', source: { repo: 'SgtBilko76/Bugdom', assetPattern: '^Bugdom-VR-[0-9.]+-beta[0-9]+\\.apk$' },
+    data: [], guidance: 'The creator’s Quest APK includes the free game data. Install it directly; no separate game files or build tools are needed. Quest 3 was tested by the creator.',
+  },
+  {
+    id: 'bugdom2-vr', title: 'Bugdom 2 VR', gameName: 'Bugdom 2', series: 'SgtBilko76', category: 'PC', color: '#e7a33e',
+    description: 'Pangea Software’s 2002 platformer in stereoscopic standalone Quest VR.',
+    projectUrl: 'https://github.com/SgtBilko76/Bugdom2', source: { repo: 'SgtBilko76/Bugdom2', assetPattern: '^Bugdom2-VR-[0-9.]+-beta[0-9]+\\.apk$' },
+    data: [], guidance: 'The creator’s Quest APK includes the free game data. Install it directly; the first launch unpacks the game and may take a little longer. Quest 3 was tested by the creator.',
+  },
 ];
 
 const questportsExtraFacets = {
+  'bugdom-vr': ['PC', 'Platformer'], 'bugdom2-vr': ['PC', 'Platformer'],
   'fate-of-the-galaxy-vr': ['PC', 'Space combat'], 'wing-commander-saga-vr': ['PC', 'Space combat'],
   'wipeout-pure-vr': ['PlayStation Portable', 'Racing'], 'star-wars-arcade-vr': ['Arcade', 'Space combat'],
   'supertuxkart-vr': ['PC', 'Racing'], 'openmw-quest-vr': ['PC', 'RPG'],

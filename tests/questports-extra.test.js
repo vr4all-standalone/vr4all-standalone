@@ -7,10 +7,10 @@ const { packages } = require('../src/device-library');
 const ids = [
   'fate-of-the-galaxy-vr', 'wing-commander-saga-vr', 'wipeout-pure-vr',
   'star-wars-arcade-vr', 'supertuxkart-vr', 'openmw-quest-vr',
-  'ankh-vr', 'vpinball-vr', 'armsx2-3d',
+  'ankh-vr', 'vpinball-vr', 'armsx2-3d', 'bugdom-vr', 'bugdom2-vr',
 ];
 
-test('nine creator-backed Quest profiles appear once in the catalog', () => {
+test('creator-backed Quest profiles appear once in the catalog', () => {
   const catalog = getCatalog();
   for (const id of ids) {
     const matches = catalog.filter((game) => game.id === id);
@@ -19,7 +19,7 @@ test('nine creator-backed Quest profiles appear once in the catalog', () => {
     assert.ok(matches[0].console && matches[0].genre, id);
     assert.ok(packages[id], `${id} package identity`);
   }
-  assert.equal(catalog.length, 173);
+  assert.equal(catalog.length, 175);
   assert.equal(catalog.filter((game) => game.catalogGroup === 'emulator').length, 7);
 });
 
@@ -34,6 +34,8 @@ test('each profile selects its own current Quest APK asset', () => {
     'ankh-vr': 'ANHK-VR.apk',
     'vpinball-vr': 'VPinball-VR-Beta-0.40.apk',
     'armsx2-3d': 'ARMSX2-3D-0.3-beta.apk',
+    'bugdom-vr': 'Bugdom-VR-1.3.5-beta1.apk',
+    'bugdom2-vr': 'Bugdom2-VR-4.0.1-beta1.apk',
   };
   const catalog = getCatalog();
   const releases = [{ tag_name: 'creator-release', published_at: '2026-11-08', assets: Object.values(names).map((name) => ({ name, browser_download_url: `https://github.com/creator/project/releases/download/tag/${name}` })) }];

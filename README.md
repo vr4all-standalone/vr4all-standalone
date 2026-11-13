@@ -8,9 +8,9 @@
 
 ![VR4ALL showing its standalone Quest mod library and a game setup panel](docs/images/vr4all-library.png)
 
-## 🎮 Current catalog: 154 game projects and 7 emulator tools
+## 🎮 Current catalog: 156 game projects and 7 emulator tools
 
-The catalog has **154 game cards, 7 emulator and runtime cards, and 173 port choices**, including alternate mods for Time Crisis, Pokémon, Halo, Max Payne, Virtua Cop, and The House of the Dead. Each card explains its setup requirements; Quest model support varies by port.
+The catalog has **156 game cards, 7 emulator and runtime cards, and 175 port choices**, including alternate mods for Time Crisis, Pokémon, Halo, Max Payne, Virtua Cop, and The House of the Dead. Each card explains its setup requirements; Quest model support varies by port.
 
 Game Or Die’s Forsaken, Unreal Gold and Unreal Tournament 99 Quest ports are available as alternate developer choices. Their official setup can download and prepare the required data; optional local folders and each creator’s app remain separate.
 

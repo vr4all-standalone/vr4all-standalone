@@ -740,7 +740,8 @@ test('new games selects ten catalog cards while Most downloaded sorts the full v
   const rootGames = games.filter((game) => !game.variantOf);
   context.catalogGames = games;
   const newest = rootGames.filter((game) => game.catalogGroup !== 'emulator').slice(-10).map((game) => game.id);
-  assert.ok(newest.includes('openmohaa-vr'));
+  assert.ok(newest.includes('bugdom-vr'));
+  assert.ok(newest.includes('bugdom2-vr'));
   vm.runInContext("state.games = catalogGames; state.libraryScope = 'new'; renderGrid()", context);
   const ids = () => [...elements.get('#gameGrid').innerHTML.matchAll(/data-id="([^"]+)"/g)].map((match) => match[1]);
   assert.deepEqual([...ids()].sort(), [...newest].sort());
