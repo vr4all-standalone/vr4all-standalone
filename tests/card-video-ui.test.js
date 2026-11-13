@@ -82,11 +82,16 @@ test('a creator-hosted clip opens in the native player after a click', async () 
   assert.match(art.innerHTML, /<video[^>]+src="https:\/\/v\.redd\.it\/44cqiho1esvh1\/CMAF_1080\.mp4\?source=fallback"/);
 });
 
-test('every built-in port profile has a valid video source entry', () => {
+test('catalog video entries have a valid source and cards without verified footage show no video control', () => {
   const { context } = appContext();
   context.catalog = getCatalog();
-  const missing = vm.runInContext('catalog.filter(g => !youtubeVideoId(g) && !creatorClipUrl(g)).map(g => g.id)', context);
-  assert.equal(missing.length, 0, missing.join(', '));
+  const invalid = vm.runInContext('catalog.filter(g => g.video && !youtubeVideoId(g) && !creatorClipUrl(g)).map(g => g.id)', context);
+  assert.equal(invalid.length, 0, invalid.join(', '));
+  for (const id of ['bugdom-vr', 'bugdom2-vr']) {
+    context.game = context.catalog.find((game) => game.id === id);
+    assert.equal(context.game.video, undefined, id);
+    assert.doesNotMatch(vm.runInContext('detailHtml(game)', context), /data-play-card-video/, id);
+  }
 });
 
 test('a separate guided MR card keeps its video preview', () => {
