@@ -17,6 +17,7 @@ const NOT_ON_LINUX = Object.freeze({
 // tested: a user has completed this install end to end from Linux, so it carries no experimental note.
 const LINUX_PORTS = Object.freeze({
   'balatro-vr': { x64: true },
+  mario64mr: {},
   'crazy-taxi-vr': { x64: true },
   'magic-carpet-vr': { x64: true },
   'galaxyquest': {},

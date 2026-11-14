@@ -892,6 +892,24 @@ test('matching installed APK hash overrides an unrelated manifest version', () =
   assert.equal(vm.runInContext('cardStatus(game)', context), 'status-current');
 });
 
+test('Mario 64 MR needs the matching ROM-built data receipt as well as the current APK', () => {
+  const { context } = appHarness();
+  context.game = getCatalog().find((item) => item.id === 'mario64mr');
+  vm.runInContext("state.selectedSerial = 'QUEST'; state.deviceLibrary = { QUEST: { mario64mr: { packageId: 'com.lucasmartinic.mario64mr', dataReady: true, versionComparable: true, versionName: '1.3' } } }; state.releases = { mario64mr: { tag: 'v1.3', verifiedSerial: 'QUEST', installedApkMatchesRelease: true } }; state.installed = { QUEST: { mario64mr: { packageId: 'com.lucasmartinic.mario64mr', tag: 'v1.2' } } }", context);
+  assert.equal(vm.runInContext('versionStatus(game)', context), 'status-update');
+  vm.runInContext("state.installed.QUEST.mario64mr.tag = 'v1.3'", context);
+  assert.equal(vm.runInContext('versionStatus(game)', context), 'status-current');
+});
+
+test('Bully VR offers the newer public test even when old and new APK versions are both 0.0.1', () => {
+  const { context } = appHarness();
+  context.game = getCatalog().find((item) => item.id === 'bully-vr');
+  vm.runInContext("state.selectedSerial = 'QUEST'; state.deviceLibrary = { QUEST: { 'bully-vr': { packageId: 'org.dolphinemu.dolphinemu.quest.bully.recover2', dataReady: true, versionComparable: true, versionName: '0.0.1' } } }; state.releases = { 'bully-vr': { tag: 'v0.0.1-test', verifiedSerial: 'QUEST', installedApkMatchesRelease: null } }; state.installed = { QUEST: { 'bully-vr': { packageId: 'org.dolphinemu.dolphinemu.quest.bully.recover2', tag: 'v0.0.1-pre-alpha' } } }", context);
+  assert.equal(vm.runInContext('versionStatus(game)', context), 'status-update');
+  vm.runInContext("state.installed.QUEST['bully-vr'].tag = 'v0.0.1-test'", context);
+  assert.equal(vm.runInContext('versionStatus(game)', context), 'status-current');
+});
+
 test('successful install rechecks the headset APK before retaining an update badge', async () => {
   const { context } = appHarness();
   const game = getCatalog().find((item) => item.id === 'perfect-dark-vr');

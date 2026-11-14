@@ -41,6 +41,18 @@ test('new Quest package identities can be detected after installation', async ()
   }
 });
 
+test('Bully selects the newer public test APK rather than the old Recovery build', () => {
+  const port = getCatalog().find((entry) => entry.id === 'bully-vr');
+  const asset = (name, tag, publishedAt) => ({ tag_name: tag, published_at: publishedAt, assets: [
+    { name, browser_download_url: `https://github.com/crtx01/BullyVR/releases/download/${tag}/${name}` },
+  ] });
+  const latest = selectRelease([
+    asset('BullyVR-Recovery-Test-r20.apk', 'v0.0.1-pre-alpha', '2026-11-05T20:17:00Z'),
+    asset('BullyVR-0.0.1-test.apk', 'v0.0.1-test', '2026-11-13T19:52:00Z'),
+  ], port.source);
+  assert.equal(latest.assetName, 'BullyVR-0.0.1-test.apk');
+});
+
 test('Lindbergh ports select their own APKs, including older Jungle release', () => {
   const games = getCatalog();
   const releases = [
