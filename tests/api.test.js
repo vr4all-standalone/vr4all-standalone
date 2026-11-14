@@ -486,6 +486,30 @@ test('personal build accepts a complete RDR export and passes the selected seria
   } finally { app.server.close(); await fs.rm(root, { recursive: true, force: true }); }
 });
 
+test('Mario MR build button queues the selected ROM and Quest for the in-app builder', async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-mario-api-'));
+  const rom = path.join(root, 'mario.z64');
+  const handle = await fs.open(rom, 'w');
+  await handle.truncate(8 * 1024 * 1024);
+  await handle.close();
+  const calls = [];
+  const app = createApp({ platform: 'win32', settingsPath: path.join(root, 'settings.json'),
+    adb: { listDevices: async () => [{ serial: 'Q3S', state: 'device' }] },
+    validateMarioInput: async (input) => ({ gamePackage: input.gamePackage, serial: input.serial }),
+    marioBuilder: async (input, options) => { calls.push({ input, options }); return { sha: 'a'.repeat(40), packageId: 'com.lucasmartinic.mario64mr', tag: 'v1.3' }; },
+  });
+  try {
+    const started = await request(app, 'POST', '/api/personal-build', { gameId: 'mario64mr', serial: 'Q3S', gamePackage: rom });
+    assert.equal(started.status, 202, JSON.stringify(started.body));
+    await new Promise((resolve) => setTimeout(resolve, 25));
+    const result = await request(app, 'GET', `/api/jobs/${started.body.job.id}`);
+    assert.equal(result.body.job.status, 'success', result.body.job.error);
+    assert.equal(calls[0].input.gamePackage, rom);
+    assert.equal(calls[0].input.serial, 'Q3S');
+    assert.equal(calls[0].options.source.repo, 'lucas-martinic/mario64mr');
+  } finally { app.server.close(); await fs.rm(root, { recursive: true, force: true }); }
+});
+
 test('Victory Heat Rally build button reaches its builder with the selected game and Quest', async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-vhr-api-'));
   await fs.writeFile(path.join(root, 'data.win'), 'owned fixture');

@@ -6,12 +6,12 @@
 - Bugdom 2 VR: [creator's in-game title image](https://portroyale.online/images/bugdom2/1-title.jpg), captured on Quest 3. Bugdom 2 art belongs to its creators; reuse permission for VR4ALL is unverified.
 - Umbrella Chronicles VR: [North American Wii cover](https://gamehoard.com/cdn/shop/files/MV5BZmRkNWE2Y2YtYmMwOS00ZjYwLTljYjYtYjkxZmUwNmYyNTBkXkEyXkFqcGdeQXVyNTk1ODMyNjA_._V1.jpg?v=1686979689) for the original game. Capcom artwork; redistribution permission is unverified.
 - Jedi Academy Diorama MR: reuses the Jedi Outcast / Jedi Academy card image for the same original game.
-- Mario 64 MR: has its own card and reuses the Super Mario 64 card image.
+- Mario 64 MR: cropped still from the [creator's gameplay clip](https://raw.githubusercontent.com/lucas-martinic/mario64mr/main/media/mario-out-of-the-game.gif), showing Mario in a mixed reality window. Creator and Nintendo image rights remain with their owners.
 
 ## Quest additions — 8 November 2026
 
 - South Park VR: [creator banner](https://github.com/VistaLargaGames/South-Park-Quest-VR/blob/main/banner.jpg).
-- Mario 64 MR: reuses the existing Super Mario 64 card image for the same original game.
+- Mario 64 MR: now uses the creator's gameplay clip still described above.
 - LSD: Dream Emulator: [original PlayStation cover](https://en.wikipedia.org/wiki/LSD:_Dream_Emulator).
 - Bully VR: [original Bully cover](https://en.wikipedia.org/wiki/Bully_(video_game)).
 - Little Big Adventure 2 VR: [creator Quest port image](https://github.com/simsas-experiments/lba2-classic-quest/blob/main/docs/images/quest-port.jpg).
