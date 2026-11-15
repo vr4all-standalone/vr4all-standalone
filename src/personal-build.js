@@ -18,6 +18,7 @@ const profiles = Object.freeze({
   'gta-sa-vr': Object.freeze({ repo: 'dubrovskiy-yevhen-stakelogic/gta-sa-vr-quest', audio: true }),
   'rdr1-vr': Object.freeze({ repo: 'dubrovskiy-yevhen-stakelogic/rdr1-quest', audio: false }),
   'balatro-vr': Object.freeze({ repo: 'BaLaurent/BalatroVRMod-Standalone', audio: false }),
+  mario64mr: Object.freeze({ repo: 'lucas-martinic/mario64mr', audio: false }),
 });
 const gameExtensions = new Set(['.apk', '.apks', '.zip', '.xapk', '.apkm', '.7z', '.rar']);
 const audioExtensions = new Set(['.7z', '.zip', '.rar']);
@@ -111,6 +112,14 @@ async function acquireSourceKit(gameId, cacheRoot, log = () => {}, options = {})
         if (!stat?.isFile() || stat.isSymbolicLink() || !stat.size) return false;
       }
       return true;
+    }
+    if (gameId === 'mario64mr') {
+      for (const name of ['install_mario64mr.py', 'windows/install_mario64mr.ps1', 'windows/make_game.sh']) {
+        const stat = await fs.lstat(path.join(directory, name)).catch(() => null);
+        if (!stat?.isFile() || stat.isSymbolicLink() || !stat.size) return false;
+      }
+      const windowsScript = await fs.readFile(path.join(directory, 'windows', 'install_mario64mr.ps1'), 'utf8');
+      return /\[switch\]\$NoPush/i.test(windowsScript) && /\[string\]\$Rom/i.test(windowsScript);
     }
     return platform === 'win32'
       ? fs.stat(path.join(directory, 'tools', 'build-and-install.ps1')).then((stat) => stat.isFile(), () => false)

@@ -12,11 +12,19 @@ const novemberPorts = [
     guidance: 'The creator documents Quest 3. Some geometry can flicker, and co-op is beta.',
   },
   {
-    id: 'mario64mr', portLabel: 'Mario 64 MR', artId: 'sm64-vr', title: 'Mario 64 MR', gameName: 'Super Mario 64', series: 'Lucas Martinic', category: 'Nintendo 64', color: '#84b4d6',
+    id: 'mario64mr', portLabel: 'Super Mario 64 MR', artId: 'mario64mr', title: 'Super Mario 64 MR', gameName: 'Super Mario 64', series: 'Lucas Martinic', category: 'Nintendo 64', color: '#84b4d6',
     description: 'Mixed reality Super Mario 64 for Quest 2, 3 and 3S.',
-    projectUrl: 'https://github.com/lucas-martinic/mario64mr', externalInstaller: true,
+    projectUrl: 'https://github.com/lucas-martinic/mario64mr',
+    source: { repo: 'lucas-martinic/mario64mr', assetPattern: '^Mario64MR\\.apk$' },
+    personalBuild: {
+      gameLabel: 'Owned Super Mario 64 (USA) ROM', fileOnly: true,
+      gameHint: 'Drop your unmodified USA .z64, .v64 or .n64 ROM. VR4ALL checks the exact revision before downloading tools or changing your headset.',
+      inputStep: 'Add your Super Mario 64 ROM', actionLabel: 'Build and install',
+      processDescription: 'VR4ALL runs the creator’s current Windows builder with your ROM, downloads the creator’s Quest APK, and transfers the generated game files to your selected headset. The first build needs about 4 GB of free PC space and can take 10–30 minutes.',
+    },
     data: [],
-    guidance: 'This port needs a ROM-specific native build before the Quest APK can run the game. The creator’s Python tool requires Linux, macOS or WSL, Android NDK and the exact US ROM SHA-1 9bef1128717f958171a4afac3ed78ee2bb4e86ce. VR4ALL cannot yet perform that build, so installation is disabled here rather than claiming the APK alone is playable.',
+    guidance: 'VR4ALL builds the ROM-specific native data with the creator’s tool, installs the official Quest APK and copies all required files. The Windows tool downloads MSYS2 and Android NDK into your selected PC build folder on first use.',
+    afterInstall: 'Enable hand tracking and set up your room in Quest settings, then open Super Mario 64 MR. The creator’s app requests room access on first launch.',
   },
   {
     id: 'lsd-vr-beta', title: 'LSD VR beta', gameName: 'LSD: Dream Emulator', series: 'Community beta', category: 'PlayStation', color: '#ad84bf',
@@ -26,12 +34,13 @@ const novemberPorts = [
     guidance: 'This MediaFire APK has no verified creator page or update feed. Download it yourself and select Local APK to install it with VR4ALL. Treat it as an unverified beta; VR4ALL cannot confirm its contents or update it automatically.',
   },
   {
-    id: 'bully-vr', title: 'Bully VR (Recovery pre-alpha)', gameName: 'Bully: Scholarship Edition', series: 'crtx01', category: 'Wii', color: '#b98b61',
+    id: 'bully-vr', title: 'Bully VR', gameName: 'Bully: Scholarship Edition', series: 'crtx01', category: 'Wii', color: '#b98b61',
     description: 'Early standalone VR preview of the Wii edition. The full campaign is not yet validated.',
     projectUrl: 'https://github.com/crtx01/BullyVR',
-    source: { repo: 'crtx01/BullyVR', assetPattern: '^BullyVR-Recovery-Test-r[0-9]+\\.apk$' },
+    source: { repo: 'crtx01/BullyVR', assetPattern: '^BullyVR-(?:0\\.0\\.1-test|Recovery-Test-r[0-9]+)\\.apk$' },
+    verifyApkHash: true,
     data: [{ id: 'disc', label: 'Owned US Bully: Scholarship Edition Wii disc', kind: 'file', extensions: ['.iso'], destination: '/sdcard/Bully VR/Bully.iso', note: 'US Wii RB7E54. Choose the copied disc from the game’s file picker. Other regions and revisions are untested.' }],
-    guidance: 'VR4ALL selects the Recovery test APK, not the older exploration demo. This is an incomplete pre-alpha: some weapons, vehicles, cutscenes and long sessions are unfinished.',
+    guidance: 'VR4ALL selects the newest creator test APK, not the older exploration demo. This is an early public test: some weapons, vehicles, cutscenes and long sessions remain unfinished.',
   },
   {
     id: 'lba2-quest', title: 'Little Big Adventure 2 VR', gameName: 'Little Big Adventure 2', series: 'simsas-experiments', category: 'PC', color: '#8cae9a',
@@ -105,6 +114,28 @@ const novemberPorts = [
     data: [{ id: 'game', label: 'Owned House of the Dead 4 Special folder', kind: 'directory', destination: '/sdcard/HouseOfTheDead4Special/', requiredDirectories: ['elf', 'fs'], note: 'Choose the folder containing elf and fs. The creator requires elf/hod4M.elf SHA-256 b84c70d9940d5f5fa7d287fd8c6b050444fdcbc2fd742d3afc74a1099bbec5fe.' }],
     guidance: 'VR4ALL installs this title’s own Quest APK, copies the original arcade data and grants the documented all-files access.',
   },
+  {
+    id: 'futurama-quest', title: 'Futurama Quest', gameName: 'Futurama: The Game', series: 'mrchrisster', category: 'Xbox', color: '#5cb8bd',
+    description: 'The 2003 Xbox game in a stereoscopic 3D theater window over Quest passthrough.',
+    projectUrl: 'https://github.com/mrchrisster/futurama-quest',
+    source: { repo: 'mrchrisster/futurama-quest', assetPattern: '^futurama-quest-v[0-9.]+\\.apk$' },
+    data: [{ id: 'disc', label: 'Owned Futurama Xbox disc image', kind: 'file', extensions: ['.iso'], destination: '/sdcard/Android/data/com.futuramarecomp.app/files/futurama.iso', note: 'Use your original Xbox Futurama NTSC-U or PAL ISO. VR4ALL copies it as futurama.iso, which the Quest app looks for in its files folder. This port uses a floating 3D screen, not room-scale play.' }],
+    guidance: 'VR4ALL installs the creator’s Quest APK and copies your owned Xbox disc image. The creator documents Quest 3; other Quest models have not been confirmed in gameplay.',
+  },
+  {
+    id: 'virtua-tennis-3-vr', title: 'Virtua Tennis 3 VR', gameName: 'Virtua Tennis 3', series: 'mrchrisster', category: 'Arcade', color: '#9ebd79',
+    description: 'Sega Lindbergh tennis with courtside VR and a classic virtual screen on Quest.',
+    projectUrl: 'https://github.com/mrchrisster/virtuatennis3-vr', manualBuild: true,
+    data: [{ id: 'game', label: 'Owned Virtua Tennis 3 disk0 folder', kind: 'directory', destination: '/sdcard/VirtuaTennis3/', requiredDirectories: ['vt3_Lindbergh', 'shader', 'lib'], copyEntries: ['vt3_Lindbergh', 'shader', 'lib'], note: 'The complete disk0 folder is required. Its vt3_Lindbergh/vt3_Lindbergh_HD and lib/libCg.so must match the creator’s documented SHA-256 checks. This port’s APK must be built from the same copy.' }],
+    guidance: 'The creator does not distribute an APK: it contains code recompiled from your own arcade copy. Run the creator’s Windows build script with your disk0 folder, then drop its personal VirtuaTennis3VR.apk and the same disk0 folder here. VR4ALL installs and transfers both. The creator also provides a one-command build-and-install script; Quest gameplay is still experimental.',
+  },
+  {
+    id: 'lunacid-vr', title: 'Lunacid VR', gameName: 'Lunacid', series: 'felipevc13', category: 'PC', color: '#9e74ad',
+    description: 'Quest 3 and 3S port built locally from your own Steam copy of Lunacid.',
+    projectUrl: 'https://github.com/felipevc13/lunacid-vr#install-one-line', externalInstaller: true,
+    data: [],
+    guidance: 'The creator publishes an automated personal builder, not a downloadable Quest APK. It installs Unity and Android tools, signs your APK and OBB, and transfers them to the Quest. It needs your Steam and Unity sign-ins, about 40 GB of PC space and 2–3 hours on the first run. Keep its work folder and signing key for future updates. VR4ALL cannot run this account-dependent build inside the app yet.',
+  },
 ];
 
 const novemberPortFacets = {
@@ -113,6 +144,7 @@ const novemberPortFacets = {
   'primedgun-echoes': ['GameCube', 'Shooter'], 'urban-terror-vr': ['PC', 'Shooter'], 'openarena-vr': ['PC', 'Shooter'],
   'project-honeydew-2': ['GameCube', 'Strategy'], 'openmohaa-vr': ['PC', 'Shooter'],
   'lets-go-jungle-vr': ['Arcade', 'Rail shooter'], 'hotd4-special-vr': ['Arcade', 'Rail shooter'],
+  'futurama-quest': ['Xbox', 'Adventure'], 'virtua-tennis-3-vr': ['Arcade', 'Sports'], 'lunacid-vr': ['PC', 'RPG'],
 };
 
 module.exports = { novemberPorts, novemberPortFacets };

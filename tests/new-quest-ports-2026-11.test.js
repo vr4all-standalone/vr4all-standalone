@@ -60,7 +60,7 @@ test('Umbrella Chronicles headset status requires both image and key', async () 
 test('Diorama MR is a separate Jedi Academy card with its own release APK', () => {
   const port = game('jedi-academy-diorama-mr');
   assert.ok(port);
-  assert.match(port.title, /MR$/);
+  assert.equal(port.title, 'Star Wars Jedi Knight: Jedi Academy MR');
   assert.equal(port.variantOf, undefined);
   assert.equal(port.artId, 'jkxr');
   assert.equal(port.data[0].kind, 'directory');
@@ -72,9 +72,30 @@ test('Diorama MR is a separate Jedi Academy card with its own release APK', () =
   assert.equal(selectRelease(release, port.source)?.assetName, 'JKXR-Diorama-MR-0.1.0-alpha.3.apk');
 });
 
-test('Mario 64 MR uses its own card and shares the existing art', () => {
+test('Mario 64 MR uses its own card and creator artwork', () => {
   const port = game('mario64mr');
   assert.ok(port);
+  assert.equal(port.title, 'Super Mario 64 MR');
   assert.equal(port.variantOf, undefined);
-  assert.equal(port.artId, 'sm64-vr');
+  assert.equal(port.artId, 'mario64mr');
+  assert.equal(port.externalInstaller, undefined);
+  assert.ok(port.personalBuild);
+  assert.match(port.source.assetPattern, /Mario64MR/);
+});
+
+test('Mario 64 MR is ready only when the APK and generated game data are on the Quest', async () => {
+  const port = game('mario64mr');
+  let complete = false;
+  const adb = { run: async (args) => {
+    const request = args.join(' ');
+    if (request.includes('pm list packages')) return 'package:com.lucasmartinic.mario64mr';
+    if (request.includes('dumpsys')) return 'versionName=1.3';
+    if (request.includes('/sm64/res')) return complete ? 'base.zip' : '';
+    if (request.includes('/native')) return 'libsm64game.so\nlibgoddard.so\nlibsm64.so';
+    if (request.includes('/files')) return 'baserom.us.z64';
+    return '';
+  } };
+  assert.equal((await inspectDevice(adb, 'Q3', [port]))[port.id].dataReady, false);
+  complete = true;
+  assert.equal((await inspectDevice(adb, 'Q3', [port]))[port.id].dataReady, true);
 });

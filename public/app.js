@@ -290,6 +290,15 @@ function versionStatus(game) {
   if (game.id === 'bioshock-vr' && release && !release.stale && completed?.packageId === device.packageId) {
     return completed.tag === release.tag ? 'status-current' : 'status-update';
   }
+  if (game.id === 'mario64mr') {
+    if (!release || release.stale || completed?.packageId !== device.packageId || !completed.tag) return 'status-installed';
+    if (release.verifiedSerial === state.selectedSerial && release.installedApkMatchesRelease === false) return 'status-update';
+    return completed.tag === release.tag ? 'status-current' : 'status-update';
+  }
+  if (game.id === 'bully-vr' && release && !release.stale && completed?.packageId === device.packageId && completed.tag) {
+    if (release.verifiedSerial === state.selectedSerial && release.installedApkMatchesRelease === true) return 'status-current';
+    return completed.tag === release.tag ? 'status-current' : 'status-update';
+  }
   if (release && !release.stale && release.verifiedSerial === state.selectedSerial && release.installedApkMatchesRelease === true) return 'status-current';
   if (game.releaseKind === 'installer' && release && !release.stale && completed?.tag
     && completed.packageId === device.packageId && completed.versionName && completed.versionName === device.versionName) return completed.tag === release.tag ? 'status-current' : 'status-update';
@@ -310,12 +319,12 @@ function versionStatus(game) {
 function statusExplanation(game) {
   const device = state.deviceLibrary[state.selectedSerial]?.[game.id];
   if (!device) return state.selectedSerial ? 'This port APK was not found on the selected headset.' : 'Connect and scan a Quest to check this game.';
-  if (!device.dataReady) return game.id === 'beef-raider-xr' ? 'Beef Raider XR demo is installed. Extract your owned Tomb Raider files with the author’s tool, then transfer its mod folder for the full game.' : game.id === 'halo-ce' ? 'OpenCE is installed, but no complete imported Halo game version is selected. Add your owned Xbox disc image, then import it under Game files & versions in the headset.' : honeydewSource(game.source) && versionStatus(game) === 'status-update' ? 'A newer Honeydew APK is available. Your imported disc data is private to the game, so VR4ALL cannot verify it over USB; updating the APK preserves it.' : game.reuseInstalledData ? 'Port APK found. This port imports its ROM privately, so VR4ALL cannot check the ROM over USB.' : 'Port APK found, but the required game files were not found at the expected location on the headset.';
+  if (!device.dataReady) return game.id === 'lunacid-vr' ? 'Lunacid VR is installed, but its game-data OBB is missing. Rerun the creator’s personal installer with your original work folder and signing key.' : game.id === 'beef-raider-xr' ? 'Beef Raider XR demo is installed. Extract your owned Tomb Raider files with the author’s tool, then transfer its mod folder for the full game.' : game.id === 'halo-ce' ? 'OpenCE is installed, but no complete imported Halo game version is selected. Add your owned Xbox disc image, then import it under Game files & versions in the headset.' : honeydewSource(game.source) && versionStatus(game) === 'status-update' ? 'A newer Honeydew APK is available. Your imported disc data is private to the game, so VR4ALL cannot verify it over USB; updating the APK preserves it.' : game.reuseInstalledData ? 'Port APK found. This port imports its ROM privately, so VR4ALL cannot check the ROM over USB.' : 'Port APK found, but the required game files were not found at the expected location on the headset.';
   const status = versionStatus(game);
   if (game.localPlayerInstall === 'sclerosis' && status === 'status-current') return 'Sclerosis APK and required Amnesia game folders found on this Quest. Creator APK updates require a manual download.';
   if (game.id === 'fzero-x-virtuavr' && status === 'status-current') return 'Quest APK and all three prepared F-Zero files found. Ready to play; creator releases are downloaded manually.';
   if (status === 'status-current') return game.id === 'bioshock-vr' ? 'BioShock APK and game files found; VR4ALL installed the latest checked creator build.' : game.id === 'victory-heat-rally-vr' ? 'Your personal Victory Heat Rally build is installed and matches the latest checked creator builder release.' : `Port APK and game files found; the installed build matches the latest checked ${releaseProviderName(sourceFor(game))} release.`;
-  if (status === 'status-update') return game.id === 'bioshock-vr' ? 'BioShock is installed; a newer creator installer is available.' : game.id === 'victory-heat-rally-vr' ? 'A newer Victory Heat Rally builder is available. VR4ALL can rebuild your personal APK from the saved game folder.' : 'Port APK and game files found; a newer checked Quest APK is available.';
+  if (status === 'status-update') return game.id === 'bioshock-vr' ? 'BioShock is installed; a newer creator installer is available.' : game.id === 'victory-heat-rally-vr' ? 'A newer Victory Heat Rally builder is available. VR4ALL can rebuild your personal APK from the saved game folder.' : game.id === 'mario64mr' ? 'A newer Mario 64 MR release needs the Quest APK and your ROM-built game data updated together. VR4ALL can rebuild both from your saved ROM.' : 'Port APK and game files found; a newer checked Quest APK is available.';
   if (game.personalBuild) return 'Quest package found and required data checks passed. Ready to play; VR4ALL cannot confirm this build against the author’s latest source.';
   const release = state.releases[game.id];
   if (!sourceFor(game)) return 'Port APK and game files found. No release source is configured, so VR4ALL cannot confirm the version.';

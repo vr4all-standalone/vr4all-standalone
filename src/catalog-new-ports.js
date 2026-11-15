@@ -18,7 +18,7 @@ const newPorts = [
     afterInstall: 'On first launch, grant All files access, return to Unknown Sources and start Umbrella Chronicles VR again. Newer APKs keep saves and VR settings.',
   },
   {
-    id: 'jedi-academy-diorama-mr', title: 'Jedi Academy Diorama MR', gameName: 'Star Wars Jedi Knight: Jedi Academy', series: 'Galatea Interactive', category: 'PC', color: '#99bde0', artId: 'jkxr',
+    id: 'jedi-academy-diorama-mr', title: 'Star Wars Jedi Knight: Jedi Academy MR', gameName: 'Star Wars Jedi Knight: Jedi Academy', series: 'Galatea Interactive', category: 'PC', color: '#99bde0', artId: 'jkxr',
     description: 'Play Jedi Academy as a room-scale mixed reality miniature, with immersive JKXR VR mode also available.',
     projectUrl: 'https://github.com/galateainteractive/Diorama-MR-Mods-Releases/releases',
     source: { repo: 'galateainteractive/Diorama-MR-Mods-Releases', releasePattern: 'jedi-academy-v[0-9]', assetPattern: '^JKXR-Diorama-MR-[0-9.]+(?:-(?:alpha|beta)\\.[0-9]+)?\\.apk$' },

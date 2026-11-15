@@ -4,6 +4,7 @@ const packages = {
   'bugdom2-vr': 'io.jor.bugdom2',
   'umbrella-chronicles-vr': 'org.uc.umbrellachronicles.vr',
   'jedi-academy-diorama-mr': 'com.galateainteractive.jkxrdioramamr',
+  mario64mr: 'com.lucasmartinic.mario64mr',
   'fate-of-the-galaxy-vr': 'com.bilko.fotgvr',
   'wing-commander-saga-vr': 'com.bilko.wcsagavr',
   'wipeout-pure-vr': 'online.portroyale.wipeoutpurevr',
@@ -24,6 +25,9 @@ const packages = {
   'openmohaa-vr': 'org.openmoh.openmohaa',
   'lets-go-jungle-vr': 'org.lindbergh.lgj.vr',
   'hotd4-special-vr': 'org.lindbergh.hotd4sp.vr',
+  'futurama-quest': 'com.futuramarecomp.app',
+  'virtua-tennis-3-vr': 'org.lindbergh.vt3.vr',
+  'lunacid-vr': 'com.AkumaKira.LunacidVR',
   'balatro-vr': 'io.github.balaurent.balatrovr.host',
   'ratchet-clank-quest-vr': 'dev.ratchetquest.vr',
   'code-veronica-x-vr': 'org.recvx.vr',
@@ -207,6 +211,14 @@ async function inspectDevice(adb, serial, games, knownPackages = {}) {
     return listCache.get(directory);
   }
   async function hasData(game) {
+    if (game.id === 'lunacid-vr') return (await list('/sdcard/Android/obb/com.AkumaKira.LunacidVR')).some((name) => /^main\.\d+\.com\.AkumaKira\.LunacidVR\.obb$/i.test(name));
+    if (game.id === 'mario64mr') {
+      const base = '/sdcard/Android/data/com.lucasmartinic.mario64mr/files';
+      const root = await list(base);
+      const native = await list(`${base}/native`);
+      return root.includes('baserom.us.z64') && (await list(`${base}/sm64/res`)).includes('base.zip')
+        && ['libsm64game.so', 'libgoddard.so', 'libsm64.so'].every((name) => native.includes(name));
+    }
     if (game.id === 'silent-scope-vr') {
       const imported = await list('/sdcard/Android/data/com.vrlightgunhub.silentscope/files/games/dreamcast');
       return game.data[0].requiredEntries.every((name) => imported.includes(name));

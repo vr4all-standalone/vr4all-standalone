@@ -6,12 +6,12 @@
 - Bugdom 2 VR: [creator's in-game title image](https://portroyale.online/images/bugdom2/1-title.jpg), captured on Quest 3. Bugdom 2 art belongs to its creators; reuse permission for VR4ALL is unverified.
 - Umbrella Chronicles VR: [North American Wii cover](https://gamehoard.com/cdn/shop/files/MV5BZmRkNWE2Y2YtYmMwOS00ZjYwLTljYjYtYjkxZmUwNmYyNTBkXkEyXkFqcGdeQXVyNTk1ODMyNjA_._V1.jpg?v=1686979689) for the original game. Capcom artwork; redistribution permission is unverified.
 - Jedi Academy Diorama MR: reuses the Jedi Outcast / Jedi Academy card image for the same original game.
-- Mario 64 MR: has its own card and reuses the Super Mario 64 card image.
+- Mario 64 MR: cropped still from the [creator's gameplay clip](https://raw.githubusercontent.com/lucas-martinic/mario64mr/main/media/mario-out-of-the-game.gif), showing Mario in a mixed reality window. Creator and Nintendo image rights remain with their owners.
 
 ## Quest additions — 8 November 2026
 
 - South Park VR: [creator banner](https://github.com/VistaLargaGames/South-Park-Quest-VR/blob/main/banner.jpg).
-- Mario 64 MR: reuses the existing Super Mario 64 card image for the same original game.
+- Mario 64 MR: now uses the creator's gameplay clip still described above.
 - LSD: Dream Emulator: [original PlayStation cover](https://en.wikipedia.org/wiki/LSD:_Dream_Emulator).
 - Bully VR: [original Bully cover](https://en.wikipedia.org/wiki/Bully_(video_game)).
 - Little Big Adventure 2 VR: [creator Quest port image](https://github.com/simsas-experiments/lba2-classic-quest/blob/main/docs/images/quest-port.jpg).
@@ -199,3 +199,11 @@ Game cover and project images identify the underlying titles and projects. Right
 - Ultima IV: [original cover shown by the University of Chicago Library](https://www.lib.uchicago.edu/about/news/charting-imaginary-worlds-why-fantasy-and-games-are-inseparable/).
 
 These images identify the original games and creator projects. Artwork rights remain with their respective owners.
+
+## New Quest ports — 15 November 2026
+
+- Futurama Quest: [official Quest app banner](https://github.com/mrchrisster/futurama-quest/blob/main/android/icon/app_banner_1280x720.png).
+- Virtua Tennis 3 VR: [thumbnail from the creator's Quest gameplay trailer](https://youtu.be/HLOx7s2JFiw).
+- Lunacid VR: [official Steam store header](https://store.steampowered.com/app/1745510/Lunacid/).
+
+These images identify the ports and original games. Rights remain with their respective owners.
