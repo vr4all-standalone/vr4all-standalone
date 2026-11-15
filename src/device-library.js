@@ -28,6 +28,7 @@ const packages = {
   'futurama-quest': 'com.futuramarecomp.app',
   'virtua-tennis-3-vr': 'org.lindbergh.vt3.vr',
   'lunacid-vr': 'com.AkumaKira.LunacidVR',
+  'warioware-twisted-vr': 'com.wariowaretwistedrecomp.quest',
   'balatro-vr': 'io.github.balaurent.balatrovr.host',
   'ratchet-clank-quest-vr': 'dev.ratchetquest.vr',
   'code-veronica-x-vr': 'org.recvx.vr',

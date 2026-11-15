@@ -136,6 +136,14 @@ const novemberPorts = [
     data: [],
     guidance: 'The creator publishes an automated personal builder, not a downloadable Quest APK. It installs Unity and Android tools, signs your APK and OBB, and transfers them to the Quest. It needs your Steam and Unity sign-ins, about 40 GB of PC space and 2–3 hours on the first run. Keep its work folder and signing key for future updates. VR4ALL cannot run this account-dependent build inside the app yet.',
   },
+  {
+    id: 'warioware-twisted-vr', title: 'WarioWare: Twisted! VR', gameName: 'WarioWare: Twisted!', series: 'mrchrisster', category: 'Game Boy Advance', color: '#efb132',
+    description: 'WarioWare: Twisted! on Quest 3 and 3S with wrist-twist gyro controls, rumble, passthrough, and layered 3D.',
+    projectUrl: 'https://github.com/mrchrisster/WarioWareTwistedRecomp',
+    source: { repo: 'mrchrisster/WarioWareTwistedRecomp', releasePattern: 'quest', assetPattern: '^warioware_twisted-quest-release\\.apk$' },
+    data: [{ id: 'rom', label: 'Owned WarioWare: Twisted! (USA) GBA ROM', kind: 'file', extensions: ['.gba'], destination: '/sdcard/WarioWareTwisted/warioware_twisted_usa.gba', bytes: 16777216, sha1: 'f0102d0d6f7596fe853d5d0a94682718278e083a', note: 'Use your own USA cartridge dump. VR4ALL verifies the 16 MiB ROM against the creator’s SHA-1 and copies it to the creator’s automatic import path. No GBA BIOS is needed on Quest.' }],
+    guidance: 'VR4ALL installs the creator’s Quest APK and copies your verified ROM to its automatic import path. If the Quest app still shows a setup screen, choose Select ROM and pick warioware_twisted_usa.gba in WarioWareTwisted. The separate Android phone build has different BIOS requirements; this Quest build does not.',
+  },
 ];
 
 const novemberPortFacets = {
@@ -145,6 +153,7 @@ const novemberPortFacets = {
   'project-honeydew-2': ['GameCube', 'Strategy'], 'openmohaa-vr': ['PC', 'Shooter'],
   'lets-go-jungle-vr': ['Arcade', 'Rail shooter'], 'hotd4-special-vr': ['Arcade', 'Rail shooter'],
   'futurama-quest': ['Xbox', 'Adventure'], 'virtua-tennis-3-vr': ['Arcade', 'Sports'], 'lunacid-vr': ['PC', 'RPG'],
+  'warioware-twisted-vr': ['Game Boy Advance', 'Arcade'],
 };
 
 module.exports = { novemberPorts, novemberPortFacets };

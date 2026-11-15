@@ -205,5 +205,6 @@ These images identify the original games and creator projects. Artwork rights re
 - Futurama Quest: [official Quest app banner](https://github.com/mrchrisster/futurama-quest/blob/main/android/icon/app_banner_1280x720.png).
 - Virtua Tennis 3 VR: [thumbnail from the creator's Quest gameplay trailer](https://youtu.be/HLOx7s2JFiw).
 - Lunacid VR: [official Steam store header](https://store.steampowered.com/app/1745510/Lunacid/).
+- WarioWare: Twisted! VR: [creator's Quest VR banner](https://github.com/mrchrisster/WarioWareTwistedRecomp/blob/main/docs/quest-vr-banner.jpg).
 
 These images identify the ports and original games. Rights remain with their respective owners.
