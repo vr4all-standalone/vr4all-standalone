@@ -501,8 +501,12 @@ test('Mario MR build button queues the selected ROM and Quest for the in-app bui
   try {
     const started = await request(app, 'POST', '/api/personal-build', { gameId: 'mario64mr', serial: 'Q3S', gamePackage: rom });
     assert.equal(started.status, 202, JSON.stringify(started.body));
-    await new Promise((resolve) => setTimeout(resolve, 25));
-    const result = await request(app, 'GET', `/api/jobs/${started.body.job.id}`);
+    let result;
+    for (let attempt = 0; attempt < 50; attempt++) {
+      result = await request(app, 'GET', `/api/jobs/${started.body.job.id}`);
+      if (result.body.job.status !== 'running' && result.body.job.status !== 'queued') break;
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
     assert.equal(result.body.job.status, 'success', result.body.job.error);
     assert.equal(calls[0].input.gamePackage, rom);
     assert.equal(calls[0].input.serial, 'Q3S');
