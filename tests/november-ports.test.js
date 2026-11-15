@@ -13,6 +13,7 @@ test('new Quest projects have distinct profiles and creator links', () => {
     'south-park-vr', 'mario64mr', 'lsd-vr-beta', 'bully-vr', 'lba2-quest',
     'xonotic-vr', 'primedgun-echoes', 'urban-terror-vr', 'openarena-vr',
     'project-honeydew-2', 'openmohaa-vr', 'lets-go-jungle-vr', 'hotd4-special-vr',
+    'futurama-quest', 'virtua-tennis-3-vr', 'lunacid-vr',
   ];
   for (const id of ids) {
     const game = games.find((entry) => entry.id === id);
@@ -21,7 +22,7 @@ test('new Quest projects have distinct profiles and creator links', () => {
     assert.ok(game.console && game.genre, id);
   }
   assert.equal(new Set(games.map((entry) => entry.id)).size, games.length);
-  assert.equal(games.length, 175);
+  assert.equal(games.length, 178);
   for (const id of ids) {
     const art = games.find((entry) => entry.id === id).art;
     assert.ok(fs.existsSync(path.join(__dirname, '..', 'public', art.replace(/^\//, ''))), `${id} artwork`);
@@ -29,7 +30,7 @@ test('new Quest projects have distinct profiles and creator links', () => {
 });
 
 test('new Quest package identities can be detected after installation', async () => {
-  for (const id of ['south-park-vr', 'bully-vr', 'xonotic-vr', 'urban-terror-vr', 'openarena-vr', 'project-honeydew-2', 'openmohaa-vr']) {
+  for (const id of ['south-park-vr', 'bully-vr', 'xonotic-vr', 'urban-terror-vr', 'openarena-vr', 'project-honeydew-2', 'openmohaa-vr', 'futurama-quest', 'virtua-tennis-3-vr', 'lunacid-vr']) {
     assert.ok(packages[id], id);
     const game = getCatalog().find((entry) => entry.id === id);
     const adb = { run: async (args) => {
@@ -39,6 +40,56 @@ test('new Quest package identities can be detected after installation', async ()
     } };
     assert.equal((await inspectDevice(adb, 'Quest', [game]))[id].packageId, packages[id]);
   }
+});
+
+test('Futurama selects the Quest APK and requires the owned Xbox ISO at its documented path', () => {
+  const game = getCatalog().find((entry) => entry.id === 'futurama-quest');
+  const release = selectRelease([{ tag_name: 'v0.1.2', published_at: '2026-11-15', assets: [
+    { name: 'futurama-quest-v0.1.2.apk', browser_download_url: 'https://github.com/mrchrisster/futurama-quest/releases/download/v0.1.2/futurama-quest-v0.1.2.apk' },
+  ] }], game.source);
+  assert.equal(release.assetName, 'futurama-quest-v0.1.2.apk');
+  assert.throws(() => buildInstallPlan(game, { serial: 'Q3', apkPath: 'C:\\Ports\\Futurama.apk', files: {} }), /Select Owned Futurama Xbox disc image/);
+  const plan = buildInstallPlan(game, { serial: 'Q3', apkPath: 'C:\\Ports\\Futurama.apk', files: { disc: 'C:\\Games\\Futurama.iso' } });
+  assert.ok(plan.some((step) => step.args.includes('/sdcard/Android/data/com.futuramarecomp.app/files/futurama.iso')));
+});
+
+test('source-only Quest ports explain their creator build requirements', () => {
+  const catalog = getCatalog();
+  const vt3 = catalog.find((entry) => entry.id === 'virtua-tennis-3-vr');
+  const lunacid = catalog.find((entry) => entry.id === 'lunacid-vr');
+  assert.equal(vt3.manualBuild, true);
+  assert.ok(vt3.data.some((item) => item.requiredDirectories?.includes('vt3_Lindbergh')));
+  const plan = buildInstallPlan(vt3, {
+    serial: 'Q3', apkPath: 'C:\\Ports\\VirtuaTennis3VR.apk',
+    files: { game: 'C:\\Games\\VT3\\disk0' },
+    directoryEntries: { game: ['vt3_Lindbergh', 'shader', 'lib', 'unrelated'] },
+  });
+  assert.deepEqual(plan.filter((step) => step.args.includes('push')).map((step) => step.args.at(-1)), [
+    '/sdcard/VirtuaTennis3/', '/sdcard/VirtuaTennis3/', '/sdcard/VirtuaTennis3/',
+  ]);
+  assert.equal(plan.some((step) => step.args.some((arg) => String(arg).includes('unrelated'))), false);
+  assert.equal(lunacid.externalInstaller, true);
+  assert.ok(lunacid.guidance.includes('40 GB'));
+});
+
+test('new Quest ports require their game data before showing ready', async () => {
+  const ids = ['futurama-quest', 'virtua-tennis-3-vr', 'lunacid-vr'];
+  const games = getCatalog().filter((game) => ids.includes(game.id));
+  const files = new Map([
+    ['/sdcard/Android/data/com.futuramarecomp.app/files', 'futurama.iso'],
+    ['/sdcard/VirtuaTennis3/', 'vt3_Lindbergh\nshader\nlib'],
+    ['/sdcard/Android/obb/com.AkumaKira.LunacidVR', 'main.1.com.AkumaKira.LunacidVR.obb'],
+  ]);
+  const adb = { run: async (args) => {
+    if (args.includes('pm')) return ids.map((id) => `package:${packages[id]}`).join('\n');
+    if (args.includes('dumpsys')) return 'versionName=0.1.2';
+    return files.get(args.at(-1)) || '';
+  } };
+  const ready = await inspectDevice(adb, 'Quest', games);
+  for (const id of ids) assert.equal(ready[id].dataReady, true, id);
+  files.clear();
+  const missing = await inspectDevice(adb, 'Quest', games);
+  for (const id of ids) assert.equal(missing[id].dataReady, false, id);
 });
 
 test('Bully selects the newer public test APK rather than the old Recovery build', () => {

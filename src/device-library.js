@@ -25,6 +25,9 @@ const packages = {
   'openmohaa-vr': 'org.openmoh.openmohaa',
   'lets-go-jungle-vr': 'org.lindbergh.lgj.vr',
   'hotd4-special-vr': 'org.lindbergh.hotd4sp.vr',
+  'futurama-quest': 'com.futuramarecomp.app',
+  'virtua-tennis-3-vr': 'org.lindbergh.vt3.vr',
+  'lunacid-vr': 'com.AkumaKira.LunacidVR',
   'balatro-vr': 'io.github.balaurent.balatrovr.host',
   'ratchet-clank-quest-vr': 'dev.ratchetquest.vr',
   'code-veronica-x-vr': 'org.recvx.vr',
@@ -208,6 +211,7 @@ async function inspectDevice(adb, serial, games, knownPackages = {}) {
     return listCache.get(directory);
   }
   async function hasData(game) {
+    if (game.id === 'lunacid-vr') return (await list('/sdcard/Android/obb/com.AkumaKira.LunacidVR')).some((name) => /^main\.\d+\.com\.AkumaKira\.LunacidVR\.obb$/i.test(name));
     if (game.id === 'mario64mr') {
       const base = '/sdcard/Android/data/com.lucasmartinic.mario64mr/files';
       const root = await list(base);

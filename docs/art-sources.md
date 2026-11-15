@@ -199,3 +199,11 @@ Game cover and project images identify the underlying titles and projects. Right
 - Ultima IV: [original cover shown by the University of Chicago Library](https://www.lib.uchicago.edu/about/news/charting-imaginary-worlds-why-fantasy-and-games-are-inseparable/).
 
 These images identify the original games and creator projects. Artwork rights remain with their respective owners.
+
+## New Quest ports — 15 November 2026
+
+- Futurama Quest: [official Quest app banner](https://github.com/mrchrisster/futurama-quest/blob/main/android/icon/app_banner_1280x720.png).
+- Virtua Tennis 3 VR: [thumbnail from the creator's Quest gameplay trailer](https://youtu.be/HLOx7s2JFiw).
+- Lunacid VR: [official Steam store header](https://store.steampowered.com/app/1745510/Lunacid/).
+
+These images identify the ports and original games. Rights remain with their respective owners.

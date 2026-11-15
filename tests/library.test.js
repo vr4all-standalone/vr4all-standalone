@@ -27,9 +27,9 @@ test('PC ports that need original files expose the correct folder inputs', () =>
 
 test('every starter port has a console, genre, and local artwork', () => {
   const games = getCatalog();
-  assert.equal(games.length, 175);
-  assert.equal(games.filter((game) => !game.variantOf).length, 163);
-  assert.equal(new Set(games.filter((game) => !game.variantOf).map((game) => game.art)).size, 162);
+  assert.equal(games.length, 178);
+  assert.equal(games.filter((game) => !game.variantOf).length, 166);
+  assert.equal(new Set(games.filter((game) => !game.variantOf).map((game) => game.art)).size, 165);
   for (const game of games) {
     assert.ok(game.console, `${game.id}: console`);
     assert.ok(game.genre, `${game.id}: genre`);
@@ -197,7 +197,7 @@ test('official GitHub sources select only installable Quest APK assets', () => {
 test('build-required inventory excludes ports with a prebuilt Quest APK', () => {
   const games = getCatalog();
   assert.deepEqual(games.filter((game) => game.manualBuild).map((game) => game.id).sort(),
-    ['vice-city-vr', 'crazy-taxi-vr', 'gta-sa-vr', 'rdr1-vr', 'fzero-x-virtuavr'].sort());
+    ['vice-city-vr', 'crazy-taxi-vr', 'gta-sa-vr', 'rdr1-vr', 'fzero-x-virtuavr', 'virtua-tennis-3-vr'].sort());
   const byId = Object.fromEntries(games.map((game) => [game.id, game]));
   assert.equal(byId.doom3quest.source.repo, 'Team-Beef-Studios/Doom3Quest');
   assert.equal(byId.quake3quest.source.repo, 'Team-Beef-Studios/ioq3quest');
