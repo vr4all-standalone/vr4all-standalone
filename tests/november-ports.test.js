@@ -4,6 +4,7 @@ const { getCatalog } = require('../src/catalog');
 const { selectRelease, buildInstallPlan } = require('../src/core');
 const { honeydewRelease } = require('../src/releases');
 const { inspectDevice, packages } = require('../src/device-library');
+const { verifyGameFile } = require('../src/file-verification');
 const fs = require('node:fs');
 const path = require('node:path');
 
@@ -13,7 +14,7 @@ test('new Quest projects have distinct profiles and creator links', () => {
     'south-park-vr', 'mario64mr', 'lsd-vr-beta', 'bully-vr', 'lba2-quest',
     'xonotic-vr', 'primedgun-echoes', 'urban-terror-vr', 'openarena-vr',
     'project-honeydew-2', 'openmohaa-vr', 'lets-go-jungle-vr', 'hotd4-special-vr',
-    'futurama-quest', 'virtua-tennis-3-vr', 'lunacid-vr',
+    'futurama-quest', 'virtua-tennis-3-vr', 'lunacid-vr', 'warioware-twisted-vr',
   ];
   for (const id of ids) {
     const game = games.find((entry) => entry.id === id);
@@ -22,7 +23,7 @@ test('new Quest projects have distinct profiles and creator links', () => {
     assert.ok(game.console && game.genre, id);
   }
   assert.equal(new Set(games.map((entry) => entry.id)).size, games.length);
-  assert.equal(games.length, 178);
+  assert.equal(games.length, 179);
   for (const id of ids) {
     const art = games.find((entry) => entry.id === id).art;
     assert.ok(fs.existsSync(path.join(__dirname, '..', 'public', art.replace(/^\//, ''))), `${id} artwork`);
@@ -40,6 +41,27 @@ test('new Quest package identities can be detected after installation', async ()
     } };
     assert.equal((await inspectDevice(adb, 'Quest', [game]))[id].packageId, packages[id]);
   }
+});
+
+test('WarioWare Quest uses its own APK, validates the USA ROM, and copies it for the headset picker', async (t) => {
+  const game = getCatalog().find((entry) => entry.id === 'warioware-twisted-vr');
+  assert.ok(game);
+  assert.equal(game.console, 'Game Boy Advance');
+  assert.equal(packages[game.id], 'com.wariowaretwistedrecomp.quest');
+  assert.equal(game.data.length, 1, 'Quest build does not require a GBA BIOS');
+  assert.equal(game.data[0].sha1, 'f0102d0d6f7596fe853d5d0a94682718278e083a');
+  const release = selectRelease([{ tag_name: 'v0.1.0-quest', published_at: '2026-11-15', assets: [
+    { name: 'warioware_twisted-quest-release.apk', browser_download_url: 'https://github.com/mrchrisster/WarioWareTwistedRecomp/releases/download/v0.1.0-quest/warioware_twisted-quest-release.apk' },
+    { name: 'warioware_twisted-android-release.apk', browser_download_url: 'https://github.com/mrchrisster/WarioWareTwistedRecomp/releases/download/v0.1.0-quest/warioware_twisted-android-release.apk' },
+  ] }], game.source);
+  assert.equal(release.assetName, 'warioware_twisted-quest-release.apk');
+  const dir = await fs.promises.mkdtemp(path.join(require('node:os').tmpdir(), 'vr4all-warioware-'));
+  t.after(() => fs.promises.rm(dir, { recursive: true, force: true }));
+  const wrongRom = path.join(dir, 'wrong.gba');
+  await fs.promises.writeFile(wrongRom, Buffer.alloc(16 * 1024 * 1024));
+  await assert.rejects(() => verifyGameFile(game, game.data[0], wrongRom), /WarioWare.*SHA-1|ROM.*SHA-1/i);
+  const plan = buildInstallPlan(game, { serial: 'Q3', apkPath: 'C:\\Ports\\WarioWare.apk', files: { rom: wrongRom } });
+  assert.ok(plan.some((step) => step.args.at(-1) === '/sdcard/WarioWareTwisted/warioware_twisted_usa.gba'));
 });
 
 test('Futurama selects the Quest APK and requires the owned Xbox ISO at its documented path', () => {

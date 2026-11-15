@@ -3,8 +3,24 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
+const crypto = require('node:crypto');
 const { verifyGameFile } = require('../src/file-verification');
 const { runSevenZip, sevenZipPath } = require('../src/archive-conversion');
+
+test('a creator-pinned GBA ROM accepts the exact bytes and rejects a same-size wrong revision', async (t) => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-gba-verify-'));
+  t.after(() => fs.rm(dir, { recursive: true, force: true }));
+  const file = path.join(dir, 'owned.gba');
+  const good = Buffer.from('creator-verified-rom');
+  const item = { id: 'rom', kind: 'file', label: 'Owned GBA ROM', extensions: ['.gba'], bytes: good.length,
+    sha1: crypto.createHash('sha1').update(good).digest('hex') };
+  await fs.writeFile(file, good);
+  assert.equal((await verifyGameFile({ id: 'fixture' }, item, file)).level, 'hash');
+  await fs.writeFile(file, Buffer.from('creator-modified-rom'));
+  await assert.rejects(() => verifyGameFile({ id: 'fixture' }, item, file), /SHA-1/i);
+  await fs.writeFile(file, good.subarray(1));
+  await assert.rejects(() => verifyGameFile({ id: 'fixture' }, item, file), /bytes/i);
+});
 
 test('Super Mario 64 drop rejects a different Nintendo 64 game before install', async () => {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-verify-'));

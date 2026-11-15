@@ -437,6 +437,13 @@ function createApp(options = {}) {
     if (item.kind === 'file') {
       if (wrappedGameFile(item, local)) {
         const archive = await inspectSingleFileArchive(item, local);
+        if (item.sha1) {
+          const extracted = await extractSingleFileArchive(item, local);
+          try {
+            const verification = await verifyGameFile(game, item, extracted.path);
+            return { verification: { ...verification, message: `Archive contains ${path.posix.basename(archive.member)} · ${verification.message}` }, entries: null, path: local, archiveMember: archive.member };
+          } finally { await removeConversionDirectory(extracted.directory); }
+        }
         return { verification: { level: 'archive', message: `Archive contains ${path.posix.basename(archive.member)}; VR4ALL will extract it for the Quest` }, entries: null, path: local, archiveMember: archive.member };
       }
       const prepared = await zipForItem(item, local);

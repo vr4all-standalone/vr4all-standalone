@@ -75,6 +75,14 @@ async function verifyGameFile(game, item, file) {
   if (item.kind !== 'file') throw new Error('Choose a regular game file');
   const extension = path.extname(file).toLowerCase();
   if (!item.extensions?.map((value) => value.toLowerCase()).includes(extension)) throw new Error(`${item.label} must be ${item.extensions.join(', ')}`);
+  if (item.sha1) {
+    if (!/^[a-f0-9]{40}$/i.test(item.sha1)) throw new Error('Invalid expected ROM SHA-1');
+    if (item.bytes && (await fs.stat(file)).size !== item.bytes) throw new Error(`${item.label} must be ${item.bytes} bytes`);
+    const hash = crypto.createHash('sha1');
+    for await (const chunk of require('node:fs').createReadStream(file)) hash.update(chunk);
+    if (hash.digest('hex') !== item.sha1.toLowerCase()) throw new Error(`${item.label} SHA-1 does not match the creator’s required ROM revision`);
+    return { level: 'hash', message: `${item.label} SHA-1 matches the creator’s required ROM revision` };
+  }
   const handle = await fs.open(file, 'r');
   let bytes;
   try {
