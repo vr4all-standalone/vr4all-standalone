@@ -144,6 +144,15 @@ const novemberPorts = [
     data: [{ id: 'rom', label: 'Owned WarioWare: Twisted! (USA) GBA ROM', kind: 'file', extensions: ['.gba'], destination: '/sdcard/WarioWareTwisted/warioware_twisted_usa.gba', bytes: 16777216, sha1: 'f0102d0d6f7596fe853d5d0a94682718278e083a', note: 'Use your own USA cartridge dump. VR4ALL verifies the 16 MiB ROM against the creator’s SHA-1 and copies it to the creator’s automatic import path. No GBA BIOS is needed on Quest.' }],
     guidance: 'VR4ALL installs the creator’s Quest APK and copies your verified ROM to its automatic import path. If the Quest app still shows a setup screen, choose Select ROM and pick warioware_twisted_usa.gba in WarioWareTwisted. The separate Android phone build has different BIOS requirements; this Quest build does not.',
   },
+  {
+    id: 'skate3-quest-ar', title: 'Skate 3 AR', gameName: 'Skate 3', series: 'andrewnakas', category: 'Xbox', color: '#ed8b24',
+    description: 'A miniature skater in Quest 3 passthrough AR, playable immediately with the creator’s clean-room content.',
+    projectUrl: 'https://github.com/andrewnakas/skate3-quest-ar',
+    source: { repo: 'andrewnakas/skate3-quest-ar', assetPattern: '^skate3ar\\.apk$' },
+    data: [{ id: 'retail', label: 'Optional creator-built Skate3-Quest.zip', kind: 'file', extensions: ['.zip'], optional: true, destination: '/sdcard/Download/Skate3/Skate3-Quest.zip', note: 'Optional retail tier only. Use the creator’s Windows bundle tools with your own Xbox 360 disc after running the separate Rust engine long enough to decode sound banks. VR4ALL copies the resulting ZIP; it cannot generate that ZIP from the disc alone.' }],
+    afterInstall: 'The clean-room tier plays immediately. If you supplied Skate3-Quest.zip, open Skate 3 data → Import in the Quest app; allow All files access if prompted and keep about 5 GB free.',
+    guidance: 'VR4ALL installs the creator’s official Quest 3 alpha APK with no game files required. Optional retail assets require a separately prepared Skate3-Quest.zip from your own Xbox 360 copy; VR4ALL can transfer that ZIP but the creator’s PC workflow still requires running the game to decode sound banks.',
+  },
 ];
 
 const novemberPortFacets = {
@@ -154,6 +163,7 @@ const novemberPortFacets = {
   'lets-go-jungle-vr': ['Arcade', 'Rail shooter'], 'hotd4-special-vr': ['Arcade', 'Rail shooter'],
   'futurama-quest': ['Xbox', 'Adventure'], 'virtua-tennis-3-vr': ['Arcade', 'Sports'], 'lunacid-vr': ['PC', 'RPG'],
   'warioware-twisted-vr': ['Game Boy Advance', 'Arcade'],
+  'skate3-quest-ar': ['Xbox', 'Sports'],
 };
 
 module.exports = { novemberPorts, novemberPortFacets };
