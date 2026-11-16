@@ -29,6 +29,7 @@ const packages = {
   'virtua-tennis-3-vr': 'org.lindbergh.vt3.vr',
   'lunacid-vr': 'com.AkumaKira.LunacidVR',
   'warioware-twisted-vr': 'com.wariowaretwistedrecomp.quest',
+  'skate3-quest-ar': 'com.andrewnakas.skate3ar',
   'balatro-vr': 'io.github.balaurent.balatrovr.host',
   'ratchet-clank-quest-vr': 'dev.ratchetquest.vr',
   'code-veronica-x-vr': 'org.recvx.vr',

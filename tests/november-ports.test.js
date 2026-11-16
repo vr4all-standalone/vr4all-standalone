@@ -14,7 +14,7 @@ test('new Quest projects have distinct profiles and creator links', () => {
     'south-park-vr', 'mario64mr', 'lsd-vr-beta', 'bully-vr', 'lba2-quest',
     'xonotic-vr', 'primedgun-echoes', 'urban-terror-vr', 'openarena-vr',
     'project-honeydew-2', 'openmohaa-vr', 'lets-go-jungle-vr', 'hotd4-special-vr',
-    'futurama-quest', 'virtua-tennis-3-vr', 'lunacid-vr', 'warioware-twisted-vr',
+    'futurama-quest', 'virtua-tennis-3-vr', 'lunacid-vr', 'warioware-twisted-vr', 'skate3-quest-ar',
   ];
   for (const id of ids) {
     const game = games.find((entry) => entry.id === id);
@@ -23,7 +23,7 @@ test('new Quest projects have distinct profiles and creator links', () => {
     assert.ok(game.console && game.genre, id);
   }
   assert.equal(new Set(games.map((entry) => entry.id)).size, games.length);
-  assert.equal(games.length, 179);
+  assert.equal(games.length, 180);
   for (const id of ids) {
     const art = games.find((entry) => entry.id === id).art;
     assert.ok(fs.existsSync(path.join(__dirname, '..', 'public', art.replace(/^\//, ''))), `${id} artwork`);
@@ -31,7 +31,7 @@ test('new Quest projects have distinct profiles and creator links', () => {
 });
 
 test('new Quest package identities can be detected after installation', async () => {
-  for (const id of ['south-park-vr', 'bully-vr', 'xonotic-vr', 'urban-terror-vr', 'openarena-vr', 'project-honeydew-2', 'openmohaa-vr', 'futurama-quest', 'virtua-tennis-3-vr', 'lunacid-vr']) {
+  for (const id of ['south-park-vr', 'bully-vr', 'xonotic-vr', 'urban-terror-vr', 'openarena-vr', 'project-honeydew-2', 'openmohaa-vr', 'futurama-quest', 'virtua-tennis-3-vr', 'lunacid-vr', 'skate3-quest-ar']) {
     assert.ok(packages[id], id);
     const game = getCatalog().find((entry) => entry.id === id);
     const adb = { run: async (args) => {
@@ -154,4 +154,23 @@ test('new self-contained shooters install with no extra file choices', () => {
     assert.equal(game.data.length, 0);
     assert.equal(buildInstallPlan(game, { serial: 'Q3', apkPath: 'C:\\Mods\\port.apk', files: {} })[0].label, 'Install APK');
   }
+});
+
+test('Skate 3 AR installs its official Quest APK without requiring original game data', async () => {
+  const game = getCatalog().find((entry) => entry.id === 'skate3-quest-ar');
+  assert.ok(game);
+  assert.equal(game.projectUrl, 'https://github.com/andrewnakas/skate3-quest-ar');
+  assert.equal(game.gameName, 'Skate 3');
+  assert.equal(packages[game.id], 'com.andrewnakas.skate3ar');
+  assert.ok(game.data.every((item) => item.optional));
+  const release = selectRelease([{ tag_name: 'v0.1.0', published_at: '2026-10-27', assets: [
+    { name: 'skate3ar.apk', browser_download_url: 'https://github.com/andrewnakas/skate3-quest-ar/releases/download/v0.1.0/skate3ar.apk' },
+    { name: 'make-bundle.ps1', browser_download_url: 'https://github.com/andrewnakas/skate3-quest-ar/releases/download/v0.1.0/make-bundle.ps1' },
+  ] }], game.source);
+  assert.equal(release.assetName, 'skate3ar.apk');
+  assert.equal(buildInstallPlan(game, { serial: 'Q3', apkPath: 'C:\\Ports\\skate3ar.apk', files: {} })[0].label, 'Install APK');
+  const retailPlan = buildInstallPlan(game, { serial: 'Q3', apkPath: 'C:\\Ports\\skate3ar.apk', files: { retail: 'C:\\Games\\Skate3-Quest.zip' } });
+  assert.ok(retailPlan.some((step) => step.args.at(-1) === '/sdcard/Download/Skate3/Skate3-Quest.zip'));
+  const adb = { run: async (args) => args.includes('pm') ? `package:${packages[game.id]}` : 'versionName=0.1.0' };
+  assert.equal((await inspectDevice(adb, 'Q3', [game]))[game.id].dataReady, true);
 });
