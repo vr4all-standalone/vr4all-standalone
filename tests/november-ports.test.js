@@ -14,7 +14,7 @@ test('new Quest projects have distinct profiles and creator links', () => {
     'south-park-vr', 'mario64mr', 'lsd-vr-beta', 'bully-vr', 'lba2-quest',
     'xonotic-vr', 'primedgun-echoes', 'urban-terror-vr', 'openarena-vr',
     'project-honeydew-2', 'openmohaa-vr', 'lets-go-jungle-vr', 'hotd4-special-vr',
-    'futurama-quest', 'virtua-tennis-3-vr', 'lunacid-vr', 'warioware-twisted-vr', 'skate3-quest-ar',
+    'futurama-quest', 'virtua-tennis-3-vr', 'lunacid-vr', 'warioware-twisted-vr', 'skate3-quest-ar', 'silent-hill-1999-vr',
   ];
   for (const id of ids) {
     const game = games.find((entry) => entry.id === id);
@@ -23,11 +23,48 @@ test('new Quest projects have distinct profiles and creator links', () => {
     assert.ok(game.console && game.genre, id);
   }
   assert.equal(new Set(games.map((entry) => entry.id)).size, games.length);
-  assert.equal(games.length, 180);
+  assert.equal(games.length, 181);
   for (const id of ids) {
     const art = games.find((entry) => entry.id === id).art;
     assert.ok(fs.existsSync(path.join(__dirname, '..', 'public', art.replace(/^\//, ''))), `${id} artwork`);
   }
+});
+
+test('Silent Hill Quest installs the creator APK with both owned USA disc files', async () => {
+  const game = getCatalog().find((entry) => entry.id === 'silent-hill-1999-vr');
+  assert.ok(game);
+  assert.equal(game.projectUrl, 'https://github.com/renangto15722-arch/Silent-Hill-1999-Quest-Standalone');
+  assert.equal(packages[game.id], 'com.sh1vr.quest');
+  assert.equal(game.console, 'PlayStation');
+  assert.deepEqual(game.data[0].requiredEntries, ['Silent Hill (USA).bin', 'Silent Hill (USA).cue']);
+  assert.equal(game.data[1].destination, '/sdcard/SilentHillVR/gamedata/texturemods/');
+  assert.equal(game.data[2].destination, '/sdcard/SilentHillVR/gamedata/load/');
+  assert.ok(game.data.slice(1).every((item) => item.optional));
+  const release = selectRelease([{ tag_name: 'v0.1', published_at: '2026-11-16', assets: [
+    { name: 'Install-SilentHillVR.bat', browser_download_url: 'https://github.com/renangto15722-arch/Silent-Hill-1999-Quest-Standalone/releases/download/v0.1/Install-SilentHillVR.bat' },
+    { name: 'SilentHillVR-Quest-0.1-source.zip', browser_download_url: 'https://github.com/renangto15722-arch/Silent-Hill-1999-Quest-Standalone/releases/download/v0.1/SilentHillVR-Quest-0.1-source.zip' },
+    { name: 'SilentHillVR-Quest-0.1.apk', browser_download_url: 'https://github.com/renangto15722-arch/Silent-Hill-1999-Quest-Standalone/releases/download/v0.1/SilentHillVR-Quest-0.1.apk' },
+  ] }], game.source);
+  assert.equal(release.assetName, 'SilentHillVR-Quest-0.1.apk');
+  assert.throws(() => buildInstallPlan(game, {
+    serial: 'Q3', apkPath: 'C:\\Ports\\SilentHillVR-Quest-0.1.apk', files: { disc: 'C:\\Games\\Silent Hill' },
+    directoryEntries: { disc: [] },
+  }), /folder is empty/);
+  const plan = buildInstallPlan(game, {
+    serial: 'Q3', apkPath: 'C:\\Ports\\SilentHillVR-Quest-0.1.apk', files: { disc: 'C:\\Games\\Silent Hill' },
+    directoryEntries: { disc: ['Silent Hill (USA).bin', 'Silent Hill (USA).cue', 'unrelated.txt'] },
+  });
+  assert.ok(plan.some((step) => step.args.includes('MANAGE_EXTERNAL_STORAGE')));
+  assert.deepEqual(plan.filter((step) => step.label.startsWith('Copy disc/')).map((step) => step.args.at(-1)), [
+    '/sdcard/SilentHillVR/gamedata/', '/sdcard/SilentHillVR/gamedata/',
+  ]);
+  assert.equal(plan.some((step) => step.label.includes('unrelated')), false);
+  const apk = { run: async (args) => {
+    if (args.includes('pm')) return `package:${packages[game.id]}`;
+    if (args.includes('dumpsys')) return 'versionName=0.1';
+    return 'Silent Hill (USA).bin\nSilent Hill (USA).cue';
+  } };
+  assert.equal((await inspectDevice(apk, 'Q3', [game]))[game.id].dataReady, true);
 });
 
 test('new Quest package identities can be detected after installation', async () => {

@@ -153,6 +153,34 @@ const novemberPorts = [
     afterInstall: 'The clean-room tier plays immediately. If you supplied Skate3-Quest.zip, open Skate 3 data → Import in the Quest app; allow All files access if prompted and keep about 5 GB free.',
     guidance: 'VR4ALL installs the creator’s official Quest 3 alpha APK with no game files required. Optional retail assets require a separately prepared Skate3-Quest.zip from your own Xbox 360 copy; VR4ALL can transfer that ZIP but the creator’s PC workflow still requires running the game to decode sound banks.',
   },
+  {
+    id: 'silent-hill-1999-vr', title: 'Silent Hill VR', gameName: 'Silent Hill', series: 'renangto15722-arch', category: 'PlayStation', color: '#a77c80',
+    description: 'The original 1999 Silent Hill in roomscale VR on Quest 3. Early work in progress.',
+    projectUrl: 'https://github.com/renangto15722-arch/Silent-Hill-1999-Quest-Standalone',
+    source: { repo: 'renangto15722-arch/Silent-Hill-1999-Quest-Standalone', assetPattern: '^SilentHillVR-Quest-[0-9.]+\\.apk$' },
+    fileAccessPackage: 'com.sh1vr.quest', verifyApkHash: true,
+    data: [
+      {
+        id: 'disc', label: 'Owned Silent Hill (USA) BIN and CUE folder', kind: 'directory',
+        destination: '/sdcard/SilentHillVR/gamedata/',
+        requiredEntries: ['Silent Hill (USA).bin', 'Silent Hill (USA).cue'],
+        copyEntries: ['Silent Hill (USA).bin', 'Silent Hill (USA).cue'],
+        note: 'Use your own USA SLUS-00707 disc dump. The folder must contain both files with these exact names; VR4ALL copies them beside each other to the path the creator requires.',
+      },
+      {
+        id: 'textures', label: 'Optional HD texture ZIP', kind: 'file', optional: true,
+        extensions: ['.zip'], destination: '/sdcard/SilentHillVR/gamedata/texturemods/',
+        note: 'Optional DuckStation HD texture pack. Keep the texture archive zipped, as the creator specifies.',
+      },
+      {
+        id: 'maps', label: 'Optional HD maps folder', kind: 'directory', optional: true,
+        destination: '/sdcard/SilentHillVR/gamedata/load/',
+        note: 'Optional creator-linked HD maps. Select the load folder containing the map asset folders, including TIM where provided.',
+      },
+    ],
+    guidance: 'VR4ALL downloads the creator’s Quest APK, enables all-files access and transfers your own USA disc BIN/CUE pair. Optional HD texture and map files can also be transferred here. This v0.1 port is a work in progress; Quest 3 is documented, while other models are unverified.',
+    afterInstall: 'Open Silent Hill VR from Unknown Sources. If Android asks for All files access on first launch, allow it and restart the game.',
+  },
 ];
 
 const novemberPortFacets = {
@@ -164,6 +192,7 @@ const novemberPortFacets = {
   'futurama-quest': ['Xbox', 'Adventure'], 'virtua-tennis-3-vr': ['Arcade', 'Sports'], 'lunacid-vr': ['PC', 'RPG'],
   'warioware-twisted-vr': ['Game Boy Advance', 'Arcade'],
   'skate3-quest-ar': ['Xbox', 'Sports'],
+  'silent-hill-1999-vr': ['PlayStation', 'Adventure'],
 };
 
 module.exports = { novemberPorts, novemberPortFacets };

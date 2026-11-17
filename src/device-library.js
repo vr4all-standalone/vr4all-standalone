@@ -30,6 +30,7 @@ const packages = {
   'lunacid-vr': 'com.AkumaKira.LunacidVR',
   'warioware-twisted-vr': 'com.wariowaretwistedrecomp.quest',
   'skate3-quest-ar': 'com.andrewnakas.skate3ar',
+  'silent-hill-1999-vr': 'com.sh1vr.quest',
   'balatro-vr': 'io.github.balaurent.balatrovr.host',
   'ratchet-clank-quest-vr': 'dev.ratchetquest.vr',
   'code-veronica-x-vr': 'org.recvx.vr',
