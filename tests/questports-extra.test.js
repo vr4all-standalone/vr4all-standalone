@@ -19,7 +19,7 @@ test('creator-backed Quest profiles appear once in the catalog', () => {
     assert.ok(matches[0].console && matches[0].genre, id);
     assert.ok(packages[id], `${id} package identity`);
   }
-  assert.equal(catalog.length, 181);
+  assert.equal(catalog.length, 182);
   assert.equal(catalog.filter((game) => game.catalogGroup === 'emulator').length, 7);
 });
 

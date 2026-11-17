@@ -216,3 +216,7 @@ These images identify the ports and original games. Rights remain with their res
 ## Silent Hill VR — 17 November 2026
 
 - Silent Hill VR: [original 1999 PlayStation title screen](https://www.silenthillmemories.net/sh1/playing_the_game_en.htm) from Silent Hill Memories, saved as `public/art/silent-hill-1999-vr.jpg`. Konami artwork; redistribution permission is unverified.
+
+## Ace Combat Zero VR — 17 November 2026
+
+- Ace Combat Zero: The Belkan War: [original PlayStation 2 cover](https://www.thevideogamecompany.com/products/ace-combat-zero-sony-playstation-2-ps2), saved as `public/art/ace-combat-zero-vr.jpg`. Bandai Namco artwork; redistribution permission is unverified.

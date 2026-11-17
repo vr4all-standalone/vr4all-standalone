@@ -41,6 +41,7 @@ const packages = {
   'age-of-joy': 'com.curif.AgeOfJoy',
   dolphinxr: 'org.dolphinemu.dolphinemu.quest.debug',
   'silent-scope-vr': 'com.vrlightgunhub.silentscope',
+  'ace-combat-zero-vr': 'com.kulakovri.ac0oculus',
   'vtmb-resource': 'diy.resource.vtmb.vulkan',
   'gunblade-ny-vr': 'com.vrlightgunhub.gunbladeny',
   'hotd-model2-vr': 'com.vrlightgunhub.hotdmodel2',
@@ -214,6 +215,10 @@ async function inspectDevice(adb, serial, games, knownPackages = {}) {
     return listCache.get(directory);
   }
   async function hasData(game) {
+    if (game.id === 'ace-combat-zero-vr') {
+      return (await list('/sdcard/ac0oculus/')).includes('disc.iso')
+        && (await list('/sdcard/ac0oculus/gen_zero/')).includes('ps2_image.bin');
+    }
     if (game.id === 'lunacid-vr') return (await list('/sdcard/Android/obb/com.AkumaKira.LunacidVR')).some((name) => /^main\.\d+\.com\.AkumaKira\.LunacidVR\.obb$/i.test(name));
     if (game.id === 'mario64mr') {
       const base = '/sdcard/Android/data/com.lucasmartinic.mario64mr/files';

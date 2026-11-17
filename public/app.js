@@ -282,6 +282,10 @@ function versionStatus(game) {
   if (game.localPlayerInstall === 'sclerosis') return 'status-current';
   if (game.id === 'fzero-x-virtuavr' && device.packageId === 'dev.gdiffuser.quest') return 'status-current';
   const completed = state.installed?.[state.selectedSerial]?.[game.id];
+  if (game.id === 'ace-combat-zero-vr') {
+    if (!release || release.stale || completed?.packageId !== device.packageId || !completed.tag) return 'status-installed';
+    return completed.tag === release.tag ? 'status-current' : 'status-update';
+  }
   if (game.id === 'victory-heat-rally-vr' && completed?.packageId === device.packageId
     && release && !release.stale && completed.sourceCommit) {
     return completed.sourceCommit === release.tag ? 'status-current' : 'status-update';
@@ -323,6 +327,7 @@ function statusExplanation(game) {
   const status = versionStatus(game);
   if (game.localPlayerInstall === 'sclerosis' && status === 'status-current') return 'Sclerosis APK and required Amnesia game folders found on this Quest. Creator APK updates require a manual download.';
   if (game.id === 'fzero-x-virtuavr' && status === 'status-current') return 'Quest APK and all three prepared F-Zero files found. Ready to play; creator releases are downloaded manually.';
+  if (game.id === 'ace-combat-zero-vr' && status === 'status-current') return 'Personal Ace Combat Zero APK, US disc and generated memory image are on this Quest. The build matches the latest checked creator setup.';
   if (status === 'status-current') return game.id === 'bioshock-vr' ? 'BioShock APK and game files found; VR4ALL installed the latest checked creator build.' : game.id === 'victory-heat-rally-vr' ? 'Your personal Victory Heat Rally build is installed and matches the latest checked creator builder release.' : `Port APK and game files found; the installed build matches the latest checked ${releaseProviderName(sourceFor(game))} release.`;
   if (status === 'status-update') return game.id === 'bioshock-vr' ? 'BioShock is installed; a newer creator installer is available.' : game.id === 'victory-heat-rally-vr' ? 'A newer Victory Heat Rally builder is available. VR4ALL can rebuild your personal APK from the saved game folder.' : game.id === 'mario64mr' ? 'A newer Mario 64 MR release needs the Quest APK and your ROM-built game data updated together. VR4ALL can rebuild both from your saved ROM.' : 'Port APK and game files found; a newer checked Quest APK is available.';
   if (game.personalBuild) return 'Quest package found and required data checks passed. Ready to play; VR4ALL cannot confirm this build against the author’s latest source.';
@@ -775,8 +780,8 @@ function detailHtml(game) {
     const html = personalBuildHtml(game).replace('<input id="buildGamePath"', '<button type="button" class="copy-requirement" data-copy-build="gamePackage" title="Copy the original game file requirement">Copy requirement</button><input id="buildGamePath"');
     const gated = unsupported ? html.replace('<button type="button" id="personalBuildButton"', `<div class="guide-note">${escapeHtml(game.support.reason)}</div><button type="button" id="personalBuildButton" disabled`)
       : game.support?.experimental ? html.replace('<button type="button" id="personalBuildButton"', `<div class="guide-note">${escapeHtml(game.support.note)}</div><button type="button" id="personalBuildButton"`) : html;
-    if (!['vice-city-vr', 'rdr1-vr', 'gta-sa-vr'].includes(game.id)) return gated;
-    const setup = `<div class="sdk-setup-card"><strong>Build tools</strong><p class="field-help">Vice City, RDR and San Andreas reuse tools from the same download folder. Setup checks what is already installed and downloads only missing versions.</p><button id="setupBuildToolsButton" type="button" class="small-button"${unsupported ? ' disabled' : ''}>Set up build tools</button></div>`;
+    if (!['vice-city-vr', 'rdr1-vr', 'gta-sa-vr', 'ace-combat-zero-vr'].includes(game.id)) return gated;
+    const setup = `<div class="sdk-setup-card"><strong>Build tools</strong><p class="field-help">${game.id === 'ace-combat-zero-vr' ? 'VR4ALL prepares the creator’s setup in your selected PC build folder. If Android NDK r29 is missing, review Google’s license before the first build.' : 'Vice City, RDR and San Andreas reuse tools from the same download folder. Setup checks what is already installed and downloads only missing versions.'}</p><button id="setupBuildToolsButton" type="button" class="small-button"${unsupported ? ' disabled' : ''}>Set up build tools</button></div>`;
     return gated.replace('<button type="button" id="personalBuildButton"', `${setup}<button type="button" id="personalBuildButton"`);
   }
   if (game.externalInstaller) return `${detailArtHtml(game)}<div class="detail-series">${escapeHtml(game.console)} · ${escapeHtml(game.genre)} · ${escapeHtml(game.series)}</div><h2 class="detail-title">${escapeHtml(game.title)}</h2><p class="detail-description">${escapeHtml(game.description)}</p>${portChoiceHtml(game)}<div class="detail-divider"></div><div class="guide-note">${escapeHtml(game.guidance)}</div><a class="primary-button install-button" href="${escapeHtml(game.projectUrl)}" target="_blank" rel="noopener noreferrer">${game.developmentPreview ? 'Follow development ↗' : 'Open official setup ↗'}</a>`;
@@ -1594,7 +1599,7 @@ async function buildPersonalGame() {
   setActivity('submit', `Preparing ${game.title} build…`);
   updateInstallEnabled();
   try {
-    if (['vice-city-vr', 'rdr1-vr', 'gta-sa-vr'].includes(game.id)) {
+    if (['vice-city-vr', 'rdr1-vr', 'gta-sa-vr', 'ace-combat-zero-vr'].includes(game.id)) {
       const location = await api('/api/build-tools/location', { method: 'POST', body: JSON.stringify({ gameId: game.id, gamePackage: values.gamePackage }) });
       if (!location.configured) { await startBuildTools(); return; }
     }
@@ -1763,7 +1768,7 @@ function renderBuildToolsJob(job) {
   $('#sdkBrowseButton').disabled = true;
   $('#sdkStartButton').hidden = true;
   $('#sdkSetupStatus').textContent = waiting ? 'Review the license below to continue.'
-    : job.status === 'success' ? 'Tools are ready. Close this window and choose Build and install.'
+    : job.status === 'success' ? job.gameId === 'ace-combat-zero-vr' ? 'Creator setup prepared. Close this window and choose Build and install; the first build may download Android NDK r29.' : 'Tools are ready. Close this window and choose Build and install.'
       : job.status === 'error' ? job.error || 'Tool setup stopped.' : 'Preparing and downloading build tools. This can take several minutes.';
   $('#sdkLicenseSection').hidden = !waiting;
   $('#sdkLicenseText').textContent = job.license?.text || '';
@@ -1775,7 +1780,7 @@ function renderBuildToolsJob(job) {
 
 async function startBuildTools() {
   const game = selectedGame();
-  if (sdkSetupSubmitting || !['vice-city-vr', 'rdr1-vr', 'gta-sa-vr'].includes(game?.id)) return;
+  if (sdkSetupSubmitting || !['vice-city-vr', 'rdr1-vr', 'gta-sa-vr', 'ace-combat-zero-vr'].includes(game?.id)) return;
   sdkSetupSubmitting = true;
   try {
     const job = state.jobs.find((entry) => entry.gameId === game.id && entry.kind === 'build-tools' && ['queued', 'running'].includes(entry.status));
@@ -1808,7 +1813,7 @@ async function startBuildTools() {
 
 async function installBuildTools() {
   const game = selectedGame();
-  if (sdkSetupSubmitting || !['vice-city-vr', 'rdr1-vr', 'gta-sa-vr'].includes(game?.id)) return;
+  if (sdkSetupSubmitting || !['vice-city-vr', 'rdr1-vr', 'gta-sa-vr', 'ace-combat-zero-vr'].includes(game?.id)) return;
   const downloadLocation = $('#sdkDownloadLocation').value.trim();
   if (!downloadLocation) return toast('Choose a download folder first.', true);
   sdkSetupSubmitting = true;

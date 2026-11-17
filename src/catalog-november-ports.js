@@ -181,6 +181,21 @@ const novemberPorts = [
     guidance: 'VR4ALL downloads the creator’s Quest APK, enables all-files access and transfers your own USA disc BIN/CUE pair. Optional HD texture and map files can also be transferred here. This v0.1 port is a work in progress; Quest 3 is documented, while other models are unverified.',
     afterInstall: 'Open Silent Hill VR from Unknown Sources. If Android asks for All files access on first launch, allow it and restart the game.',
   },
+  {
+    id: 'ace-combat-zero-vr', title: 'Ace Combat Zero VR', gameName: 'Ace Combat Zero: The Belkan War', series: 'kulakovri', category: 'PlayStation 2', color: '#80a9b8',
+    description: 'Native standalone Quest 3 recompilation of Ace Combat Zero, built on your PC from your own US PS2 disc.',
+    projectUrl: 'https://github.com/kulakovri/ac0oculus',
+    source: { repo: 'kulakovri/ac0oculus', assetPattern: '^ac0oculus-[0-9.]+-setup\\.exe$' },
+    personalBuild: {
+      gameLabel: 'Owned Ace Combat Zero US PS2 ISO', fileOnly: true,
+      gameHint: 'Drop your own US SLUS-21346 disc ISO. The creator checks the executable revision before building. Other regions are not supported.',
+      inputStep: 'Add your Ace Combat Zero disc ISO', actionLabel: 'Build and install',
+      processDescription: 'VR4ALL downloads the creator’s verified setup, builds your personal APK, and transfers the APK, disc and memory image to your selected Quest. First setup may download Android NDK r29 after you accept its license. Allow about 5 GB of PC space and 4.5 GB on the headset.',
+    },
+    data: [],
+    guidance: 'This is an early v0.1 Quest 3 build. Quest 3S is declared by the creator but has not been gameplay tested. The optional third-party cockpit pack is not included. Keep the PC build folder and signing key for future updates; your personal APK must not be redistributed.',
+    afterInstall: 'Pair a gamepad with the headset if you prefer it to Touch controllers. Launch ac0oculus under Unknown Sources; first launch prepares shaders.',
+  },
 ];
 
 const novemberPortFacets = {
@@ -193,6 +208,7 @@ const novemberPortFacets = {
   'warioware-twisted-vr': ['Game Boy Advance', 'Arcade'],
   'skate3-quest-ar': ['Xbox', 'Sports'],
   'silent-hill-1999-vr': ['PlayStation', 'Adventure'],
+  'ace-combat-zero-vr': ['PlayStation 2', 'Flight combat'],
 };
 
 module.exports = { novemberPorts, novemberPortFacets };

@@ -31,6 +31,7 @@ const { validateBalatroInput, runBalatroBuild } = require('./src/balatro-runner'
 const { validateMarioInput, runMarioBuild } = require('./src/mario64mr-runner');
 const { validateJurassicInput, resolvePhysxFolder, requiredPhysxFiles, runJurassicBuild } = require('./src/jurassic-runner');
 const { validateVictoryHeatInput, runVictoryHeatBuild } = require('./src/victory-heat-runner');
+const { validateAceInput, prepareAceTools, runAceCombatBuild } = require('./src/ace-combat-zero-runner');
 const { checkRdrInternet } = require('./src/rdr-connectivity');
 const { validateViceCityInput, runViceCityBuild } = require('./src/vice-city-runner');
 const { setupBuildTools } = require('./src/android-sdk-setup');
@@ -120,7 +121,7 @@ function createApp(options = {}) {
   }
   const busyBuildGames = new Set();
   const busyPhoneExportGames = new Set();
-  const buildToolGames = new Set(['vice-city-vr', 'rdr1-vr', 'gta-sa-vr']);
+  const buildToolGames = new Set(['vice-city-vr', 'rdr1-vr', 'gta-sa-vr', 'ace-combat-zero-vr']);
   const sdkDecisions = new Map();
   const uploadedFiles = new Set();
   const bulkSessions = new Map();
@@ -136,6 +137,8 @@ function createApp(options = {}) {
   const marioBuilder = options.marioBuilder || runMarioBuild;
   const marioInputValidator = options.validateMarioInput || validateMarioInput;
   const victoryHeatBuilder = options.victoryHeatBuilder || runVictoryHeatBuild;
+  const aceCombatBuilder = options.aceCombatBuilder || runAceCombatBuild;
+  const aceToolsSetup = options.aceToolsSetup || prepareAceTools;
   const bioshockInstaller = options.bioshockInstaller || installBioShock;
   const viceCityBuilder = options.viceCityBuilder || runViceCityBuild;
   const sdkSetup = options.sdkSetup || setupBuildTools;
@@ -169,6 +172,7 @@ function createApp(options = {}) {
     return { cacheRoot: path.join(root, 'source-kits'), workRoot: path.join(root, 'builds') };
   }
   function buildToolsLocation(gameId) {
+    if (gameId === 'ace-combat-zero-vr') return settings.buildToolsLocations?.[gameId] || '';
     return settings.buildToolsLocations?.[gameId] || settings.sharedBuildToolsLocation
       || [...buildToolGames].map((id) => settings.buildToolsLocations?.[id]).find(Boolean);
   }
@@ -335,6 +339,7 @@ function createApp(options = {}) {
     const stat = await fs.stat(local).catch(() => null);
     if (!stat) return false;
     if (game.id === 'mario64mr' && key === 'gamePackage') return Boolean(await marioInputValidator({ gamePackage: local, serial: 'saved' }).catch(() => null));
+    if (game.id === 'ace-combat-zero-vr' && key === 'gamePackage') return Boolean(await validateAceInput({ gamePackage: local, serial: 'saved' }).catch(() => null));
     if (game.id === 'balatro-vr' && key === 'gamePackage') return Boolean(await validateBalatroInput({ gamePackage: local, serial: 'saved' }).catch(() => null));
     if (game.id === 'jurassic-park-arcade-vr') {
       if (!stat.isDirectory()) return false;
@@ -704,6 +709,8 @@ function createApp(options = {}) {
         ? await marioBuilder(input, { workspaceRoot: buildWorkRoot(), releases, source: sourceFor(game), adb, inspectApk, onLog: log, platform: options.platform })
         : game.id === 'victory-heat-rally-vr'
         ? await victoryHeatBuilder({ ...input, releases, source: sourceFor(game), adb, workspaceRoot: buildWorkRoot(), inspectApk, onLog: log, platform: options.platform })
+        : game.id === 'ace-combat-zero-vr'
+        ? await aceCombatBuilder({ ...input, releases, adb, workspaceRoot: path.join(input.downloadLocation, 'VR4ALL-build-tools', 'builds'), inspectApk, onLog: log, licenseAccepted: Boolean(settings.aceCombatLicenseAccepted) })
         : await personalBuilder(game.id, input, input.downloadLocation ? viceCityRoots(input.downloadLocation) : personalRoots(), log, { platform: options.platform });
       job.sourceCommit = kit.sha;
       job.status = 'success';
@@ -742,14 +749,23 @@ function createApp(options = {}) {
     job.status = 'running';
     try {
       log(`Download folder: ${job.downloadLocation}`);
-      const result = await sdkSetup(viceCityRoots(job.downloadLocation), log, (text) => new Promise((resolve) => {
+      const onLicense = (text) => new Promise((resolve) => {
         job.license = { id: crypto.randomUUID(), text: String(text) };
         sdkDecisions.set(job.id, { licenseId: job.license.id, resolve });
         log('Review the Google license in the build tools window to continue.');
-      }), { gameId: job.gameId, platform: options.platform });
+      });
+      const result = job.gameId === 'ace-combat-zero-vr'
+        ? await aceToolsSetup({ workspaceRoot: path.join(job.downloadLocation, 'VR4ALL-build-tools', 'builds'), releases, onLog: log, onLicense })
+        : await sdkSetup(viceCityRoots(job.downloadLocation), log, onLicense, { gameId: job.gameId, platform: options.platform });
+      if (job.gameId === 'ace-combat-zero-vr' && result.accepted) {
+        settings.aceCombatLicenseAccepted = true;
+        await saveSettings();
+      }
       job.sourceCommit = result.sha;
       job.status = 'success';
-      log(`Build tools are ready. Click Build and install to retry ${gameById(job.gameId).title}.`);
+      log(job.gameId === 'ace-combat-zero-vr' && !result.ready
+        ? 'Android SDK license accepted. Click Build and install to download NDK r29 and build your personal APK.'
+        : `Build tools are ready. Click Build and install to retry ${gameById(job.gameId).title}.`);
     } catch (error) { job.status = 'error'; job.error = error.message; log(`Error: ${error.message}`); }
     finally {
       sdkDecisions.get(job.id)?.resolve(false);
@@ -1275,7 +1291,8 @@ function createApp(options = {}) {
         try {
           let release = await releases.latest(source, { force: url.searchParams.get('refresh') === '1' });
           const serial = url.searchParams.get('serial');
-          if (release && serial && packages[game.id] && game.releaseKind !== 'installer' && !game.sourceArchive && (release.digest || game.verifyApkHash || typeof releases.cachedFile === 'function')) {
+          if (release && serial && packages[game.id] && game.releaseKind !== 'installer' && !game.sourceArchive
+            && game.id !== 'ace-combat-zero-vr' && (release.digest || game.verifyApkHash || typeof releases.cachedFile === 'function')) {
             const devices = await adb.listDevices().catch(() => []);
             if (devices.some((device) => device.serial === serial && device.state === 'device')) {
               let installedApkMatchesRelease = null;
@@ -1730,7 +1747,7 @@ function createApp(options = {}) {
         try {
           settings.buildToolsLocations ||= {};
           settings.buildToolsLocations[input.gameId] = downloadLocation;
-          settings.sharedBuildToolsLocation = downloadLocation;
+          if (input.gameId !== 'ace-combat-zero-vr') settings.sharedBuildToolsLocation = downloadLocation;
           await saveSettings();
         } catch (error) { busyBuildGames.delete(input.gameId); throw error; }
         const job = { id: crypto.randomUUID(), gameId: input.gameId, kind: 'build-tools', title: `${gameById(input.gameId).title} build tools`, downloadLocation, status: 'queued', license: null, log: [], createdAt: new Date().toISOString() };
@@ -1797,7 +1814,7 @@ function createApp(options = {}) {
       if (url.pathname === '/api/personal-build' && req.method === 'POST') {
         const requestInput = await body(req);
         const game = gameById(requestInput.gameId);
-        if (!game || !['gta-sa-vr', 'rdr1-vr', 'vice-city-vr', 'crazy-taxi-vr', 'fzero-x-virtuavr', 'bioshock-vr', 'victory-heat-rally-vr', 'jurassic-park-arcade-vr', 'balatro-vr', 'mario64mr'].includes(game.id)) throw new Error('Choose a supported personal build');
+        if (!game || !['gta-sa-vr', 'rdr1-vr', 'vice-city-vr', 'crazy-taxi-vr', 'fzero-x-virtuavr', 'bioshock-vr', 'victory-heat-rally-vr', 'jurassic-park-arcade-vr', 'balatro-vr', 'mario64mr', 'ace-combat-zero-vr'].includes(game.id)) throw new Error('Choose a supported personal build');
         requireSupported(game);
         const serialBuild = buildToolGames.has(game.id) || ['jurassic-park-arcade-vr', 'balatro-vr', 'mario64mr'].includes(game.id);
         if (serialBuild && busyBuildGames.has(game.id)) return json(res, 409, { error: 'Game tool setup or build is already running' });
@@ -1828,6 +1845,8 @@ function createApp(options = {}) {
           ? await validateBalatroInput(requestInput)
           : game.id === 'mario64mr'
           ? await marioInputValidator(requestInput)
+          : game.id === 'ace-combat-zero-vr'
+          ? await validateAceInput(requestInput)
           : await validatePersonalBuildInput(game.id, requestInput, { platform: options.platform });
         if (downloadLocation) input.downloadLocation = downloadLocation;
         if (!canQueueInstall(input.serial)) return json(res, 409, { error: 'Another operation is already running on this device' });
