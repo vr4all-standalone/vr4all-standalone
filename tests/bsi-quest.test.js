@@ -15,7 +15,7 @@ const release = { tag: 'b142', assetName: 'BSI-Quest-Installer.zip',
 
 async function fixture(t) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-bsi-'));
-  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  t.after(() => fs.rm(root, { recursive: true, force: true, maxRetries: 8, retryDelay: 75 }));
   const game = path.join(root, 'BioShock Infinite');
   await fs.mkdir(path.join(game, 'Binaries', 'Win32'), { recursive: true });
   await fs.mkdir(path.join(game, 'Engine'));
