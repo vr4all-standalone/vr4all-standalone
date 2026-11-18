@@ -152,8 +152,9 @@ const additions = [
   },
   {
     id: 'wolfsharp', title: 'WolfSharp', gameName: 'Wolfenstein 3D / Spear of Destiny', series: 'Ben McLean', category: 'PC', color: '#b98b6f',
-    description: 'Wolfenstein 3D in native VR; the author includes shareware.', projectUrl: 'https://benmclean.itch.io/wolfsharp',
-      data: [{ id: 'retail', label: 'Optional Wolfenstein / Spear DOS game folder', kind: 'directory', destination: '/sdcard/WOLF3D/', optional: true, oneOfDirectories: ['WL6', 'M1', 'M2', 'M3', 'N3D'], copyEntries: ['WL6', 'M1', 'M2', 'M3', 'N3D'], note: 'Optional. Shareware is already included. For owned retail episodes, drop the parent folder containing WL6, M1, M2, M3, or N3D; ZIP, 7z, and RAR work too.' }], guidance: 'Download the creator-hosted Android APK, then select it as a Local APK. The APK includes shareware; owned DOS retail files can be added through the game file field.',
+    description: 'Wolfenstein 3D in native VR; the author includes shareware.', projectUrl: 'https://github.com/BenMcLean/WolfSharp',
+    source: { repo: 'BenMcLean/WolfSharp', assetPattern: '^BenMcLean\\.Wolf3D\\.VR_android-meta-quest_v[0-9.]+\\.apk$' },
+      data: [{ id: 'retail', label: 'Optional Wolfenstein / Spear DOS game folder', kind: 'directory', destination: '/sdcard/WOLF3D/', optional: true, oneOfDirectories: ['WL6', 'M1', 'M2', 'M3', 'N3D'], copyEntries: ['WL6', 'M1', 'M2', 'M3', 'N3D'], note: 'Optional. Shareware is already included. For owned retail episodes, drop the parent folder containing WL6, M1, M2, M3, or N3D; ZIP, 7z, and RAR work too.' }], guidance: 'VR4ALL downloads and installs the creator’s latest Meta Quest APK from GitHub. Shareware is included; owned DOS retail files can be added through the optional game file field.',
     afterInstall: 'Launch WolfSharp under Unknown Sources.',
   },
   {

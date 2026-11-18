@@ -197,7 +197,8 @@ test('official GitHub sources select only installable Quest APK assets', () => {
 test('build-required inventory excludes ports with a prebuilt Quest APK', () => {
   const games = getCatalog();
   assert.deepEqual(games.filter((game) => game.manualBuild).map((game) => game.id).sort(),
-    ['vice-city-vr', 'crazy-taxi-vr', 'gta-sa-vr', 'rdr1-vr', 'fzero-x-virtuavr', 'virtua-tennis-3-vr'].sort());
+    ['vice-city-vr', 'crazy-taxi-vr', 'gta-sa-vr', 'rdr1-vr', 'fzero-x-virtuavr'].sort());
+  assert.ok(games.find((game) => game.id === 'virtua-tennis-3-vr').personalBuild);
   const byId = Object.fromEntries(games.map((game) => [game.id, game]));
   assert.equal(byId.doom3quest.source.repo, 'Team-Beef-Studios/Doom3Quest');
   assert.equal(byId.quake3quest.source.repo, 'Team-Beef-Studios/ioq3quest');
