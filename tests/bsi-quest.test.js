@@ -61,7 +61,8 @@ test('BioShock Infinite accepts only a verified official installer and one selec
     await fs.mkdir(folder, { recursive: true });
     for (const name of ['Install-BSIQuest.ps1', 'Set-Mode.ps1', 'bsi-quest.apk', 'vulkan.ad07xx.so']) await fs.writeFile(path.join(folder, name), 'fixture');
   };
-  const adb = { getPath: () => 'C:\\adb.exe', listDevices: async () => [{ serial: 'QUEST3', state: 'device', model: 'Quest 3' }],
+  const adbPath = path.join(root, 'adb.exe');
+  const adb = { getPath: () => adbPath, listDevices: async () => [{ serial: 'QUEST3', state: 'device', model: 'Quest 3' }],
     run: async (args) => args.includes('getprop') ? 'Quest 3' : args.includes('pm') && args.includes('list') ? 'package:com.bsiquest.game'
       : args.includes('pm') && args.includes('path') ? 'package:/data/app/com.bsiquest.game/base.apk'
         : args.includes('dumpsys') ? 'versionName=b142'
@@ -75,7 +76,7 @@ test('BioShock Infinite accepts only a verified official installer and one selec
   assert.equal(result.packageId, 'com.bsiquest.game');
   assert.equal(result.tag, 'b142');
   assert.equal(invoked.selectedGame, game);
-  assert.equal(invoked.adbPath, 'C:\\adb.exe');
+  assert.equal(invoked.adbPath, adbPath);
   assert.match(invoked.script, /Install-BSIQuest\.ps1$/);
 });
 
