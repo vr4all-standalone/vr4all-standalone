@@ -461,6 +461,12 @@ async function inspectDevice(adb, serial, games, knownPackages = {}) {
       const academy = await list('/sdcard/JKXR/JK3/base');
       return outcast.includes('assets0.pk3') || academy.includes('assets0.pk3');
     }
+    if (game.id === 'virtua-tennis-3-vr') {
+      const root = await list('/sdcard/VirtuaTennis3/');
+      if (!['vt3_Lindbergh', 'shader', 'lib'].every((name) => root.includes(name))) return false;
+      return (await list('/sdcard/VirtuaTennis3/vt3_Lindbergh/')).includes('vt3_Lindbergh_HD')
+        && (await list('/sdcard/VirtuaTennis3/lib/')).includes('libCg.so');
+    }
     if (!game.data.length) return true; // No external files are managed by VR4ALL for this app.
     for (const item of game.data.filter((entry) => !entry.optional)) {
       if (item.kind === 'directory') {

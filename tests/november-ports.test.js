@@ -112,21 +112,13 @@ test('Futurama selects the Quest APK and requires the owned Xbox ISO at its docu
   assert.ok(plan.some((step) => step.args.includes('/sdcard/Android/data/com.futuramarecomp.app/files/futurama.iso')));
 });
 
-test('source-only Quest ports explain their creator build requirements', () => {
+test('Virtua Tennis 3 builds in app while Lunacid explains its account-dependent creator build', () => {
   const catalog = getCatalog();
   const vt3 = catalog.find((entry) => entry.id === 'virtua-tennis-3-vr');
   const lunacid = catalog.find((entry) => entry.id === 'lunacid-vr');
-  assert.equal(vt3.manualBuild, true);
-  assert.ok(vt3.data.some((item) => item.requiredDirectories?.includes('vt3_Lindbergh')));
-  const plan = buildInstallPlan(vt3, {
-    serial: 'Q3', apkPath: 'C:\\Ports\\VirtuaTennis3VR.apk',
-    files: { game: 'C:\\Games\\VT3\\disk0' },
-    directoryEntries: { game: ['vt3_Lindbergh', 'shader', 'lib', 'unrelated'] },
-  });
-  assert.deepEqual(plan.filter((step) => step.args.includes('push')).map((step) => step.args.at(-1)), [
-    '/sdcard/VirtuaTennis3/', '/sdcard/VirtuaTennis3/', '/sdcard/VirtuaTennis3/',
-  ]);
-  assert.equal(plan.some((step) => step.args.some((arg) => String(arg).includes('unrelated'))), false);
+  assert.ok(vt3.personalBuild);
+  assert.equal(vt3.manualBuild, undefined);
+  assert.equal(vt3.data.length, 0);
   assert.equal(lunacid.externalInstaller, true);
   assert.ok(lunacid.guidance.includes('40 GB'));
 });
@@ -137,6 +129,8 @@ test('new Quest ports require their game data before showing ready', async () =>
   const files = new Map([
     ['/sdcard/Android/data/com.futuramarecomp.app/files', 'futurama.iso'],
     ['/sdcard/VirtuaTennis3/', 'vt3_Lindbergh\nshader\nlib'],
+    ['/sdcard/VirtuaTennis3/vt3_Lindbergh/', 'vt3_Lindbergh_HD'],
+    ['/sdcard/VirtuaTennis3/lib/', 'libCg.so'],
     ['/sdcard/Android/obb/com.AkumaKira.LunacidVR', 'main.1.com.AkumaKira.LunacidVR.obb'],
   ]);
   const adb = { run: async (args) => {

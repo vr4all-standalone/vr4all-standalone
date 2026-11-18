@@ -125,9 +125,15 @@ const novemberPorts = [
   {
     id: 'virtua-tennis-3-vr', title: 'Virtua Tennis 3 VR', gameName: 'Virtua Tennis 3', series: 'mrchrisster', category: 'Arcade', color: '#9ebd79',
     description: 'Sega Lindbergh tennis with courtside VR and a classic virtual screen on Quest.',
-    projectUrl: 'https://github.com/mrchrisster/virtuatennis3-vr', manualBuild: true,
-    data: [{ id: 'game', label: 'Owned Virtua Tennis 3 disk0 folder', kind: 'directory', destination: '/sdcard/VirtuaTennis3/', requiredDirectories: ['vt3_Lindbergh', 'shader', 'lib'], copyEntries: ['vt3_Lindbergh', 'shader', 'lib'], note: 'The complete disk0 folder is required. Its vt3_Lindbergh/vt3_Lindbergh_HD and lib/libCg.so must match the creator’s documented SHA-256 checks. This port’s APK must be built from the same copy.' }],
-    guidance: 'The creator does not distribute an APK: it contains code recompiled from your own arcade copy. Run the creator’s Windows build script with your disk0 folder, then drop its personal VirtuaTennis3VR.apk and the same disk0 folder here. VR4ALL installs and transfers both. The creator also provides a one-command build-and-install script; Quest gameplay is still experimental.',
+    projectUrl: 'https://github.com/mrchrisster/virtuatennis3-vr',
+    personalBuild: {
+      gameLabel: 'Owned Virtua Tennis 3 disk0 folder',
+      gameHint: 'Choose the complete disk0 folder with vt3_Lindbergh, shader and lib. VR4ALL checks the exact arcade revision through the creator’s builder.',
+      inputStep: 'Add your original arcade game folder', actionLabel: 'Build and install',
+      processDescription: 'VR4ALL refreshes the creator’s source, runs its Windows game-file check, builds your personal APK and copies the game to your selected Quest. The first build needs Git Bash, CMake, Ninja, Python 3.10+, JDK 17+ and Android SDK/NDK 27 or 28 on this PC.',
+    },
+    data: [],
+    guidance: 'The creator does not distribute a Quest APK because it contains code recompiled from your own arcade copy. VR4ALL runs the official Windows builder inside the app. The game and library hashes must match the creator’s supported revision; incomplete player models are rejected to avoid tournament crashes. Keep the same PC build folder for faster updates.',
   },
   {
     id: 'lunacid-vr', title: 'Lunacid VR', gameName: 'Lunacid', series: 'felipevc13', category: 'PC', color: '#9e74ad',

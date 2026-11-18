@@ -32,6 +32,7 @@ const { validateMarioInput, runMarioBuild } = require('./src/mario64mr-runner');
 const { validateJurassicInput, resolvePhysxFolder, requiredPhysxFiles, runJurassicBuild } = require('./src/jurassic-runner');
 const { validateVictoryHeatInput, runVictoryHeatBuild } = require('./src/victory-heat-runner');
 const { validateAceInput, prepareAceTools, runAceCombatBuild } = require('./src/ace-combat-zero-runner');
+const { validateVirtuaTennisInput, runVirtuaTennisBuild } = require('./src/virtua-tennis-runner');
 const { validateBSIGame, installBSIQuest } = require('./src/bsi-quest-runner');
 const { checkRdrInternet } = require('./src/rdr-connectivity');
 const { validateViceCityInput, runViceCityBuild } = require('./src/vice-city-runner');
@@ -139,6 +140,7 @@ function createApp(options = {}) {
   const marioInputValidator = options.validateMarioInput || validateMarioInput;
   const victoryHeatBuilder = options.victoryHeatBuilder || runVictoryHeatBuild;
   const aceCombatBuilder = options.aceCombatBuilder || runAceCombatBuild;
+  const virtuaTennisBuilder = options.virtuaTennisBuilder || runVirtuaTennisBuild;
   const bsiInstaller = options.bsiInstaller || installBSIQuest;
   const aceToolsSetup = options.aceToolsSetup || prepareAceTools;
   const bioshockInstaller = options.bioshockInstaller || installBioShock;
@@ -342,6 +344,7 @@ function createApp(options = {}) {
     if (!stat) return false;
     if (game.id === 'mario64mr' && key === 'gamePackage') return Boolean(await marioInputValidator({ gamePackage: local, serial: 'saved' }).catch(() => null));
     if (game.id === 'ace-combat-zero-vr' && key === 'gamePackage') return Boolean(await validateAceInput({ gamePackage: local, serial: 'saved' }).catch(() => null));
+    if (game.id === 'virtua-tennis-3-vr' && key === 'gamePackage') return Boolean(await validateVirtuaTennisInput({ gamePackage: local, serial: 'saved' }).catch(() => null));
     if (game.id === 'balatro-vr' && key === 'gamePackage') return Boolean(await validateBalatroInput({ gamePackage: local, serial: 'saved' }).catch(() => null));
     if (game.id === 'jurassic-park-arcade-vr') {
       if (!stat.isDirectory()) return false;
@@ -714,6 +717,8 @@ function createApp(options = {}) {
         ? await victoryHeatBuilder({ ...input, releases, source: sourceFor(game), adb, workspaceRoot: buildWorkRoot(), inspectApk, onLog: log, platform: options.platform })
         : game.id === 'ace-combat-zero-vr'
         ? await aceCombatBuilder({ ...input, releases, adb, workspaceRoot: path.join(input.downloadLocation, 'VR4ALL-build-tools', 'builds'), inspectApk, onLog: log, licenseAccepted: Boolean(settings.aceCombatLicenseAccepted) })
+        : game.id === 'virtua-tennis-3-vr'
+        ? await virtuaTennisBuilder(input, { workspaceRoot: buildWorkRoot(), adb, inspectApk, onLog: log, platform: options.platform })
         : game.id === 'bioshock-infinite-vr'
         ? await bsiInstaller({ gamePath: input.gamePackage, serial: input.serial,
           release: await releases.latest(sourceFor(game), { force: true }), releases, adb,
@@ -1821,9 +1826,9 @@ function createApp(options = {}) {
       if (url.pathname === '/api/personal-build' && req.method === 'POST') {
         const requestInput = await body(req);
         const game = gameById(requestInput.gameId);
-        if (!game || !['gta-sa-vr', 'rdr1-vr', 'vice-city-vr', 'crazy-taxi-vr', 'fzero-x-virtuavr', 'bioshock-vr', 'bioshock-infinite-vr', 'victory-heat-rally-vr', 'jurassic-park-arcade-vr', 'balatro-vr', 'mario64mr', 'ace-combat-zero-vr'].includes(game.id)) throw new Error('Choose a supported personal build');
+        if (!game || !['gta-sa-vr', 'rdr1-vr', 'vice-city-vr', 'crazy-taxi-vr', 'fzero-x-virtuavr', 'bioshock-vr', 'bioshock-infinite-vr', 'victory-heat-rally-vr', 'jurassic-park-arcade-vr', 'balatro-vr', 'mario64mr', 'ace-combat-zero-vr', 'virtua-tennis-3-vr'].includes(game.id)) throw new Error('Choose a supported personal build');
         requireSupported(game);
-        const serialBuild = buildToolGames.has(game.id) || ['jurassic-park-arcade-vr', 'balatro-vr', 'mario64mr'].includes(game.id);
+        const serialBuild = buildToolGames.has(game.id) || ['jurassic-park-arcade-vr', 'balatro-vr', 'mario64mr', 'virtua-tennis-3-vr'].includes(game.id);
         if (serialBuild && busyBuildGames.has(game.id)) return json(res, 409, { error: 'Game tool setup or build is already running' });
         const downloadLocation = buildToolGames.has(game.id) && (game.id === 'vice-city-vr' || buildToolsLocation(game.id))
           ? await validateBuildToolsLocation(buildToolsLocation(game.id)) : null;
@@ -1856,6 +1861,8 @@ function createApp(options = {}) {
           ? await marioInputValidator(requestInput)
           : game.id === 'ace-combat-zero-vr'
           ? await validateAceInput(requestInput)
+          : game.id === 'virtua-tennis-3-vr'
+          ? await validateVirtuaTennisInput(requestInput)
           : await validatePersonalBuildInput(game.id, requestInput, { platform: options.platform });
         if (downloadLocation) input.downloadLocation = downloadLocation;
         if (!canQueueInstall(input.serial)) return json(res, 409, { error: 'Another operation is already running on this device' });

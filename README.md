@@ -10,7 +10,7 @@
 
 ## 🎮 Current catalog: 164 game projects and 7 emulator tools
 
-The catalog has **164 game cards, 7 emulator and runtime cards, and 183 port choices**, including alternate mods for Time Crisis, Pokémon, Halo, Max Payne, Virtua Cop, and The House of the Dead. Each card explains its setup requirements; Quest model support varies by port. Silent Hill VR, Skate 3 AR, WarioWare: Twisted! VR, and Futurama Quest have direct APKs; Ace Combat Zero VR builds a personal APK from your own US PS2 disc inside VR4ALL. BioShock Infinite VR runs the creator's stable Windows installer inside VR4ALL using your own Steam game folder. Virtua Tennis 3 VR and Lunacid VR currently require personal builds from the creators' tools.
+The catalog has **164 game cards, 7 emulator and runtime cards, and 183 port choices**, including alternate mods for Time Crisis, Pokémon, Halo, Max Payne, Virtua Cop, and The House of the Dead. Each card explains its setup requirements; Quest model support varies by port. Silent Hill VR, Skate 3 AR, WarioWare: Twisted! VR, Futurama Quest, and WolfSharp have direct Quest APKs. Ace Combat Zero and Virtua Tennis 3 build personal Quest APKs from your own game files inside VR4ALL. BioShock Infinite runs its creator's stable Windows installer inside VR4ALL using your own Steam game folder. Lunacid VR still requires an account-dependent personal build using the creator's tools.
 
 Game Or Die’s Forsaken, Unreal Gold and Unreal Tournament 99 Quest ports are available as alternate developer choices. Their official setup can download and prepare the required data; optional local folders and each creator’s app remain separate.
 
