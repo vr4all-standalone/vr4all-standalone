@@ -402,8 +402,12 @@ test('Descent 3 one-click setup uses owned folder and cached official APK', asyn
   try {
     const started = await request(app, 'POST', '/api/descent3-install', { gameId: 'descent3-vr', serial: 'Q3', gamePath });
     assert.equal(started.status, 202, JSON.stringify(started.body));
-    await new Promise((resolve) => setTimeout(resolve, 20));
-    const result = await request(app, 'GET', `/api/jobs/${started.body.job.id}`);
+    let result;
+    for (let attempt = 0; attempt < 50; attempt++) {
+      result = await request(app, 'GET', `/api/jobs/${started.body.job.id}`);
+      if (result.body.job.status !== 'running' && result.body.job.status !== 'queued') break;
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
     assert.equal(result.body.job.status, 'success', result.body.job.error);
     assert.equal(calls[0].gamePath, gamePath);
     assert.equal(calls[0].apkPath, apk);
@@ -431,8 +435,12 @@ test('JKXR one-click setup installs both official APKs with owned Jedi data', as
   try {
     const started = await request(app, 'POST', '/api/jkxr-install', { gameId: 'jkxr', serial: 'Q3', gamePath: path.join(root, 'Jedi Outcast'), jediGame: 'jk2' });
     assert.equal(started.status, 202, JSON.stringify(started.body));
-    await new Promise((resolve) => setTimeout(resolve, 20));
-    const result = await request(app, 'GET', `/api/jobs/${started.body.job.id}`);
+    let result;
+    for (let attempt = 0; attempt < 50; attempt++) {
+      result = await request(app, 'GET', `/api/jobs/${started.body.job.id}`);
+      if (result.body.job.status !== 'running' && result.body.job.status !== 'queued') break;
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
     assert.equal(result.body.job.status, 'success', result.body.job.error);
     assert.equal(calls[0].game, 'jk2');
     assert.equal(calls[0].gamePath, path.join(root, 'Jedi Outcast'));
