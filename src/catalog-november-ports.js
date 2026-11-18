@@ -196,6 +196,22 @@ const novemberPorts = [
     guidance: 'This is an early v0.1 Quest 3 build. Quest 3S is declared by the creator but has not been gameplay tested. The optional third-party cockpit pack is not included. Keep the PC build folder and signing key for future updates; your personal APK must not be redistributed.',
     afterInstall: 'Pair a gamepad with the headset if you prefer it to Touch controllers. Launch ac0oculus under Unknown Sources; first launch prepares shaders.',
   },
+  {
+    id: 'bioshock-infinite-vr', title: 'BioShock Infinite VR', gameName: 'BioShock Infinite', series: 'egomortal', category: 'PC', color: '#88a7c4',
+    description: 'Native standalone BioShock Infinite on Quest 3 in stereo VR, using your owned Steam game files.',
+    projectUrl: 'https://github.com/egomortal/bsi-quest',
+    source: { repo: 'egomortal/bsi-quest', assetPattern: '^BSI-Quest-Installer\\.zip$', releasePattern: 'stable' },
+    releaseKind: 'installer',
+    personalBuild: {
+      specialInstaller: true, gameLabel: 'Owned BioShock Infinite Steam game folder',
+      gameHint: 'Drop your installed Steam BioShock Infinite folder containing Binaries/Win32/BioShockInfinite.exe, Engine and XGame. The creator checks the exact supported Steam executable. GOG and Epic builds are unsupported.',
+      inputStep: 'Add your Steam game folder', actionLabel: 'Install to Quest',
+      processDescription: 'VR4ALL downloads the verified stable creator bundle and runs its installer with your selected folder. The installer adds the Quest APK, Vulkan driver, settings and game data. It resumes unchanged files on a later run. Allow about 20 GB of headset space without DLC or 45 GB with DLC.',
+    },
+    data: [],
+    guidance: 'Quest 3 is creator tested. Quest 3S has the same chip but has not been play tested. Quest 2 and Pro are unsupported. Connect only one authorized Quest while installing. VR4ALL selects the creator’s stable release, not experimental prereleases.',
+    afterInstall: 'Open BSI Quest from Unknown Sources. The first launch may take time. The creator offers a report tool in the official bundle for gameplay issues.',
+  },
 ];
 
 const novemberPortFacets = {
@@ -209,6 +225,7 @@ const novemberPortFacets = {
   'skate3-quest-ar': ['Xbox', 'Sports'],
   'silent-hill-1999-vr': ['PlayStation', 'Adventure'],
   'ace-combat-zero-vr': ['PlayStation 2', 'Flight combat'],
+  'bioshock-infinite-vr': ['PC', 'Shooter'],
 };
 
 module.exports = { novemberPorts, novemberPortFacets };

@@ -1,5 +1,7 @@
 # Artwork sources
 
+- BioShock Infinite VR: [official Steam store header](https://store.steampowered.com/app/8870/BioShock_Infinite/), saved as `public/art/bioshock-infinite-vr.jpg`. BioShock Infinite art and marks belong to 2K/Irrational; redistribution permission for VR4ALL is unverified.
+
 ## Quest additions — 12 November 2026
 
 - Bugdom VR: [creator's in-game title image](https://portroyale.online/images/bugdom/1-title.jpg), captured on Quest 3. Bugdom art belongs to its creators; reuse permission for VR4ALL is unverified.

@@ -42,6 +42,7 @@ const packages = {
   dolphinxr: 'org.dolphinemu.dolphinemu.quest.debug',
   'silent-scope-vr': 'com.vrlightgunhub.silentscope',
   'ace-combat-zero-vr': 'com.kulakovri.ac0oculus',
+  'bioshock-infinite-vr': 'com.bsiquest.game',
   'vtmb-resource': 'diy.resource.vtmb.vulkan',
   'gunblade-ny-vr': 'com.vrlightgunhub.gunbladeny',
   'hotd-model2-vr': 'com.vrlightgunhub.hotdmodel2',
@@ -218,6 +219,14 @@ async function inspectDevice(adb, serial, games, knownPackages = {}) {
     if (game.id === 'ace-combat-zero-vr') {
       return (await list('/sdcard/ac0oculus/')).includes('disc.iso')
         && (await list('/sdcard/ac0oculus/gen_zero/')).includes('ps2_image.bin');
+    }
+    if (game.id === 'bioshock-infinite-vr') {
+      for (const root of ['/sdcard/Android/data/com.bsiquest.game/files/game', '/sdcard/BSI/BioShock Infinite']) {
+        const names = await list(root);
+        if (['Binaries', 'Engine', 'XGame'].every((name) => names.includes(name))
+          && (await list(`${root}/Binaries/Win32`)).includes('BioShockInfinite.exe')) return true;
+      }
+      return false;
     }
     if (game.id === 'lunacid-vr') return (await list('/sdcard/Android/obb/com.AkumaKira.LunacidVR')).some((name) => /^main\.\d+\.com\.AkumaKira\.LunacidVR\.obb$/i.test(name));
     if (game.id === 'mario64mr') {

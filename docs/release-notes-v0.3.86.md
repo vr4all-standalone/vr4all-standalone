@@ -4,5 +4,11 @@
 - Drop an ISO from your own US Ace Combat Zero PS2 disc. VR4ALL checks the disc with the creator’s builder, builds your personal Quest APK, and transfers the APK and required data to the selected headset.
 - Prepare the creator’s setup inside VR4ALL. If Android NDK r29 is missing, VR4ALL displays Google’s license for your approval before the first build downloads it.
 - Check both the installed APK and the required disc and generated memory image on the headset before marking the port ready.
+- Add **BioShock Infinite VR (BSI-Quest)** as a separate card. Choose your owned Steam game folder in VR4ALL; it downloads the creator's checksum-verified stable installer ZIP, installs the APK, driver and settings, and copies the game data to one connected Quest. The creator installer checks the exact Steam executable and resumes unchanged files on retry.
+- Detect BioShock Infinite only after both the Quest APK and required Steam game folders are present. Track stable creator releases for later updates.
+
+The catalog now has 164 game cards, 7 emulator/runtime cards and 183 port choices.
 
 This is an early creator release. The creator has played it on Quest 3; Quest 3S support is declared but not yet tested. VR4ALL’s integration is tested with simulated builder and ADB calls; a physical end-to-end install has not yet been verified. The optional third-party cockpit pack is not included.
+
+BSI-Quest requires an owned Steam copy and about 20 GB free on the headset without DLC, or 45 GB with DLC. Its creator tested Quest 3; Quest 3S is untested, and Quest 2/Pro are unsupported. VR4ALL's BSI integration has automated tests, but a physical end-to-end install has not yet been verified.
