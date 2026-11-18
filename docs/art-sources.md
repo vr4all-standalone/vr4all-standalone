@@ -1,5 +1,7 @@
 # Artwork sources
 
+- BioShock Infinite VR: [official Steam store header](https://store.steampowered.com/app/8870/BioShock_Infinite/), saved as `public/art/bioshock-infinite-vr.jpg`. BioShock Infinite art and marks belong to 2K/Irrational; redistribution permission for VR4ALL is unverified.
+
 ## Quest additions — 12 November 2026
 
 - Bugdom VR: [creator's in-game title image](https://portroyale.online/images/bugdom/1-title.jpg), captured on Quest 3. Bugdom art belongs to its creators; reuse permission for VR4ALL is unverified.
@@ -216,3 +218,7 @@ These images identify the ports and original games. Rights remain with their res
 ## Silent Hill VR — 17 November 2026
 
 - Silent Hill VR: [original 1999 PlayStation title screen](https://www.silenthillmemories.net/sh1/playing_the_game_en.htm) from Silent Hill Memories, saved as `public/art/silent-hill-1999-vr.jpg`. Konami artwork; redistribution permission is unverified.
+
+## Ace Combat Zero VR — 17 November 2026
+
+- Ace Combat Zero: The Belkan War: [original PlayStation 2 cover](https://www.thevideogamecompany.com/products/ace-combat-zero-sony-playstation-2-ps2), saved as `public/art/ace-combat-zero-vr.jpg`. Bandai Namco artwork; redistribution permission is unverified.

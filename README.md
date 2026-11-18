@@ -8,9 +8,9 @@
 
 ![VR4ALL showing its standalone Quest mod library and a game setup panel](docs/images/vr4all-library.png)
 
-## 🎮 Current catalog: 162 game projects and 7 emulator tools
+## 🎮 Current catalog: 164 game projects and 7 emulator tools
 
-The catalog has **162 game cards, 7 emulator and runtime cards, and 181 port choices**, including alternate mods for Time Crisis, Pokémon, Halo, Max Payne, Virtua Cop, and The House of the Dead. Each card explains its setup requirements; Quest model support varies by port. Silent Hill VR, Skate 3 AR, WarioWare: Twisted! VR, and Futurama Quest have direct APKs; Virtua Tennis 3 VR and Lunacid VR currently require personal builds from the creators' tools.
+The catalog has **164 game cards, 7 emulator and runtime cards, and 183 port choices**, including alternate mods for Time Crisis, Pokémon, Halo, Max Payne, Virtua Cop, and The House of the Dead. Each card explains its setup requirements; Quest model support varies by port. Silent Hill VR, Skate 3 AR, WarioWare: Twisted! VR, and Futurama Quest have direct APKs; Ace Combat Zero VR builds a personal APK from your own US PS2 disc inside VR4ALL. BioShock Infinite VR runs the creator's stable Windows installer inside VR4ALL using your own Steam game folder. Virtua Tennis 3 VR and Lunacid VR currently require personal builds from the creators' tools.
 
 Game Or Die’s Forsaken, Unreal Gold and Unreal Tournament 99 Quest ports are available as alternate developer choices. Their official setup can download and prepare the required data; optional local folders and each creator’s app remain separate.
 
@@ -18,7 +18,7 @@ Project Honeydew can be installed from its checksum-verified creator APK with yo
 
 ## What VR4ALL does
 
-- 🧭 **One hub for ALL standalone Quest VR ports.** Browse 162 game projects and 7 emulator tools in VR4ALL, search by game, console, or genre, and find each mod creator's project in one place.
+- 🧭 **One hub for ALL standalone Quest VR ports.** Browse 164 game projects and 7 emulator tools in VR4ALL, search by game, console, or genre, and find each mod creator's project in one place.
 - ⚡ **Simple, one-click installation.** Bring the game files or creator APK requested on the card, then click **Install**. VR4ALL handles the build, patch, and headset transfer steps in the app, so players do not need to follow a separate build guide.
 - 📋 **Know which game files you need.** Each file requirement has a copy button. Arcade cards show the known ROM set and revision, and VR4ALL checks documented chip identities where the creator provides them.
 - 🔄 **Auto update installed mods.** Scan your connected Quest to find new creator releases, then approve the updates you want VR4ALL to install on the headset.

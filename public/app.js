@@ -282,12 +282,16 @@ function versionStatus(game) {
   if (game.localPlayerInstall === 'sclerosis') return 'status-current';
   if (game.id === 'fzero-x-virtuavr' && device.packageId === 'dev.gdiffuser.quest') return 'status-current';
   const completed = state.installed?.[state.selectedSerial]?.[game.id];
+  if (game.id === 'ace-combat-zero-vr') {
+    if (!release || release.stale || completed?.packageId !== device.packageId || !completed.tag) return 'status-installed';
+    return completed.tag === release.tag ? 'status-current' : 'status-update';
+  }
   if (game.id === 'victory-heat-rally-vr' && completed?.packageId === device.packageId
     && release && !release.stale && completed.sourceCommit) {
     return completed.sourceCommit === release.tag ? 'status-current' : 'status-update';
   }
   if (game.id === 'victory-heat-rally-vr') return 'status-installed';
-  if (game.id === 'bioshock-vr' && release && !release.stale && completed?.packageId === device.packageId) {
+  if (['bioshock-vr', 'bioshock-infinite-vr'].includes(game.id) && release && !release.stale && completed?.packageId === device.packageId) {
     return completed.tag === release.tag ? 'status-current' : 'status-update';
   }
   if (game.id === 'mario64mr') {
@@ -323,8 +327,9 @@ function statusExplanation(game) {
   const status = versionStatus(game);
   if (game.localPlayerInstall === 'sclerosis' && status === 'status-current') return 'Sclerosis APK and required Amnesia game folders found on this Quest. Creator APK updates require a manual download.';
   if (game.id === 'fzero-x-virtuavr' && status === 'status-current') return 'Quest APK and all three prepared F-Zero files found. Ready to play; creator releases are downloaded manually.';
-  if (status === 'status-current') return game.id === 'bioshock-vr' ? 'BioShock APK and game files found; VR4ALL installed the latest checked creator build.' : game.id === 'victory-heat-rally-vr' ? 'Your personal Victory Heat Rally build is installed and matches the latest checked creator builder release.' : `Port APK and game files found; the installed build matches the latest checked ${releaseProviderName(sourceFor(game))} release.`;
-  if (status === 'status-update') return game.id === 'bioshock-vr' ? 'BioShock is installed; a newer creator installer is available.' : game.id === 'victory-heat-rally-vr' ? 'A newer Victory Heat Rally builder is available. VR4ALL can rebuild your personal APK from the saved game folder.' : game.id === 'mario64mr' ? 'A newer Mario 64 MR release needs the Quest APK and your ROM-built game data updated together. VR4ALL can rebuild both from your saved ROM.' : 'Port APK and game files found; a newer checked Quest APK is available.';
+  if (game.id === 'ace-combat-zero-vr' && status === 'status-current') return 'Personal Ace Combat Zero APK, US disc and generated memory image are on this Quest. The build matches the latest checked creator setup.';
+  if (status === 'status-current') return game.id === 'bioshock-vr' ? 'BioShock APK and game files found; VR4ALL installed the latest checked creator build.' : game.id === 'bioshock-infinite-vr' ? 'BioShock Infinite APK and Steam game files found; VR4ALL installed the latest checked stable creator build.' : game.id === 'victory-heat-rally-vr' ? 'Your personal Victory Heat Rally build is installed and matches the latest checked creator builder release.' : `Port APK and game files found; the installed build matches the latest checked ${releaseProviderName(sourceFor(game))} release.`;
+  if (status === 'status-update') return game.id === 'bioshock-vr' ? 'BioShock is installed; a newer creator installer is available.' : game.id === 'bioshock-infinite-vr' ? 'BioShock Infinite is installed; a newer stable creator installer is available. VR4ALL can run it with your saved Steam folder.' : game.id === 'victory-heat-rally-vr' ? 'A newer Victory Heat Rally builder is available. VR4ALL can rebuild your personal APK from the saved game folder.' : game.id === 'mario64mr' ? 'A newer Mario 64 MR release needs the Quest APK and your ROM-built game data updated together. VR4ALL can rebuild both from your saved ROM.' : 'Port APK and game files found; a newer checked Quest APK is available.';
   if (game.personalBuild) return 'Quest package found and required data checks passed. Ready to play; VR4ALL cannot confirm this build against the author’s latest source.';
   const release = state.releases[game.id];
   if (!sourceFor(game)) return 'Port APK and game files found. No release source is configured, so VR4ALL cannot confirm the version.';
@@ -730,7 +735,7 @@ function personalBuildHtml(game) {
   const build = game.personalBuild;
   const phoneExportCard = ['rdr1-vr', 'gta-sa-vr'].includes(game.id) ? `<div class="sdk-setup-card"><strong>Game installed on your Android phone?</strong><p class="field-help">${game.id === 'rdr1-vr' ? 'Check your Google Play or Netflix installation over USB before copying. Complete phone APKs need no extra source. If world, cutscene or audio packs are private, you need matching Additional RDR game data or existing root access. VR4ALL does not supply a data download, and another edition is not guaranteed to fix missing files.' : 'Export the complete Google Play game over USB, then VR4ALL selects the saved folder for you.'}</p><button id="exportPhoneButton" type="button" class="small-button">Export game from phone</button></div>` : '';
   const inputBlock = (target, label, hint, value) => `<div class="requirement build-requirement"><div class="requirement-top"><span class="requirement-name">${escapeHtml(label)}</span><span class="format-chip">${build.fileOnly && target === 'gamePackage' ? 'FILE' : 'FILE OR FOLDER'}</span></div><p class="field-help">${escapeHtml(hint)}</p>${target === 'audioSource' && build.audioDownloadUrl ? `<div class="build-pickers"><a class="small-button" href="${escapeHtml(build.audioDownloadUrl)}" target="_blank" rel="noopener noreferrer">Download required audio pack ↗</a></div><p class="field-help">Expected file: <code>${escapeHtml(build.audioFileName)}</code></p>` : ''}<input id="${target === 'gamePackage' ? 'buildGamePath' : 'buildAudioPath'}" class="text-input build-path-input" value="${escapeHtml(value || '')}" placeholder="Choose or drop your own ${escapeHtml(label.toLowerCase())}"><div class="build-pickers"><button type="button" class="small-button build-browse-btn" data-build-kind="file" data-build-target="${target}">Choose file</button>${build.fileOnly && target === 'gamePackage' ? '' : `<button type="button" class="small-button build-browse-btn" data-build-kind="directory" data-build-target="${target}">Choose folder</button>`}</div><div class="drop-zone build-drop-zone" data-build-target="${target}">Drop ${escapeHtml(label.toLowerCase())} here</div>${state.savedPaths[game.id]?.[target] && state.pathAvailability[game.id]?.[target] === false ? '<p class="file-check error">Saved path is missing or has the wrong format. Reconnect its drive or choose it again.</p>' : ''}</div>`;
-  return `${detailArtHtml(game)}<div class="detail-series">${escapeHtml(game.console)} · ${escapeHtml(game.genre)} · ${escapeHtml(game.series)}</div><h2 class="detail-title">${escapeHtml(game.title)}</h2><p class="detail-description">${escapeHtml(game.description)}</p>${portChoiceHtml(game)}<div class="detail-divider"></div><div class="detail-step"><span class="step-number">1</span> ${escapeHtml(build.inputStep || 'Drop your original game export')}</div>${phoneExportCard}${inputBlock('gamePackage', build.gameLabel, build.gameHint, values.gamePackage)}${build.audioLabel ? `<div class="detail-step build-second-step"><span class="step-number">2</span> ${escapeHtml(build.audioStep || (game.id === 'fzero-x-virtuavr' ? 'Add the creator’s installer package' : 'Add the required audio pack'))}</div>${inputBlock('audioSource', build.audioLabel, build.audioHint, values.audioSource)}` : ''}<div class="guide-note">${escapeHtml(game.guidance)}</div><p class="field-help"><a href="${escapeHtml(game.projectUrl)}" target="_blank" rel="noopener noreferrer">${game.id === 'fzero-x-virtuavr' ? 'Download official Quest R10 package' : "Read the author's requirements"} ↗</a>${build.toolUrl ? ` · <a href="${escapeHtml(build.toolUrl)}" target="_blank" rel="noopener noreferrer">Official DeltaPatcher on GitHub ↗</a>` : ''}${build.decoderUrl ? ` · <a href="${escapeHtml(build.decoderUrl)}" target="_blank" rel="noopener noreferrer">xdelta3 decoder source ↗</a>` : ''}. ${escapeHtml(build.processDescription || 'VR4ALL downloads the author’s current source, validates your files through the official builder, and installs only to the selected Quest. First builds can download several GB of tools.')}</p>${game.releaseKind === 'patch' || game.id === 'bioshock-vr' ? '<div id="releaseCard" class="release-card"></div>' : ''}<div class="detail-divider"></div><div class="detail-step"><span class="step-number">${build.audioLabel ? '3' : '2'}</span> ${escapeHtml(build.actionLabel || 'Build and install')} to your Quest</div><button type="button" id="personalBuildButton" class="primary-button install-button">${escapeHtml(build.actionLabel || 'Build and install')} <span>→</span></button>${game.afterInstall ? `<p class="after-note">${escapeHtml(game.afterInstall)}</p>` : ''}<div id="jobContainer"></div>`;
+  return `${detailArtHtml(game)}<div class="detail-series">${escapeHtml(game.console)} · ${escapeHtml(game.genre)} · ${escapeHtml(game.series)}</div><h2 class="detail-title">${escapeHtml(game.title)}</h2><p class="detail-description">${escapeHtml(game.description)}</p>${portChoiceHtml(game)}<div class="detail-divider"></div><div class="detail-step"><span class="step-number">1</span> ${escapeHtml(build.inputStep || 'Drop your original game export')}</div>${phoneExportCard}${inputBlock('gamePackage', build.gameLabel, build.gameHint, values.gamePackage)}${build.audioLabel ? `<div class="detail-step build-second-step"><span class="step-number">2</span> ${escapeHtml(build.audioStep || (game.id === 'fzero-x-virtuavr' ? 'Add the creator’s installer package' : 'Add the required audio pack'))}</div>${inputBlock('audioSource', build.audioLabel, build.audioHint, values.audioSource)}` : ''}<div class="guide-note">${escapeHtml(game.guidance)}</div><p class="field-help"><a href="${escapeHtml(game.projectUrl)}" target="_blank" rel="noopener noreferrer">${game.id === 'fzero-x-virtuavr' ? 'Download official Quest R10 package' : "Read the author's requirements"} ↗</a>${build.toolUrl ? ` · <a href="${escapeHtml(build.toolUrl)}" target="_blank" rel="noopener noreferrer">Official DeltaPatcher on GitHub ↗</a>` : ''}${build.decoderUrl ? ` · <a href="${escapeHtml(build.decoderUrl)}" target="_blank" rel="noopener noreferrer">xdelta3 decoder source ↗</a>` : ''}. ${escapeHtml(build.processDescription || 'VR4ALL downloads the author’s current source, validates your files through the official builder, and installs only to the selected Quest. First builds can download several GB of tools.')}</p>${game.releaseKind === 'patch' || game.releaseKind === 'installer' ? '<div id="releaseCard" class="release-card"></div>' : ''}<div class="detail-divider"></div><div class="detail-step"><span class="step-number">${build.audioLabel ? '3' : '2'}</span> ${escapeHtml(build.actionLabel || 'Build and install')} to your Quest</div><button type="button" id="personalBuildButton" class="primary-button install-button">${escapeHtml(build.actionLabel || 'Build and install')} <span>→</span></button>${game.afterInstall ? `<p class="after-note">${escapeHtml(game.afterInstall)}</p>` : ''}<div id="jobContainer"></div>`;
 }
 
 function romRequirementHelp(game, item) {
@@ -775,8 +780,8 @@ function detailHtml(game) {
     const html = personalBuildHtml(game).replace('<input id="buildGamePath"', '<button type="button" class="copy-requirement" data-copy-build="gamePackage" title="Copy the original game file requirement">Copy requirement</button><input id="buildGamePath"');
     const gated = unsupported ? html.replace('<button type="button" id="personalBuildButton"', `<div class="guide-note">${escapeHtml(game.support.reason)}</div><button type="button" id="personalBuildButton" disabled`)
       : game.support?.experimental ? html.replace('<button type="button" id="personalBuildButton"', `<div class="guide-note">${escapeHtml(game.support.note)}</div><button type="button" id="personalBuildButton"`) : html;
-    if (!['vice-city-vr', 'rdr1-vr', 'gta-sa-vr'].includes(game.id)) return gated;
-    const setup = `<div class="sdk-setup-card"><strong>Build tools</strong><p class="field-help">Vice City, RDR and San Andreas reuse tools from the same download folder. Setup checks what is already installed and downloads only missing versions.</p><button id="setupBuildToolsButton" type="button" class="small-button"${unsupported ? ' disabled' : ''}>Set up build tools</button></div>`;
+    if (!['vice-city-vr', 'rdr1-vr', 'gta-sa-vr', 'ace-combat-zero-vr'].includes(game.id)) return gated;
+    const setup = `<div class="sdk-setup-card"><strong>Build tools</strong><p class="field-help">${game.id === 'ace-combat-zero-vr' ? 'VR4ALL prepares the creator’s setup in your selected PC build folder. If Android NDK r29 is missing, review Google’s license before the first build.' : 'Vice City, RDR and San Andreas reuse tools from the same download folder. Setup checks what is already installed and downloads only missing versions.'}</p><button id="setupBuildToolsButton" type="button" class="small-button"${unsupported ? ' disabled' : ''}>Set up build tools</button></div>`;
     return gated.replace('<button type="button" id="personalBuildButton"', `${setup}<button type="button" id="personalBuildButton"`);
   }
   if (game.externalInstaller) return `${detailArtHtml(game)}<div class="detail-series">${escapeHtml(game.console)} · ${escapeHtml(game.genre)} · ${escapeHtml(game.series)}</div><h2 class="detail-title">${escapeHtml(game.title)}</h2><p class="detail-description">${escapeHtml(game.description)}</p>${portChoiceHtml(game)}<div class="detail-divider"></div><div class="guide-note">${escapeHtml(game.guidance)}</div><a class="primary-button install-button" href="${escapeHtml(game.projectUrl)}" target="_blank" rel="noopener noreferrer">${game.developmentPreview ? 'Follow development ↗' : 'Open official setup ↗'}</a>`;
@@ -1594,7 +1599,7 @@ async function buildPersonalGame() {
   setActivity('submit', `Preparing ${game.title} build…`);
   updateInstallEnabled();
   try {
-    if (['vice-city-vr', 'rdr1-vr', 'gta-sa-vr'].includes(game.id)) {
+    if (['vice-city-vr', 'rdr1-vr', 'gta-sa-vr', 'ace-combat-zero-vr'].includes(game.id)) {
       const location = await api('/api/build-tools/location', { method: 'POST', body: JSON.stringify({ gameId: game.id, gamePackage: values.gamePackage }) });
       if (!location.configured) { await startBuildTools(); return; }
     }
@@ -1763,7 +1768,7 @@ function renderBuildToolsJob(job) {
   $('#sdkBrowseButton').disabled = true;
   $('#sdkStartButton').hidden = true;
   $('#sdkSetupStatus').textContent = waiting ? 'Review the license below to continue.'
-    : job.status === 'success' ? 'Tools are ready. Close this window and choose Build and install.'
+    : job.status === 'success' ? job.gameId === 'ace-combat-zero-vr' ? 'Creator setup prepared. Close this window and choose Build and install; the first build may download Android NDK r29.' : 'Tools are ready. Close this window and choose Build and install.'
       : job.status === 'error' ? job.error || 'Tool setup stopped.' : 'Preparing and downloading build tools. This can take several minutes.';
   $('#sdkLicenseSection').hidden = !waiting;
   $('#sdkLicenseText').textContent = job.license?.text || '';
@@ -1775,7 +1780,7 @@ function renderBuildToolsJob(job) {
 
 async function startBuildTools() {
   const game = selectedGame();
-  if (sdkSetupSubmitting || !['vice-city-vr', 'rdr1-vr', 'gta-sa-vr'].includes(game?.id)) return;
+  if (sdkSetupSubmitting || !['vice-city-vr', 'rdr1-vr', 'gta-sa-vr', 'ace-combat-zero-vr'].includes(game?.id)) return;
   sdkSetupSubmitting = true;
   try {
     const job = state.jobs.find((entry) => entry.gameId === game.id && entry.kind === 'build-tools' && ['queued', 'running'].includes(entry.status));
@@ -1808,7 +1813,7 @@ async function startBuildTools() {
 
 async function installBuildTools() {
   const game = selectedGame();
-  if (sdkSetupSubmitting || !['vice-city-vr', 'rdr1-vr', 'gta-sa-vr'].includes(game?.id)) return;
+  if (sdkSetupSubmitting || !['vice-city-vr', 'rdr1-vr', 'gta-sa-vr', 'ace-combat-zero-vr'].includes(game?.id)) return;
   const downloadLocation = $('#sdkDownloadLocation').value.trim();
   if (!downloadLocation) return toast('Choose a download folder first.', true);
   sdkSetupSubmitting = true;
