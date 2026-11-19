@@ -39,6 +39,28 @@ test('Super Mario 64 drop rejects a different Nintendo 64 game before install', 
   } finally { await fs.rm(dir, { recursive: true, force: true }); }
 });
 
+test('N64 normalized SHA-1 accepts z64, n64 and v64 byte orders but rejects a wrong revision', async (t) => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-n64-hash-'));
+  t.after(() => fs.rm(dir, { recursive: true, force: true }));
+  const canonical = Buffer.alloc(64);
+  canonical.writeUInt32BE(0x80371240, 0);
+  canonical.write('NPWE', 0x3b, 'ascii');
+  const item = { id: 'rom', kind: 'file', label: 'Pilotwings 64 ROM', extensions: ['.z64', '.n64', '.v64'],
+    n64Sha1: crypto.createHash('sha1').update(canonical).digest('hex') };
+  for (const extension of item.extensions) {
+    const bytes = Buffer.from(canonical);
+    if (extension === '.n64') for (let i = 0; i < bytes.length; i += 2) [bytes[i], bytes[i + 1]] = [bytes[i + 1], bytes[i]];
+    if (extension === '.v64') for (let i = 0; i < bytes.length; i += 4) [bytes[i], bytes[i + 1], bytes[i + 2], bytes[i + 3]] = [bytes[i + 3], bytes[i + 2], bytes[i + 1], bytes[i]];
+    const file = path.join(dir, `pilotwings${extension}`);
+    await fs.writeFile(file, bytes);
+    assert.equal((await verifyGameFile({ id: 'birdman64-vr' }, item, file)).level, 'hash');
+  }
+  canonical[50] = 1;
+  const wrong = path.join(dir, 'wrong.z64');
+  await fs.writeFile(wrong, canonical);
+  await assert.rejects(() => verifyGameFile({ id: 'birdman64-vr' }, item, wrong), /SHA-1/i);
+});
+
 test('F-Zero X refuses a header-only or wrong-revision ROM before installing', async () => {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-fzero-verify-'));
   try {

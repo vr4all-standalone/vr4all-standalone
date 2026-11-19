@@ -1,5 +1,6 @@
 // Read-only probes for catalogued ports on the selected Android headset.
 const packages = {
+  'birdman64-vr': 'app.birdman64vr',
   'bugdom-vr': 'io.jor.bugdom',
   'bugdom2-vr': 'io.jor.bugdom2',
   'umbrella-chronicles-vr': 'org.uc.umbrellachronicles.vr',
@@ -216,6 +217,9 @@ async function inspectDevice(adb, serial, games, knownPackages = {}) {
     return listCache.get(directory);
   }
   async function hasData(game) {
+    if (game.id === 'birdman64-vr') {
+      return (await list('/sdcard/Android/data/app.birdman64vr/files/rom/')).some((name) => /\.(?:z64|n64|v64)$/i.test(name));
+    }
     if (game.id === 'ace-combat-zero-vr') {
       return (await list('/sdcard/ac0oculus/')).includes('disc.iso')
         && (await list('/sdcard/ac0oculus/gen_zero/')).includes('ps2_image.bin');
