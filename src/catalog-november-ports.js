@@ -1,8 +1,21 @@
-// Quest releases and input requirements checked against the creators' pages on 8 November 2026.
+// Quest releases and input requirements checked against creators' pages through 19 November 2026.
 const download = '/sdcard/Download/';
 const n64 = ['.z64', '.n64', '.v64'];
 
 const novemberPorts = [
+  {
+    id: 'birdman64-vr', title: 'Birdman64VR', gameName: 'Pilotwings 64', series: 'CorrieDivitt', category: 'Nintendo 64', color: '#51a8df',
+    description: 'Pilotwings 64 in native standalone VR, with first-person and diorama views on Quest 3.',
+    projectUrl: 'https://github.com/CorrieDivitt/Birdman64VR',
+    source: { repo: 'CorrieDivitt/Birdman64VR', assetPattern: '^Birdman64VR-quest\\.apk$' },
+    verifyApkHash: true,
+    data: [{ id: 'rom', label: 'Owned Pilotwings 64 US ROM', kind: 'file', extensions: n64,
+      n64Sha1: 'ec771aedf54ee1b214c25404fb4ec51cfd43191a',
+      destination: '/sdcard/Android/data/app.birdman64vr/files/rom/',
+      note: 'Use your own US Pilotwings 64 cartridge ROM (.z64, .n64 or .v64), or an archive containing one. VR4ALL checks the creator’s exact ROM SHA-1 after normalizing byte order.' }],
+    guidance: 'VR4ALL installs the creator’s Quest APK and transfers your verified ROM. On first launch, the port builds the game on the headset and needs internet once. Only Quest 3 gameplay is creator-tested; other Quest models are unverified.',
+    afterInstall: 'Open Birdman64VR under Unknown Sources while your Quest is online. Wait for its one-time first-launch build, then choose the copied ROM if prompted. Later APK updates keep saves.',
+  },
   {
     id: 'south-park-vr', title: 'South Park VR', gameName: 'South Park', series: 'VistaLargaGames', category: 'Nintendo 64', color: '#88b5dd',
     description: 'The Nintendo 64 South Park game in standalone Quest VR, with head aim and an experimental co-op mode.',
@@ -221,6 +234,7 @@ const novemberPorts = [
 ];
 
 const novemberPortFacets = {
+  'birdman64-vr': ['Nintendo 64', 'Flight combat'],
   'south-park-vr': ['Nintendo 64', 'Shooter'], mario64mr: ['Nintendo 64', 'Platformer'], 'lsd-vr-beta': ['PlayStation', 'Adventure'],
   'bully-vr': ['Wii', 'Adventure'], 'lba2-quest': ['PC', 'Adventure'], 'xonotic-vr': ['PC', 'Shooter'],
   'primedgun-echoes': ['GameCube', 'Shooter'], 'urban-terror-vr': ['PC', 'Shooter'], 'openarena-vr': ['PC', 'Shooter'],

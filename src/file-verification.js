@@ -171,6 +171,13 @@ async function verifyGameFile(game, item, file) {
   if (['.z64', '.n64', '.v64'].includes(extension)) {
     if (bytes.length < 64) throw new Error('Nintendo 64 ROM is too small');
     const code = normalizeN64(bytes).toString('ascii', 0x3b, 0x3f);
+    if (item.n64Sha1) {
+      if (!/^[a-f0-9]{40}$/i.test(item.n64Sha1)) throw new Error('Invalid expected N64 ROM SHA-1');
+      const rom = await fs.readFile(file);
+      const digest = crypto.createHash('sha1').update(normalizeN64(rom)).digest('hex');
+      if (digest !== item.n64Sha1.toLowerCase()) throw new Error(`${item.label} SHA-1 does not match the creator’s required ROM revision`);
+      return { level: 'hash', message: `${item.label} SHA-1 matches the creator’s required ROM revision` };
+    }
     if (game.id === 'fzero-x-virtuavr') {
       const rom = await fs.readFile(file);
       if (rom.length !== 16 * 1024 * 1024) throw new Error('F-Zero X VR requires an unmodified 16 MiB US Rev 0 ROM');

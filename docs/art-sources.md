@@ -211,6 +211,10 @@ These images identify the original games and creator projects. Artwork rights re
 
 These images identify the ports and original games. Rights remain with their respective owners.
 
+## Birdman64VR — 19 November 2026
+
+- Birdman64VR: [creator's Birdman64 icon source](https://github.com/CorrieDivitt/Birdman64VR/blob/main/assets/icon/birdman64-source.png), saved as `public/art/birdman64-vr.png`. Artwork rights remain with the creator.
+
 ## Skate 3 AR — 16 November 2026
 
 - Skate 3 AR: [skating crab artwork from the creator’s repository](https://github.com/andrewnakas/skate3-quest-ar/blob/main/docs/images/skating-crab.png), saved as `public/art/skate3-quest-ar.png`. Artwork rights remain with the creator and the original game’s owner.
