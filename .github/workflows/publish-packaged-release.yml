@@ -1,0 +1,102 @@
+name: Publish packaged desktop release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing draft beta release tag
+        required: true
+        type: string
+      package_run_id:
+        description: Successful Package desktop apps workflow run
+        required: true
+        type: string
+      release_id:
+        description: Existing draft GitHub release ID
+        required: true
+        type: string
+      expected_head_sha:
+        description: Commit the package run must have built
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: packaged-release-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: ${{ inputs.tag }}
+      PACKAGE_RUN_ID: ${{ inputs.package_run_id }}
+      RELEASE_ID: ${{ inputs.release_id }}
+      EXPECTED_HEAD_SHA: ${{ inputs.expected_head_sha }}
+    steps:
+      - name: Verify package run and draft release
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-beta$ ]]
+          [[ "$PACKAGE_RUN_ID" =~ ^[0-9]+$ ]]
+          [[ "$RELEASE_ID" =~ ^[0-9]+$ ]]
+          [[ "$EXPECTED_HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]
+          run="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$PACKAGE_RUN_ID")"
+          jq -e --arg sha "$EXPECTED_HEAD_SHA" \
+            '.head_sha == $sha and .status == "completed" and .conclusion == "success" and .path == ".github/workflows/package.yml"' <<< "$run" >/dev/null
+          release="$(gh api "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID")"
+          jq -e --arg sha "$EXPECTED_HEAD_SHA" --arg tag "$RELEASE_TAG" \
+            '.draft == true and .tag_name == $tag and .target_commitish == $sha' <<< "$release" >/dev/null
+      - name: Download Windows package
+        uses: actions/download-artifact@v4
+        with:
+          name: vr4all-windows-x64
+          path: artifacts/windows
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.package_run_id }}
+      - name: Download Linux package
+        uses: actions/download-artifact@v4
+        with:
+          name: vr4all-linux-x64
+          path: artifacts/linux
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.package_run_id }}
+      - name: Check binaries and create checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release
+          version="${RELEASE_TAG#v}"
+          version="${version%-beta}"
+          win='artifacts/windows/VR4ALL-win-x64.exe'
+          linux='artifacts/linux/VR4ALL-linux-x64.AppImage'
+          test "$(stat -c '%s' "$win")" -gt 100000000
+          test "$(stat -c '%s' "$linux")" -gt 100000000
+          test "$(od -An -tx1 -N2 "$win" | tr -d ' \n')" = '4d5a'
+          test "$(od -An -tx1 -N4 "$linux" | tr -d ' \n')" = '7f454c46'
+          cp "$win" release/VR4ALL-win-x64.exe
+          cp "$win" "release/VR4ALL-$version-win-x64.exe"
+          cp "$linux" release/VR4ALL-linux-x64.AppImage
+          (cd release && sha256sum VR4ALL-win-x64.exe "VR4ALL-$version-win-x64.exe" VR4ALL-linux-x64.AppImage > SHA256SUMS.txt)
+          cat release/SHA256SUMS.txt
+      - name: Upload, verify and publish release
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release upload "$RELEASE_TAG" release/VR4ALL-win-x64.exe release/VR4ALL-*-win-x64.exe release/VR4ALL-linux-x64.AppImage release/SHA256SUMS.txt --clobber --repo "$GITHUB_REPOSITORY"
+          for attempt in {1..10}; do
+            assets="$(gh api "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID" --jq '.assets | map({name, size, state, digest})')"
+            if jq -e 'length == 4 and all(.[]; .state == "uploaded" and .size > 0 and (.digest | startswith("sha256:")))' <<< "$assets" >/dev/null; then break; fi
+            sleep 3
+          done
+          jq -e 'length == 4 and all(.[]; .state == "uploaded" and .size > 0 and (.digest | startswith("sha256:")))' <<< "$assets" >/dev/null
+          while read -r hash name; do
+            jq -e --arg name "$name" --arg digest "sha256:$hash" \
+              'any(.[]; .name == $name and .digest == $digest)' <<< "$assets" >/dev/null
+          done < release/SHA256SUMS.txt
+          gh release edit "$RELEASE_TAG" --draft=false --prerelease=true --repo "$GITHUB_REPOSITORY"
