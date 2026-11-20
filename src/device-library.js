@@ -30,6 +30,7 @@ const packages = {
   'virtua-tennis-3-vr': 'org.lindbergh.vt3.vr',
   'lunacid-vr': 'com.AkumaKira.LunacidVR',
   'warioware-twisted-vr': 'com.wariowaretwistedrecomp.quest',
+  'wario-land-4-vr': 'com.wl4recomp.quest',
   'skate3-quest-ar': 'com.andrewnakas.skate3ar',
   'silent-hill-1999-vr': 'com.sh1vr.quest',
   'balatro-vr': 'io.github.balaurent.balatrovr.host',

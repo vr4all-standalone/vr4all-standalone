@@ -539,7 +539,7 @@ test('library views keep popularity in Sort and add headset choices only while c
   const sortSelect = html.match(/<select id="librarySort"[^>]*>(.*?)<\/select>/s)?.[1] || '';
   assert.match(initialSelect, /All games.*New games/s);
   assert.doesNotMatch(initialSelect, /Most downloaded/);
-  assert.match(sortSelect, /A–Z.*Z–A.*Latest release.*Most downloaded/s);
+  assert.match(sortSelect, /A–Z.*Z–A.*Updated recently.*Most downloaded/s);
   assert.doesNotMatch(sortSelect, /Installed first/);
   assert.match(html, /<select id="librarySort"[\s\S]*?<input id="installedFirst" type="checkbox"[\s\S]*?Installed first/);
   assert.doesNotMatch(initialSelect, /Build or patch required|Manual download required/);
@@ -1244,6 +1244,20 @@ test('sort and Installed first checkbox combine across modes and ignore disconne
   vm.runInContext("state.selectedSerial = ''; renderGrid()", context);
   assert.equal(elements.get('#installedFirst').disabled, true);
   assert.deepEqual(ids(), ['sm64-vr', 'wave-race-vr']);
+});
+
+test('updated recently sorts cached creator dates before names and uses fresh checks when available', () => {
+  const { context, elements } = appHarness();
+  const games = getCatalog();
+  context.mario = games.find((item) => item.id === 'sm64-vr');
+  context.wave = games.find((item) => item.id === 'wave-race-vr');
+  const ids = () => [...elements.get('#gameGrid').innerHTML.matchAll(/data-id="([^"]+)"/g)].map((match) => match[1]);
+  vm.runInContext("state.games = [mario, wave]; state.sortMode = 'latest'; state.discovery = { 'sm64-vr': { publishedAt: '2026-10-21T00:00:00Z' }, 'wave-race-vr': { publishedAt: '2026-10-22T00:00:00Z' } }; renderGrid()", context);
+  assert.deepEqual(ids(), ['wave-race-vr', 'sm64-vr'], 'saved release dates should work immediately after launch');
+  vm.runInContext("state.releases['sm64-vr'] = { publishedAt: '2026-10-23T00:00:00Z', stale: false }; renderGrid()", context);
+  assert.deepEqual(ids(), ['sm64-vr', 'wave-race-vr'], 'a newly checked release should take precedence');
+  vm.runInContext("state.releases['sm64-vr'] = { publishedAt: 'invalid', stale: true }; renderGrid()", context);
+  assert.deepEqual(ids(), ['wave-race-vr', 'sm64-vr'], 'an unusable check should fall back to the saved date');
 });
 
 test('bulk update button enables only for confirmed updates on the selected headset', () => {

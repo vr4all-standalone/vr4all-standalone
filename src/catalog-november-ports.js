@@ -156,6 +156,14 @@ const novemberPorts = [
     guidance: 'The creator publishes an automated personal builder, not a downloadable Quest APK. It installs Unity and Android tools, signs your APK and OBB, and transfers them to the Quest. It needs your Steam and Unity sign-ins, about 40 GB of PC space and 2–3 hours on the first run. Keep its work folder and signing key for future updates. VR4ALL cannot run this account-dependent build inside the app yet.',
   },
   {
+    id: 'wario-land-4-vr', title: 'Wario Land 4 VR', gameName: 'Wario Land 4', series: 'mrchrisster', category: 'Game Boy Advance', color: '#d5a849',
+    description: 'Wario Land 4 in layered stereoscopic depth on standalone Quest, using a personal ROM-specific build.',
+    projectUrl: 'https://github.com/mrchrisster/wario-land-4-vr', manualBuild: true,
+    data: [],
+    guidance: 'The creator has published source code but no downloadable Quest APK or GitHub release. Build your own APK with an owned Wario Land 4 (USA, Europe) ROM (SHA-1 b9fe05a8080e124b67bce6a623234ee3b518a2c1) using the creator’s macOS, Xcode, CMake, Android SDK/NDK and Gradle steps. The ROM is embedded in your private APK; do not share that APK. Once built, select it here and VR4ALL can install it to your Quest. VR4ALL cannot build this port or auto-update it yet.',
+    afterInstall: 'Launch Wario Land 4 VR on your Quest after installing your personally built APK.',
+  },
+  {
     id: 'warioware-twisted-vr', title: 'WarioWare: Twisted! VR', gameName: 'WarioWare: Twisted!', series: 'mrchrisster', category: 'Game Boy Advance', color: '#efb132',
     description: 'WarioWare: Twisted! on Quest 3 and 3S with wrist-twist gyro controls, rumble, passthrough, and layered 3D.',
     projectUrl: 'https://github.com/mrchrisster/WarioWareTwistedRecomp',
@@ -242,6 +250,7 @@ const novemberPortFacets = {
   'lets-go-jungle-vr': ['Arcade', 'Rail shooter'], 'hotd4-special-vr': ['Arcade', 'Rail shooter'],
   'futurama-quest': ['Xbox', 'Adventure'], 'virtua-tennis-3-vr': ['Arcade', 'Sports'], 'lunacid-vr': ['PC', 'RPG'],
   'warioware-twisted-vr': ['Game Boy Advance', 'Arcade'],
+  'wario-land-4-vr': ['Game Boy Advance', 'Platformer'],
   'skate3-quest-ar': ['Xbox', 'Sports'],
   'silent-hill-1999-vr': ['PlayStation', 'Adventure'],
   'ace-combat-zero-vr': ['PlayStation 2', 'Flight combat'],

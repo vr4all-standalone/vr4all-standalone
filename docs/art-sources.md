@@ -1,5 +1,6 @@
 # Artwork sources
 
+- Wario Land 4 VR: [original Game Boy Advance box front](https://gamesdb.launchbox-app.com/games/images/5233-wario-land-4) from the LaunchBox Games Database, saved as `public/art/wario-land-4-vr.jpg`. Nintendo artwork and trademarks remain with their owner; redistribution permission is unverified.
 - BioShock Infinite VR: [official Steam store header](https://store.steampowered.com/app/8870/BioShock_Infinite/), saved as `public/art/bioshock-infinite-vr.jpg`. BioShock Infinite art and marks belong to 2K/Irrational; redistribution permission for VR4ALL is unverified.
 
 ## Quest additions — 12 November 2026
