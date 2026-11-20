@@ -14,7 +14,7 @@ test('new Quest projects have distinct profiles and creator links', () => {
     'south-park-vr', 'mario64mr', 'lsd-vr-beta', 'bully-vr', 'lba2-quest',
     'xonotic-vr', 'primedgun-echoes', 'urban-terror-vr', 'openarena-vr',
     'project-honeydew-2', 'openmohaa-vr', 'lets-go-jungle-vr', 'hotd4-special-vr',
-    'futurama-quest', 'virtua-tennis-3-vr', 'lunacid-vr', 'warioware-twisted-vr', 'skate3-quest-ar', 'silent-hill-1999-vr', 'ace-combat-zero-vr', 'bioshock-infinite-vr',
+    'futurama-quest', 'virtua-tennis-3-vr', 'lunacid-vr', 'warioware-twisted-vr', 'wario-land-4-vr', 'skate3-quest-ar', 'silent-hill-1999-vr', 'ace-combat-zero-vr', 'bioshock-infinite-vr',
   ];
   for (const id of ids) {
     const game = games.find((entry) => entry.id === id);
@@ -23,11 +23,27 @@ test('new Quest projects have distinct profiles and creator links', () => {
     assert.ok(game.console && game.genre, id);
   }
   assert.equal(new Set(games.map((entry) => entry.id)).size, games.length);
-  assert.equal(games.length, 184);
+  assert.equal(games.length, 185);
   for (const id of ids) {
     const art = games.find((entry) => entry.id === id).art;
     assert.ok(fs.existsSync(path.join(__dirname, '..', 'public', art.replace(/^\//, ''))), `${id} artwork`);
   }
+});
+
+test('Wario Land 4 is a source-only personal Quest build, distinct from WarioWare', () => {
+  const games = getCatalog();
+  const game = games.find((entry) => entry.id === 'wario-land-4-vr');
+  assert.ok(game);
+  assert.equal(game.projectUrl, 'https://github.com/mrchrisster/wario-land-4-vr');
+  assert.equal(game.source, undefined);
+  assert.equal(game.manualBuild, true);
+  assert.equal(game.data.length, 0);
+  assert.equal(game.console, 'Game Boy Advance');
+  assert.equal(game.genre, 'Platformer');
+  assert.equal(packages[game.id], 'com.wl4recomp.quest');
+  assert.match(game.guidance, /macOS/);
+  assert.match(game.guidance, /b9fe05a8080e124b67bce6a623234ee3b518a2c1/);
+  assert.ok(games.find((entry) => entry.id === 'warioware-twisted-vr').source);
 });
 
 test('Silent Hill Quest installs the creator APK with both owned USA disc files', async () => {

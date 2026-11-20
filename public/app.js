@@ -459,10 +459,14 @@ function renderGrid() {
   const query = state.search.toLowerCase().trim();
   const games = libraryGames().filter((game) => matchesScope(game) && (state.category === 'All games' || (game[state.browseMode] || 'Other') === state.category) && (!query || `${game.title} ${game.gameName || ''} ${portFamily(game).map((entry) => entry.portLabel || entry.series).join(' ')} ${game.console} ${game.genre} ${game.description}`.toLowerCase().includes(query)));
   const byName = (a, b) => (a.gameName || a.title).localeCompare(b.gameName || b.title, undefined, { numeric: true }) || a.title.localeCompare(b.title);
-  const latestTime = (game) => Math.max(0, ...portFamily(game).map((entry) => {
-    const release = state.releases[entry.id];
-    return release && !release.stale ? Date.parse(release.publishedAt || '') || 0 : 0;
-  }));
+  const releaseTime = (value) => {
+    const parsed = Date.parse(value || '');
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+  const latestTime = (game) => Math.max(0, ...portFamily(game).map((entry) => Math.max(
+    releaseTime(state.releases[entry.id]?.publishedAt),
+    releaseTime(state.discovery[entry.id]?.publishedAt),
+  )));
   const onHeadset = (game) => portFamily(game).some((entry) => Boolean(state.deviceLibrary[state.selectedSerial]?.[entry.id]));
   const hasHeadsetLibrary = Boolean(state.selectedSerial && state.selectedSerial in state.deviceLibrary);
   const installedToggle = $('#installedFirst');
@@ -475,7 +479,7 @@ function renderGrid() {
   games.sort((a, b) => state.installedFirst && hasHeadsetLibrary ? Number(onHeadset(b)) - Number(onHeadset(a)) || compareSort(a, b) : compareSort(a, b));
   $('#gameCount').textContent = `${games.length} ${state.libraryScope === 'emulators' ? 'emulator' : 'game'}${games.length === 1 ? '' : 's'}`;
   const scopeNote = $('#libraryScopeNote');
-  scopeNote.textContent = [state.libraryScope === 'available' ? 'Ready from saved game files or a Quest APK with game files included.' : state.libraryScope === 'new' ? 'The 10 most recently added entries in VR4ALL.' : state.libraryScope === 'emulators' ? 'Standalone Quest emulators and game runtimes. Bring your own games.' : '', state.sortMode === 'downloads' ? 'Quest release download counts. Check updates to refresh.' : ''].filter(Boolean).join(' ');
+  scopeNote.textContent = [state.libraryScope === 'available' ? 'Ready from saved game files or a Quest APK with game files included.' : state.libraryScope === 'new' ? 'The 10 most recently added entries in VR4ALL.' : state.libraryScope === 'emulators' ? 'Standalone Quest emulators and game runtimes. Bring your own games.' : '', state.sortMode === 'downloads' ? 'Quest release download counts. Check updates to refresh.' : state.sortMode === 'latest' ? 'Known creator release dates. Check updates to refresh.' : ''].filter(Boolean).join(' ');
   scopeNote.hidden = !scopeNote.textContent;
   $('#emptyState').hidden = games.length > 0;
   $('#emptyState').textContent = !state.selectedSerial && ['installed', 'updates'].includes(state.libraryScope) ? 'Connect a Quest and scan it to use this view.' : state.libraryScope === 'updates' ? 'No confirmed APK updates in this view. Use Check updates to refresh GitHub.' : state.libraryScope === 'available' ? 'No new games have complete install inputs yet. Add files to a game card.' : 'No games match this view.';
