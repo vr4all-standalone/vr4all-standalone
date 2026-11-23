@@ -4,6 +4,23 @@ const n64 = ['.z64', '.n64', '.v64'];
 
 const novemberPorts = [
   {
+    id: 'rage-racer-vr', title: 'Rage Racer VR', gameName: 'Rage Racer', series: 'Thoreman', category: 'PlayStation', color: '#bf5064',
+    description: 'The original PlayStation racer from the driver seat in native stereo VR on Quest.',
+    projectUrl: 'https://github.com/Thoreman/rage-racer-pc',
+    source: { repo: 'Thoreman/rage-racer-pc', assetPattern: '^rage-racer-vr-[0-9][\\w.-]*\\.apk$' },
+    requireOneOf: ['chd', 'cueBin'],
+    data: [
+      { id: 'chd', label: 'Owned Rage Racer CHD disc', kind: 'file', optional: true, extensions: ['.chd'],
+        destination: '/sdcard/Android/data/org.rageracer.quest/files/disc/Rage Racer.chd',
+        note: 'Use a CHD made from your own Rage Racer PlayStation disc. VR4ALL names the copy Rage Racer.chd so the creator’s Quest app detects it.' },
+      { id: 'cueBin', label: 'Owned Rage Racer CUE and BIN folder', kind: 'directory', optional: true,
+        destination: '/sdcard/Android/data/org.rageracer.quest/files/disc/', requiredExtensions: ['.cue', '.bin'], copyExtensions: ['.cue', '.bin'],
+        note: 'Choose a folder with the .cue and every referenced .bin track from your own disc. Keep the original filenames together; the port checks the disc serial.' },
+    ],
+    guidance: 'VR4ALL downloads the creator’s Quest APK and transfers one owned disc format. The creator has tested Quest 3; Quest 3S, 2 and Pro use estimated settings and have not been verified in gameplay.',
+    afterInstall: 'Open Rage Racer VR under Unknown Sources. The game should find your disc in its private disc folder; if prompted, select it from the setup panel.',
+  },
+  {
     id: 'birdman64-vr', title: 'Birdman64VR', gameName: 'Pilotwings 64', series: 'CorrieDivitt', category: 'Nintendo 64', color: '#51a8df',
     description: 'Pilotwings 64 in native standalone VR, with first-person and diorama views on Quest 3.',
     projectUrl: 'https://github.com/CorrieDivitt/Birdman64VR',
@@ -242,6 +259,7 @@ const novemberPorts = [
 ];
 
 const novemberPortFacets = {
+  'rage-racer-vr': ['PlayStation', 'Racing'],
   'birdman64-vr': ['Nintendo 64', 'Flight combat'],
   'south-park-vr': ['Nintendo 64', 'Shooter'], mario64mr: ['Nintendo 64', 'Platformer'], 'lsd-vr-beta': ['PlayStation', 'Adventure'],
   'bully-vr': ['Wii', 'Adventure'], 'lba2-quest': ['PC', 'Adventure'], 'xonotic-vr': ['PC', 'Shooter'],
