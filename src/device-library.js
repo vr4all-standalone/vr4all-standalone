@@ -1,5 +1,6 @@
 // Read-only probes for catalogued ports on the selected Android headset.
 const packages = {
+  'rage-racer-vr': 'org.rageracer.quest',
   'birdman64-vr': 'app.birdman64vr',
   'bugdom-vr': 'io.jor.bugdom',
   'bugdom2-vr': 'io.jor.bugdom2',
@@ -218,6 +219,11 @@ async function inspectDevice(adb, serial, games, knownPackages = {}) {
     return listCache.get(directory);
   }
   async function hasData(game) {
+    if (game.id === 'rage-racer-vr') {
+      const names = await list('/sdcard/Android/data/org.rageracer.quest/files/disc/');
+      return names.includes('Rage Racer.chd')
+        || (names.some((name) => /\.cue$/i.test(name)) && names.some((name) => /\.bin$/i.test(name)));
+    }
     if (game.id === 'birdman64-vr') {
       return (await list('/sdcard/Android/data/app.birdman64vr/files/rom/')).some((name) => /\.(?:z64|n64|v64)$/i.test(name));
     }

@@ -12,7 +12,7 @@ test('new Quest projects have distinct profiles and creator links', () => {
   const games = getCatalog();
   const ids = [
     'south-park-vr', 'mario64mr', 'lsd-vr-beta', 'bully-vr', 'lba2-quest',
-    'xonotic-vr', 'primedgun-echoes', 'urban-terror-vr', 'openarena-vr',
+    'xonotic-vr', 'primedgun-echoes', 'urban-terror-vr', 'openarena-vr', 'rage-racer-vr',
     'project-honeydew-2', 'openmohaa-vr', 'lets-go-jungle-vr', 'hotd4-special-vr',
     'futurama-quest', 'virtua-tennis-3-vr', 'lunacid-vr', 'warioware-twisted-vr', 'wario-land-4-vr', 'skate3-quest-ar', 'silent-hill-1999-vr', 'ace-combat-zero-vr', 'bioshock-infinite-vr',
   ];
@@ -23,11 +23,38 @@ test('new Quest projects have distinct profiles and creator links', () => {
     assert.ok(game.console && game.genre, id);
   }
   assert.equal(new Set(games.map((entry) => entry.id)).size, games.length);
-  assert.equal(games.length, 185);
+  assert.equal(games.length, 186);
   for (const id of ids) {
     const art = games.find((entry) => entry.id === id).art;
     assert.ok(fs.existsSync(path.join(__dirname, '..', 'public', art.replace(/^\//, ''))), `${id} artwork`);
   }
+});
+
+test('Rage Racer selects the Quest APK and needs one complete owned disc format', async () => {
+  const game = getCatalog().find((entry) => entry.id === 'rage-racer-vr');
+  assert.equal(packages[game.id], 'org.rageracer.quest');
+  assert.deepEqual(game.requireOneOf, ['chd', 'cueBin']);
+  const release = selectRelease([{ tag_name: 'v0.6.0-beta', published_at: '2026-11-20', assets: [
+    { name: 'rage-racer-vr-0.6.0-beta.apk', browser_download_url: 'https://github.com/Thoreman/rage-racer-pc/releases/download/v0.6.0-beta/rage-racer-vr-0.6.0-beta.apk' },
+    { name: 'rage-racer-pc-0.6.0.zip', browser_download_url: 'https://github.com/Thoreman/rage-racer-pc/releases/download/v0.6.0-beta/rage-racer-pc-0.6.0.zip' },
+  ] }], game.source);
+  assert.equal(release.assetName, 'rage-racer-vr-0.6.0-beta.apk');
+  const input = { serial: 'Q3', apkPath: 'C:\\Ports\\rage-racer-vr-0.6.0-beta.apk' };
+  assert.throws(() => buildInstallPlan(game, { ...input, files: {} }), /Select one of/);
+  const chd = buildInstallPlan(game, { ...input, files: { chd: 'C:\\Games\\Rage Racer.chd' } });
+  assert.ok(chd.some((step) => step.args.at(-1) === '/sdcard/Android/data/org.rageracer.quest/files/disc/Rage Racer.chd'));
+  const cueBin = buildInstallPlan(game, { ...input, files: { cueBin: 'C:\\Games\\Rage Racer' }, directoryEntries: { cueBin: ['Rage Racer.cue', 'track 01.bin', 'notes.txt'] } });
+  assert.equal(cueBin.some((step) => step.label.includes('notes.txt')), false);
+  assert.equal(cueBin.filter((step) => step.label.startsWith('Copy cueBin/')).length, 2);
+  const files = new Map([['/sdcard/Android/data/org.rageracer.quest/files/disc/', 'Rage Racer.chd']]);
+  const adb = { run: async (args) => {
+    if (args.includes('pm')) return 'package:org.rageracer.quest';
+    if (args.includes('dumpsys')) return 'versionName=0.6.0-beta';
+    return files.get(args.at(-1)) || '';
+  } };
+  assert.equal((await inspectDevice(adb, 'Q3', [game]))[game.id].dataReady, true);
+  files.clear();
+  assert.equal((await inspectDevice(adb, 'Q3', [game]))[game.id].dataReady, false);
 });
 
 test('Wario Land 4 is a source-only personal Quest build, distinct from WarioWare', () => {

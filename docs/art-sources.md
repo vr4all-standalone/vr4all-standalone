@@ -227,3 +227,7 @@ These images identify the ports and original games. Rights remain with their res
 ## Ace Combat Zero VR — 17 November 2026
 
 - Ace Combat Zero: The Belkan War: [original PlayStation 2 cover](https://www.thevideogamecompany.com/products/ace-combat-zero-sony-playstation-2-ps2), saved as `public/art/ace-combat-zero-vr.jpg`. Bandai Namco artwork; redistribution permission is unverified.
+
+## Rage Racer VR — 22 November 2026
+
+- Rage Racer VR: [creator's Quest app icon](https://github.com/Thoreman/rage-racer-pc/blob/quest-vr/packaging/icon/rage-racer.png), saved as `public/art/rage-racer-vr.png`. Artwork rights remain with the creator and the original game owner.
