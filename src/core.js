@@ -70,6 +70,12 @@ function buildInstallPlan(game, input) {
   if (game.requireOneOf?.length && !input.reuseExistingData && !game.requireOneOf.some((id) => input.files?.[id])) throw new Error(`Select one of ${game.requireOneOf.map((id) => game.data.find((item) => item.id === id)?.label || id).join(' or ')}`);
   const prefix = ['-s', input.serial];
   const steps = [{ label: 'Install APK', args: [...prefix, 'install', '-r', input.apkPath] }];
+  if (game.id === 'vib-ribbon-vr' && input.files?.disc) {
+    const packageName = 'io.github.corriedivitt.vibribbonvr';
+    steps.push({ label: 'Start Vib-Ribbon once', args: [...prefix, 'shell', 'am', 'start', '-n', `${packageName}/org.libsdl.app.SDLActivity`] });
+    steps.push({ label: 'Wait for Vib-Ribbon setup', args: [...prefix, 'shell', 'sleep', '5'] });
+    steps.push({ label: 'Stop Vib-Ribbon after setup', args: [...prefix, 'shell', 'am', 'force-stop', packageName] });
+  }
   if (game.id === 'avp-vr' && input.files?.game) {
     steps.push({ label: 'Initialize AvP game folder', args: [...prefix, 'shell', 'monkey', '-p', 'com.bassquake.quest.avpvr', '1'] });
   }
@@ -109,6 +115,9 @@ function buildInstallPlan(game, input) {
     } else {
       steps.push({ label: `Copy ${item.id}`, args: [...prefix, 'push', source, destination] });
     }
+  }
+  if (game.id === 'vib-ribbon-vr' && input.files?.disc) {
+    steps.push({ label: 'Allow Vib-Ribbon to read disc files', args: [...prefix, 'shell', 'chmod', '-R', 'a+rwX', '/sdcard/Android/data/io.github.corriedivitt.vibribbonvr/files'] });
   }
   return steps;
 }

@@ -4,6 +4,19 @@ const n64 = ['.z64', '.n64', '.v64'];
 
 const novemberPorts = [
   {
+    id: 'vib-ribbon-vr', title: 'Vib-Ribbon VR', gameName: 'Vib-Ribbon', series: 'CorrieDivitt', category: 'PlayStation', color: '#e45ba8',
+    description: 'Play Vib-Ribbon in native standalone VR on Quest 3 using your own PAL PlayStation disc.',
+    projectUrl: 'https://github.com/CorrieDivitt/Ultimate-Vib-Ribbon',
+    source: { repo: 'CorrieDivitt/Ultimate-Vib-Ribbon', assetPattern: '^Vib-Ribbon-VR-Quest-[0-9][\\w.-]*\\.zip$' },
+    sourceArchive: 'single-apk',
+    data: [{ id: 'disc', label: 'Owned Vib-Ribbon PAL CUE and BIN folder', kind: 'directory',
+      destination: '/sdcard/Android/data/io.github.corriedivitt.vibribbonvr/files/disc/',
+      requiredExtensions: ['.cue', '.bin'], copyExtensions: ['.cue', '.bin'],
+      note: 'Use your own PAL SCES-02873 disc dump. Choose the folder containing its .cue and every referenced .bin track (the original disc has eight). VR4ALL keeps the filenames together.' }],
+    guidance: 'VR4ALL extracts the Quest APK from the creator’s Quest ZIP, installs it, briefly starts the app to create its data folder, then copies your owned disc and sets the documented file permission. The separate Android ZIP is a flat phone build. Quest 3 is creator-tested; other headsets are unverified.',
+    afterInstall: 'Open Vib-Ribbon VR under Unknown Sources. Optional personal MP3 or FLAC tracks can be added separately in the game.',
+  },
+  {
     id: 'rage-racer-vr', title: 'Rage Racer VR', gameName: 'Rage Racer', series: 'Thoreman', category: 'PlayStation', color: '#bf5064',
     description: 'The original PlayStation racer from the driver seat in native stereo VR on Quest.',
     projectUrl: 'https://github.com/Thoreman/rage-racer-pc',
@@ -259,6 +272,7 @@ const novemberPorts = [
 ];
 
 const novemberPortFacets = {
+  'vib-ribbon-vr': ['PlayStation', 'Rhythm'],
   'rage-racer-vr': ['PlayStation', 'Racing'],
   'birdman64-vr': ['Nintendo 64', 'Flight combat'],
   'south-park-vr': ['Nintendo 64', 'Shooter'], mario64mr: ['Nintendo 64', 'Platformer'], 'lsd-vr-beta': ['PlayStation', 'Adventure'],

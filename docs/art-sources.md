@@ -231,3 +231,7 @@ These images identify the ports and original games. Rights remain with their res
 ## Rage Racer VR — 22 November 2026
 
 - Rage Racer VR: [creator's Quest app icon](https://github.com/Thoreman/rage-racer-pc/blob/quest-vr/packaging/icon/rage-racer.png), saved as `public/art/rage-racer-vr.png`. Artwork rights remain with the creator and the original game owner.
+
+## Vib-Ribbon VR — 22 November 2026
+
+- Vib-Ribbon VR: [creator's project icon](https://github.com/CorrieDivitt/Ultimate-Vib-Ribbon/blob/main/apps/common/icon/vibribbon.png), saved as `public/art/vib-ribbon-vr.png`. Artwork rights remain with the creator and the original game owner.
