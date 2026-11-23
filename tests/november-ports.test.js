@@ -12,7 +12,7 @@ test('new Quest projects have distinct profiles and creator links', () => {
   const games = getCatalog();
   const ids = [
     'south-park-vr', 'mario64mr', 'lsd-vr-beta', 'bully-vr', 'lba2-quest',
-    'xonotic-vr', 'primedgun-echoes', 'urban-terror-vr', 'openarena-vr', 'rage-racer-vr',
+    'xonotic-vr', 'primedgun-echoes', 'urban-terror-vr', 'openarena-vr', 'rage-racer-vr', 'vib-ribbon-vr',
     'project-honeydew-2', 'openmohaa-vr', 'lets-go-jungle-vr', 'hotd4-special-vr',
     'futurama-quest', 'virtua-tennis-3-vr', 'lunacid-vr', 'warioware-twisted-vr', 'wario-land-4-vr', 'skate3-quest-ar', 'silent-hill-1999-vr', 'ace-combat-zero-vr', 'bioshock-infinite-vr',
   ];
@@ -23,7 +23,7 @@ test('new Quest projects have distinct profiles and creator links', () => {
     assert.ok(game.console && game.genre, id);
   }
   assert.equal(new Set(games.map((entry) => entry.id)).size, games.length);
-  assert.equal(games.length, 186);
+  assert.equal(games.length, 187);
   for (const id of ids) {
     const art = games.find((entry) => entry.id === id).art;
     assert.ok(fs.existsSync(path.join(__dirname, '..', 'public', art.replace(/^\//, ''))), `${id} artwork`);

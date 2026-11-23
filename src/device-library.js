@@ -1,5 +1,6 @@
 // Read-only probes for catalogued ports on the selected Android headset.
 const packages = {
+  'vib-ribbon-vr': 'io.github.corriedivitt.vibribbonvr',
   'rage-racer-vr': 'org.rageracer.quest',
   'birdman64-vr': 'app.birdman64vr',
   'bugdom-vr': 'io.jor.bugdom',
@@ -219,6 +220,10 @@ async function inspectDevice(adb, serial, games, knownPackages = {}) {
     return listCache.get(directory);
   }
   async function hasData(game) {
+    if (game.id === 'vib-ribbon-vr') {
+      const names = await list('/sdcard/Android/data/io.github.corriedivitt.vibribbonvr/files/disc/');
+      return names.some((name) => /\.cue$/i.test(name)) && names.some((name) => /\.bin$/i.test(name));
+    }
     if (game.id === 'rage-racer-vr') {
       const names = await list('/sdcard/Android/data/org.rageracer.quest/files/disc/');
       return names.includes('Rage Racer.chd')
