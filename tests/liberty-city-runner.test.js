@@ -4,9 +4,12 @@ const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
 const { Readable } = require('node:stream');
+const { execFile } = require('node:child_process');
+const { promisify } = require('node:util');
 const { getCatalog } = require('../src/catalog');
 const { createApp } = require('../server');
 const { inspectDevice } = require('../src/device-library');
+const { sevenZipBinary } = require('./helpers/seven-zip');
 const { validateLibertyInput, checkedRelease, buildManagerRequest, installLibertyCity } = require('../src/liberty-city-runner');
 
 async function ownedPcFolder(root) {
@@ -39,6 +42,15 @@ test('Liberty City accepts a complete PC install or Xbox ISO, but rejects missin
   assert.equal((await validateLibertyInput({ gamePackage: iso, serial: 'Quest-test' })).variant, 'xbox');
   await fs.rm(path.join(game, 'Audio', 'sfx.SDT'));
   await assert.rejects(validateLibertyInput({ gamePackage: game, serial: 'Quest-test' }), /sfx.RAW.*sfx.SDT/);
+});
+
+test('Liberty City accepts an archive wrapping the complete owned PC game', async (t) => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-liberty-test-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  await ownedPcFolder(root);
+  const archive = path.join(root, 'owned-gta3.zip');
+  await promisify(execFile)(sevenZipBinary(), ['a', '-tzip', archive, 'GTA III'], { cwd: root, windowsHide: true });
+  assert.equal((await validateLibertyInput({ gamePackage: archive, serial: 'QUEST3' })).variant, 'pc');
 });
 
 test('Liberty City manager request keeps build files separate and passes explicit SDK consent', () => {
