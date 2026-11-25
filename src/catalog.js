@@ -10,6 +10,8 @@ const { novemberPorts, novemberPortFacets } = require('./catalog-november-ports'
 const { questportsExtra, questportsExtraFacets } = require('./catalog-questports-extra');
 const { platformSupport } = require('./platform-support');
 const catalogVideos = require('./catalog-videos.json');
+// First public VR4ALL catalog commit for each port. Update when adding a card.
+const catalogAddedAt = require('./catalog-added-at.json');
 
 const games = [
   {
@@ -713,7 +715,7 @@ for (const game of [...games, ...additions, ...newPorts, ...questports, ...novem
   if (signature) sharedInputCounts.set(signature, (sharedInputCounts.get(signature) || 0) + 1);
 }
 const { requirements: arcadeRomRequirements } = require('./arcade-rom-requirements');
-function getCatalog() { return [...games, ...additions, ...newPorts, ...questports, ...novemberPorts, ...questportsExtra].map((game) => ({ ...game, video: catalogVideos[game.id], gameName: originalNames[game.id] || game.gameName || game.title, support: platformSupport(game), console: (facets[game.id] || additionFacets[game.id] || newPortFacets[game.id] || questportFacets[game.id] || novemberPortFacets[game.id] || questportsExtraFacets[game.id])[0], genre: (facets[game.id] || additionFacets[game.id] || newPortFacets[game.id] || questportFacets[game.id] || novemberPortFacets[game.id] || questportsExtraFacets[game.id])[1], art: artFor(game.artId || (game.id === 'fzero-x-virtuavr' ? 'fzero-x-vr' : game.id === 'max-payne-mpvr' ? 'max-payne-nightmare-vr' : game.id)), data: game.data.map((item) => {
+function getCatalog() { return [...games, ...additions, ...newPorts, ...questports, ...novemberPorts, ...questportsExtra].map((game) => ({ ...game, addedAt: catalogAddedAt[game.id], video: catalogVideos[game.id], gameName: originalNames[game.id] || game.gameName || game.title, support: platformSupport(game), console: (facets[game.id] || additionFacets[game.id] || newPortFacets[game.id] || questportFacets[game.id] || novemberPortFacets[game.id] || questportsExtraFacets[game.id])[0], genre: (facets[game.id] || additionFacets[game.id] || newPortFacets[game.id] || questportFacets[game.id] || novemberPortFacets[game.id] || questportsExtraFacets[game.id])[1], art: artFor(game.artId || (game.id === 'fzero-x-virtuavr' ? 'fzero-x-vr' : game.id === 'max-payne-mpvr' ? 'max-payne-nightmare-vr' : game.id)), data: game.data.map((item) => {
   const signature = sharedInputSignature(item);
   return { ...item, ...(arcadeRomRequirements[game.id]?.[item.id] ? { romRequirement: arcadeRomRequirements[game.id][item.id] } : {}), ...(signature && sharedInputCounts.get(signature) > 1 ? { sharedInput: signature } : {}) };
 }) })); }

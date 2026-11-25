@@ -474,7 +474,7 @@ function renderGrid() {
   installedToggle.checked = state.installedFirst;
   installedToggle.disabled = !hasHeadsetLibrary;
   const compareSort = (a, b) => state.sortMode === 'name-desc' ? -byName(a, b)
-    : state.sortMode === 'newest' ? catalogOrder.get(b.id) - catalogOrder.get(a.id)
+    : state.sortMode === 'newest' ? releaseTime(b.addedAt) - releaseTime(a.addedAt) || catalogOrder.get(b.id) - catalogOrder.get(a.id)
       : state.sortMode === 'latest' ? latestTime(b) - latestTime(a) || byName(a, b)
         : state.sortMode === 'downloads' ? (githubDownloads(b) ?? -1) - (githubDownloads(a) ?? -1) || byName(a, b)
           : byName(a, b);
