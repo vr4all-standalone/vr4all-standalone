@@ -85,7 +85,7 @@ test('Liberty City runs the creator manager for one selected Quest 3 and checks 
   let request;
   const result = await installLibertyCity({ gamePackage, serial: 'Quest-test', acceptSdkLicenses: true, release,
     releases: { downloadPackage: async () => path.join(root, 'official.zip') },
-    adb: { listDevices: async () => [{ serial: 'Quest-test', state: 'device' }], run: async () => 'Quest 3', getPath: () => 'C:\\adb.exe' },
+    adb: { listDevices: async () => [{ serial: 'Quest-test', state: 'device' }], run: async () => 'Quest 3', getPath: () => path.join(root, 'adb.exe') },
     workspaceRoot: path.join(root, 'workspace'), platform: 'win32',
     extract: async (_archive, dest) => {
       const kit = path.join(dest, 'Liberty City VR Setup');
