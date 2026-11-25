@@ -743,7 +743,7 @@ test('Newest sorts the full catalog by recorded addition date while Most downloa
   context.catalogGames = games;
   vm.runInContext("state.games = catalogGames; state.libraryScope = 'all'; state.sortMode = 'newest'; renderGrid()", context);
   const ids = () => [...elements.get('#gameGrid').innerHTML.matchAll(/data-id="([^"]+)"/g)].map((match) => match[1]);
-  assert.deepEqual(ids().slice(0, 4), ['vib-ribbon-vr', 'rage-racer-vr', 'wario-land-4-vr', 'birdman64-vr']);
+  assert.deepEqual(ids().slice(0, 4), ['liberty-city-vr', 'vib-ribbon-vr', 'rage-racer-vr', 'wario-land-4-vr']);
   assert.equal(ids().length, rootGames.length);
   assert.ok(ids().indexOf('bugdom2-vr') > ids().indexOf('vib-ribbon-vr'));
   assert.match(elements.get('#libraryScopeNote').textContent, /Recently added to VR4ALL/);

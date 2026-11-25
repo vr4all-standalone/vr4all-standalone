@@ -4,6 +4,23 @@ const n64 = ['.z64', '.n64', '.v64'];
 
 const novemberPorts = [
   {
+    id: 'liberty-city-vr', title: 'GTA III: Liberty City VR', gameName: 'Grand Theft Auto III', series: 'kornacious', category: 'PC', color: '#d5a35a',
+    description: 'Grand Theft Auto III in native standalone VR on Quest 3, built from your own PC game or original US Xbox disc.',
+    projectUrl: 'https://github.com/kornacious/liberty-city-vr',
+    source: { repo: 'kornacious/liberty-city-vr', assetPattern: '^Liberty-City-VR-[0-9][\\w.-]*-Windows-PCVR-x64\\.zip$' },
+    releaseKind: 'installer',
+    personalBuild: {
+      specialInstaller: true, gameLabel: 'Owned GTA III PC game folder, archive, or US Xbox ISO',
+      gameHint: 'Choose the complete GTA III PC game with data, models, anim, text and audio files, or a ZIP/7z/RAR of that folder. The original US Xbox 1.0 disc ISO is also supported. The creator verifies the exact game files.',
+      copyRequirement: 'Grand Theft Auto III complete PC game folder (including Audio/sfx.RAW and Audio/sfx.SDT), or original US Xbox 1.0 ISO',
+      inputStep: 'Add your GTA III game files', actionLabel: 'Build and install',
+      processDescription: 'VR4ALL downloads the creator’s verified Windows kit, builds a personal Quest APK from your game files, and installs the APK and game data to your selected Quest 3. First build downloads several GB of tools; keep the PC build folder for future updates.',
+    },
+    data: [],
+    guidance: 'Quest 3 is the creator’s supported standalone headset. Quest 3S and Quest 2 are not documented as supported. Connect one authorized Quest 3; provide your own complete PC game or original US Xbox disc. The build may need Android SDK packages and explicit license acceptance.',
+    afterInstall: 'Launch Liberty City VR under Unknown Sources. Your saved game and other installed variant remain managed by the creator’s installer.',
+  },
+  {
     id: 'vib-ribbon-vr', title: 'Vib-Ribbon VR', gameName: 'Vib-Ribbon', series: 'CorrieDivitt', category: 'PlayStation', color: '#e45ba8',
     description: 'Play Vib-Ribbon in native standalone VR on Quest 3 using your own PAL PlayStation disc.',
     projectUrl: 'https://github.com/CorrieDivitt/Ultimate-Vib-Ribbon',
@@ -287,6 +304,7 @@ const novemberPortFacets = {
   'silent-hill-1999-vr': ['PlayStation', 'Adventure'],
   'ace-combat-zero-vr': ['PlayStation 2', 'Flight combat'],
   'bioshock-infinite-vr': ['PC', 'Shooter'],
+  'liberty-city-vr': ['PC', 'Adventure'],
 };
 
 module.exports = { novemberPorts, novemberPortFacets };

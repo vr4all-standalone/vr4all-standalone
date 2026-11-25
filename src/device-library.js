@@ -47,6 +47,7 @@ const packages = {
   'silent-scope-vr': 'com.vrlightgunhub.silentscope',
   'ace-combat-zero-vr': 'com.kulakovri.ac0oculus',
   'bioshock-infinite-vr': 'com.bsiquest.game',
+  'liberty-city-vr': 'com.libertyvr.quest',
   'vtmb-resource': 'diy.resource.vtmb.vulkan',
   'gunblade-ny-vr': 'com.vrlightgunhub.gunbladeny',
   'hotd-model2-vr': 'com.vrlightgunhub.hotdmodel2',
@@ -241,6 +242,13 @@ async function inspectDevice(adb, serial, games, knownPackages = {}) {
         const names = await list(root);
         if (['Binaries', 'Engine', 'XGame'].every((name) => names.includes(name))
           && (await list(`${root}/Binaries/Win32`)).includes('BioShockInfinite.exe')) return true;
+      }
+      return false;
+    }
+    if (game.id === 'liberty-city-vr') {
+      const root = '/sdcard/Android/data/com.libertyvr.quest/files/gamedata/variants';
+      for (const variant of ['pc', 'xbox']) {
+        if ((await list(`${root}/${variant}`)).includes('VARIANT_INFO.txt')) return true;
       }
       return false;
     }

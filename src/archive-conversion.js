@@ -190,7 +190,10 @@ async function extractSingleFileArchive(item, source, options = {}) {
 
 async function extractDirectoryArchive(item, source, options = {}) {
   const inspected = await inspectDirectoryArchive(item, source, options);
-  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'vr4all-convert-'));
+  const tempRoot = options.tempRoot || os.tmpdir();
+  if (!path.isAbsolute(tempRoot)) throw new Error('Archive extraction needs an absolute temporary folder');
+  await fs.mkdir(tempRoot, { recursive: true });
+  const directory = await fs.mkdtemp(path.join(tempRoot, 'vr4all-convert-'));
   const extracted = path.join(directory, 'contents');
   try {
     await fs.mkdir(extracted);
@@ -200,7 +203,7 @@ async function extractDirectoryArchive(item, source, options = {}) {
     if (!(await fs.stat(gamePath).catch(() => null))?.isDirectory()) throw new Error('Game archive does not contain the expected folder');
     return { path: gamePath, directory, ...inspected };
   } catch (error) {
-    await removeConversionDirectory(directory);
+    await removeConversionDirectory(directory, tempRoot);
     throw error;
   }
 }

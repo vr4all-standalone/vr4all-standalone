@@ -12,6 +12,7 @@ const WINE_REASON = 'On Linux this port runs the creator’s Windows tools throu
 const NOT_ON_LINUX = Object.freeze({
   'bioshock-vr': 'BioShock VR installs through the creator’s 1 GB Windows installer, which carries Windows-only tools. It is not available on Linux.',
   'bioshock-infinite-vr': 'BioShock Infinite Quest currently uses the creator’s Windows PowerShell installer. Linux installation is not available in VR4ALL yet.',
+  'liberty-city-vr': 'Liberty City VR currently uses the creator’s Windows setup kit in VR4ALL. Linux installation is not available here yet.',
 });
 // Ports whose Linux install path exists. x64: the Linux artifacts are x86-64 only.
 // wine: the creator's Windows helper tools run through Wine, so it must be installed.
