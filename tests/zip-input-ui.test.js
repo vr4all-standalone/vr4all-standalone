@@ -537,9 +537,10 @@ test('library views keep popularity in Sort and add headset choices only while c
   const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
   const initialSelect = html.match(/<select id="libraryScope"[^>]*>(.*?)<\/select>/s)?.[1] || '';
   const sortSelect = html.match(/<select id="librarySort"[^>]*>(.*?)<\/select>/s)?.[1] || '';
-  assert.match(initialSelect, /All games.*New games/s);
+  assert.match(initialSelect, /All games.*Emulators.*Ready to install/s);
+  assert.doesNotMatch(initialSelect, /New games/);
   assert.doesNotMatch(initialSelect, /Most downloaded/);
-  assert.match(sortSelect, /A–Z.*Z–A.*Updated recently.*Most downloaded/s);
+  assert.match(sortSelect, /A–Z.*Z–A.*Newest.*Updated recently.*Most downloaded/s);
   assert.doesNotMatch(sortSelect, /Installed first/);
   assert.match(html, /<select id="librarySort"[\s\S]*?<input id="installedFirst" type="checkbox"[\s\S]*?Installed first/);
   assert.doesNotMatch(initialSelect, /Build or patch required|Manual download required/);
@@ -551,6 +552,8 @@ test('library views keep popularity in Sort and add headset choices only while c
   vm.runInContext("state.libraryScope = 'installed'; state.selectedSerial = ''; state.devices = []; renderLibraryScopeOptions()", context);
   assert.equal(vm.runInContext('state.libraryScope', context), 'all');
   assert.equal(elements.get('#libraryScope').value, 'all');
+  vm.runInContext("state.libraryScope = 'new'; renderLibraryScopeOptions()", context);
+  assert.equal(vm.runInContext('state.libraryScope', context), 'all');
 });
 
 test('install-type views filter actual ports without a connected headset and include alternate port choices', () => {
@@ -582,13 +585,14 @@ test('install-type views filter actual ports without a connected headset and inc
   assert.equal(vm.runInContext('state.libraryScope', context), 'build');
 });
 
-test('Ready to install follows All, New and Emulators and shows only complete install inputs', () => {
+test('Ready to install follows All and Emulators and shows only complete install inputs', () => {
   const { context, elements, listeners } = appHarness();
   const catalog = getCatalog();
   // Windows-flow fixtures (Vice City build) are supported regardless of the host.
   context.ports = ['time-crisis-vr', 'dr89-time-crisis', 'mgs-vr', 'vice-city-vr', 'wave-race-vr'].map((id) => ({ ...catalog.find((game) => game.id === id), support: { supported: true } }));
   vm.runInContext("state.games = ports; renderLibraryScopeOptions(); state.libraryScope = 'available'; renderGrid()", context);
-  assert.match(elements.get('#libraryScope').innerHTML, /All games<\/option><option value="new">New games<\/option><option value="emulators">Emulators<\/option><option value="available">Ready to install/);
+  assert.match(elements.get('#libraryScope').innerHTML, /All games<\/option><option value="emulators">Emulators<\/option><option value="available">Ready to install/);
+  assert.doesNotMatch(elements.get('#libraryScope').innerHTML, /New games/);
   const ids = () => [...elements.get('#gameGrid').innerHTML.matchAll(/data-id="([^"]+)"/g)].map((match) => match[1]);
   assert.deepEqual(ids(), ['time-crisis-vr']);
   assert.equal(vm.runInContext("cardProfile(ports[0]).id", context), 'dr89-time-crisis');
@@ -606,18 +610,16 @@ test('Ready to install follows All, New and Emulators and shows only complete in
   assert.deepEqual(ids(), ['time-crisis-vr']);
 });
 
-test('Emulators filter includes every tool card and excludes them from New games', () => {
+test('Emulators filter includes every tool card', () => {
   const { context, elements } = appHarness();
   context.ports = getCatalog();
   vm.runInContext("state.games = ports; state.libraryScope = 'emulators'; renderLibraryScopeOptions(); renderGrid()", context);
   const ids = [...elements.get('#gameGrid').innerHTML.matchAll(/data-id="([^"]+)"/g)].map((match) => match[1]);
   const emulatorIds = getCatalog().filter((game) => game.catalogGroup === 'emulator').map((game) => game.id);
   assert.deepEqual(ids.sort(), emulatorIds.sort());
-  vm.runInContext("state.libraryScope = 'new'; renderGrid()", context);
-  const newIds = [...elements.get('#gameGrid').innerHTML.matchAll(/data-id="([^"]+)"/g)].map((match) => match[1]);
-  assert.equal(newIds.length, 10);
-  assert.ok(newIds.includes('fate-of-the-galaxy-vr'));
-  assert.ok(newIds.every((id) => !emulatorIds.includes(id)));
+  vm.runInContext("state.libraryScope = 'all'; state.sortMode = 'newest'; renderGrid()", context);
+  const allIds = [...elements.get('#gameGrid').innerHTML.matchAll(/data-id="([^"]+)"/g)].map((match) => match[1]);
+  assert.ok(emulatorIds.every((id) => allIds.includes(id)));
 });
 
 test('Time Crisis cards choose DR-89 by default while an explicit port choice persists', () => {
@@ -734,17 +736,16 @@ test('settings previews material and palette, then restores both when cancelled'
   assert.equal(context.document.body.dataset.palette, 'blue');
 });
 
-test('new games selects ten catalog cards while Most downloaded sorts the full view', () => {
+test('Newest sorts the full catalog by addition order while Most downloaded uses release counts', () => {
   const { context, elements } = appHarness();
   const games = getCatalog();
   const rootGames = games.filter((game) => !game.variantOf);
   context.catalogGames = games;
-  const newest = rootGames.filter((game) => game.catalogGroup !== 'emulator').slice(-10).map((game) => game.id);
-  assert.ok(newest.includes('bugdom-vr'));
-  assert.ok(newest.includes('bugdom2-vr'));
-  vm.runInContext("state.games = catalogGames; state.libraryScope = 'new'; renderGrid()", context);
+  const newest = rootGames.map((game) => game.id).reverse();
+  vm.runInContext("state.games = catalogGames; state.libraryScope = 'all'; state.sortMode = 'newest'; renderGrid()", context);
   const ids = () => [...elements.get('#gameGrid').innerHTML.matchAll(/data-id="([^"]+)"/g)].map((match) => match[1]);
-  assert.deepEqual([...ids()].sort(), [...newest].sort());
+  assert.deepEqual(ids(), newest);
+  assert.match(elements.get('#libraryScopeNote').textContent, /Recently added to VR4ALL/);
   assert.equal(elements.get('#librarySort').disabled, false);
   context.rootGames = rootGames;
   vm.runInContext("state.libraryScope = 'all'; state.sortMode = 'downloads'; state.discovery = { [rootGames[0].id]: { totalDownloads: 100 }, [rootGames[1].id]: { totalDownloads: 300 } }; renderGrid()", context);
@@ -776,7 +777,7 @@ test('bulk update is visible in every library view while any installed game has 
   vm.runInContext("state.libraryScope = 'all'; renderGrid()", context);
   assert.equal(elements.get('#bulkUpdatePanel').hidden, true);
   vm.runInContext("state.games = [port, ...otherGames]; state.selectedSerial = 'QUEST'; state.deviceLibrary.QUEST = { port: { dataReady: true, versionComparable: true, versionName: '1.0.0' } }; state.releases.port = { tag: 'v2.0.0', stale: false }", context);
-  for (const scope of ['all', 'new', 'installed', 'updates']) {
+  for (const scope of ['all', 'emulators', 'installed', 'updates']) {
     context.scope = scope;
     vm.runInContext('state.libraryScope = scope; renderGrid()', context);
     assert.equal(elements.get('#bulkUpdatePanel').hidden, false, scope);
@@ -786,7 +787,7 @@ test('bulk update is visible in every library view while any installed game has 
   assert.equal(elements.get('#bulkUpdatePanel').hidden, false);
   vm.runInContext("state.browseMode = 'genre'; state.category = 'Racing'; renderGrid()", context);
   assert.equal(elements.get('#bulkUpdatePanel').hidden, false);
-  vm.runInContext("state.releases.port.tag = 'v1.0.0'; state.libraryScope = 'new'; renderGrid()", context);
+  vm.runInContext("state.releases.port.tag = 'v1.0.0'; state.libraryScope = 'emulators'; renderGrid()", context);
   assert.equal(elements.get('#bulkUpdatePanel').hidden, true);
   vm.runInContext("state.libraryScope = 'updates'; state.bulkRunning = true; renderGrid()", context);
   assert.equal(elements.get('#bulkUpdatePanel').hidden, false);

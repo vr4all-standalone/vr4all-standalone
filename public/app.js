@@ -378,7 +378,6 @@ function isAvailableForInstall(game) {
 function matchesScope(game) {
   if (state.libraryScope === 'all') return true;
   if (state.libraryScope === 'available') return portFamily(game).some(isAvailableForInstall);
-  if (state.libraryScope === 'new') return libraryGames().filter((entry) => entry.catalogGroup !== 'emulator').slice(-10).some((entry) => entry.id === game.id);
   if (state.libraryScope === 'emulators') return game.catalogGroup === 'emulator';
   if (['apk-files', 'apk-included', 'build', 'special', 'manual-apk', 'guided'].includes(state.libraryScope)) {
     return portFamily(game).some((entry) => installType(entry) === state.libraryScope);
@@ -391,9 +390,9 @@ function matchesScope(game) {
 }
 function renderLibraryScopeOptions() {
   const headset = state.devices.find((device) => device.serial === state.selectedSerial && device.state === 'device');
-  if (!headset && ['installed', 'updates'].includes(state.libraryScope)) state.libraryScope = 'all';
+  if (state.libraryScope === 'new' || !headset && ['installed', 'updates'].includes(state.libraryScope)) state.libraryScope = 'all';
   const select = $('#libraryScope');
-  select.innerHTML = '<option value="all">All games</option><option value="new">New games</option><option value="emulators">Emulators</option><option value="available">Ready to install</option>'
+  select.innerHTML = '<option value="all">All games</option><option value="emulators">Emulators</option><option value="available">Ready to install</option>'
     + '<optgroup label="Install type"><option value="apk-files">APK + game files</option><option value="apk-included">APK includes game files</option><option value="build">Build or patch</option><option value="special">Special installer</option><option value="manual-apk">Manual APK download</option><option value="guided">Guided game-data setup</option></optgroup>'
     + (headset ? `<optgroup label="${escapeHtml(headset.model || 'Headset')}"><option value="installed">Installed games</option><option value="updates">Update available</option></optgroup>` : '');
   select.value = state.libraryScope;
@@ -457,7 +456,9 @@ function creatorClipUrl(game) {
 
 function renderGrid() {
   const query = state.search.toLowerCase().trim();
-  const games = libraryGames().filter((game) => matchesScope(game) && (state.category === 'All games' || (game[state.browseMode] || 'Other') === state.category) && (!query || `${game.title} ${game.gameName || ''} ${portFamily(game).map((entry) => entry.portLabel || entry.series).join(' ')} ${game.console} ${game.genre} ${game.description}`.toLowerCase().includes(query)));
+  const catalogCards = libraryGames();
+  const catalogOrder = new Map(catalogCards.map((game, index) => [game.id, index]));
+  const games = catalogCards.filter((game) => matchesScope(game) && (state.category === 'All games' || (game[state.browseMode] || 'Other') === state.category) && (!query || `${game.title} ${game.gameName || ''} ${portFamily(game).map((entry) => entry.portLabel || entry.series).join(' ')} ${game.console} ${game.genre} ${game.description}`.toLowerCase().includes(query)));
   const byName = (a, b) => (a.gameName || a.title).localeCompare(b.gameName || b.title, undefined, { numeric: true }) || a.title.localeCompare(b.title);
   const releaseTime = (value) => {
     const parsed = Date.parse(value || '');
@@ -473,13 +474,14 @@ function renderGrid() {
   installedToggle.checked = state.installedFirst;
   installedToggle.disabled = !hasHeadsetLibrary;
   const compareSort = (a, b) => state.sortMode === 'name-desc' ? -byName(a, b)
-    : state.sortMode === 'latest' ? latestTime(b) - latestTime(a) || byName(a, b)
-      : state.sortMode === 'downloads' ? (githubDownloads(b) ?? -1) - (githubDownloads(a) ?? -1) || byName(a, b)
-        : byName(a, b);
+    : state.sortMode === 'newest' ? catalogOrder.get(b.id) - catalogOrder.get(a.id)
+      : state.sortMode === 'latest' ? latestTime(b) - latestTime(a) || byName(a, b)
+        : state.sortMode === 'downloads' ? (githubDownloads(b) ?? -1) - (githubDownloads(a) ?? -1) || byName(a, b)
+          : byName(a, b);
   games.sort((a, b) => state.installedFirst && hasHeadsetLibrary ? Number(onHeadset(b)) - Number(onHeadset(a)) || compareSort(a, b) : compareSort(a, b));
   $('#gameCount').textContent = `${games.length} ${state.libraryScope === 'emulators' ? 'emulator' : 'game'}${games.length === 1 ? '' : 's'}`;
   const scopeNote = $('#libraryScopeNote');
-  scopeNote.textContent = [state.libraryScope === 'available' ? 'Ready from saved game files or a Quest APK with game files included.' : state.libraryScope === 'new' ? 'The 10 most recently added entries in VR4ALL.' : state.libraryScope === 'emulators' ? 'Standalone Quest emulators and game runtimes. Bring your own games.' : '', state.sortMode === 'downloads' ? 'Quest release download counts. Check updates to refresh.' : state.sortMode === 'latest' ? 'Known creator release dates. Check updates to refresh.' : ''].filter(Boolean).join(' ');
+  scopeNote.textContent = [state.libraryScope === 'available' ? 'Ready from saved game files or a Quest APK with game files included.' : state.libraryScope === 'emulators' ? 'Standalone Quest emulators and game runtimes. Bring your own games.' : '', state.sortMode === 'newest' ? 'Recently added to VR4ALL.' : state.sortMode === 'downloads' ? 'Quest release download counts. Check updates to refresh.' : state.sortMode === 'latest' ? 'Known creator release dates. Check updates to refresh.' : ''].filter(Boolean).join(' ');
   scopeNote.hidden = !scopeNote.textContent;
   $('#emptyState').hidden = games.length > 0;
   $('#emptyState').textContent = !state.selectedSerial && ['installed', 'updates'].includes(state.libraryScope) ? 'Connect a Quest and scan it to use this view.' : state.libraryScope === 'updates' ? 'No confirmed APK updates in this view. Use Check updates to refresh GitHub.' : state.libraryScope === 'available' ? 'No new games have complete install inputs yet. Add files to a game card.' : 'No games match this view.';
@@ -2180,7 +2182,7 @@ async function boot() {
     const savedLayout = localStorage.getItem('vr4all-detail-layout');
     if (['docked', 'overlay', 'focus'].includes(savedLayout)) state.detailLayout = savedLayout;
     const savedSort = localStorage.getItem('vr4all-library-sort');
-    if (['name-asc', 'name-desc', 'latest', 'downloads'].includes(savedSort)) state.sortMode = savedSort;
+    if (['name-asc', 'name-desc', 'newest', 'latest', 'downloads'].includes(savedSort)) state.sortMode = savedSort;
     if (savedSort === 'installed') state.installedFirst = true;
     const savedInstalledFirst = localStorage.getItem('vr4all-installed-first');
     if (savedInstalledFirst !== null) state.installedFirst = savedInstalledFirst === 'true';
