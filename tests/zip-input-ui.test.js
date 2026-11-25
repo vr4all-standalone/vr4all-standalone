@@ -736,15 +736,16 @@ test('settings previews material and palette, then restores both when cancelled'
   assert.equal(context.document.body.dataset.palette, 'blue');
 });
 
-test('Newest sorts the full catalog by addition order while Most downloaded uses release counts', () => {
+test('Newest sorts the full catalog by recorded addition date while Most downloaded uses release counts', () => {
   const { context, elements } = appHarness();
   const games = getCatalog();
   const rootGames = games.filter((game) => !game.variantOf);
   context.catalogGames = games;
-  const newest = rootGames.map((game) => game.id).reverse();
   vm.runInContext("state.games = catalogGames; state.libraryScope = 'all'; state.sortMode = 'newest'; renderGrid()", context);
   const ids = () => [...elements.get('#gameGrid').innerHTML.matchAll(/data-id="([^"]+)"/g)].map((match) => match[1]);
-  assert.deepEqual(ids(), newest);
+  assert.deepEqual(ids().slice(0, 4), ['vib-ribbon-vr', 'rage-racer-vr', 'wario-land-4-vr', 'birdman64-vr']);
+  assert.equal(ids().length, rootGames.length);
+  assert.ok(ids().indexOf('bugdom2-vr') > ids().indexOf('vib-ribbon-vr'));
   assert.match(elements.get('#libraryScopeNote').textContent, /Recently added to VR4ALL/);
   assert.equal(elements.get('#librarySort').disabled, false);
   context.rootGames = rootGames;
