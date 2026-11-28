@@ -235,3 +235,7 @@ These images identify the ports and original games. Rights remain with their res
 ## Vib-Ribbon VR — 22 November 2026
 
 - Vib-Ribbon VR: [creator's project icon](https://github.com/CorrieDivitt/Ultimate-Vib-Ribbon/blob/main/apps/common/icon/vibribbon.png), saved as `public/art/vib-ribbon-vr.png`. Artwork rights remain with the creator and the original game owner.
+
+## Silent Hill 3 Quest VR — 27 November 2026
+
+- Silent Hill 3 Quest VR: [creator's title logo](https://github.com/moistman42069/SilentHill3-Quest-VR/blob/main/docs/logo.png) on a VR4ALL-made dark background, saved as `public/art/silent-hill-3-quest-vr.png`. Underlying game logo and trademark rights remain with their owners.

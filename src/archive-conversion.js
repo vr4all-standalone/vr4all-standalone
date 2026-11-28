@@ -107,8 +107,10 @@ function directoryRoot(entries, item) {
   const requiredFolders = (item.requiredDirectories || []).map((name) => name.toLowerCase());
   const oneOfFolders = (item.oneOfDirectories || []).map((name) => name.toLowerCase());
   const requiredNested = Object.entries(item.requiredNestedEntries || {}).map(([folder, files]) => [folder.toLowerCase(), files.map((file) => file.toLowerCase())]);
+  const requiredPaths = item.requiredPaths || [];
+  const archiveFiles = new Set(entries.filter((entry) => !entry.directory).map((entry) => entry.name));
   const requiredExtensions = (item.requiredExtensions || []).map((extension) => extension.toLowerCase());
-  if (requiredFiles.length || requiredFolders.length || requiredExtensions.length || oneOfFolders.length || requiredNested.length) {
+  if (requiredFiles.length || requiredFolders.length || requiredExtensions.length || oneOfFolders.length || requiredNested.length || requiredPaths.length) {
     const matches = [...prefixes].filter((prefix) => {
       const start = prefix ? `${prefix}/` : '';
       const files = new Set();
@@ -124,9 +126,12 @@ function directoryRoot(entries, item) {
       return requiredFiles.every((name) => files.has(name)) && requiredFolders.every((name) => folders.has(name))
         && (!oneOfFolders.length || oneOfFolders.some((name) => folders.has(name)))
         && requiredExtensions.every((extension) => [...files].some((name) => name.endsWith(extension)))
-        && requiredNested.every(([folder, nestedFiles]) => nestedFiles.every((file) => entries.some((entry) => !entry.directory && entry.name.toLowerCase() === `${start}${folder}/${file}`.toLowerCase())));
+        && requiredNested.every(([folder, nestedFiles]) => nestedFiles.every((file) => entries.some((entry) => !entry.directory && entry.name.toLowerCase() === `${start}${folder}/${file}`.toLowerCase())))
+        && requiredPaths.every((relative) => archiveFiles.has(`${start}${relative}`));
     });
-    if (!matches.length) throw new Error(`${item.label || 'Game archive'} is missing ${[...requiredFiles, ...requiredFolders, ...requiredExtensions].join(', ')}`);
+    if (!matches.length) throw new Error(requiredPaths.length
+      ? `${item.label || 'Game archive'} is missing one or more required game files (${requiredPaths.length} checked)`
+      : `${item.label || 'Game archive'} is missing ${[...requiredFiles, ...requiredFolders, ...requiredExtensions].join(', ')}`);
     return matches.sort((a, b) => a.length - b.length)[0];
   }
   const roots = new Set(names.map((name) => name.split('/')[0]));
@@ -310,4 +315,4 @@ async function convertArchiveToZip(source, options = {}) {
   }
 }
 
-module.exports = { needsZipConversion, acceptsZipContents, convertArchiveToZip, packageDirectoryToZip, inspectDirectory, inspectDirectoryArchive, extractDirectoryArchive, inspectSingleFileArchive, extractSingleFileArchive, removeConversionDirectory, inspectListing, inspectRomArchive, testRomArchive, sevenZipPath, sevenZipNames, runSevenZip };
+module.exports = { needsZipConversion, acceptsZipContents, convertArchiveToZip, packageDirectoryToZip, inspectDirectory, inspectDirectoryArchive, extractDirectoryArchive, inspectSingleFileArchive, extractSingleFileArchive, removeConversionDirectory, inspectListing, inspectRomArchive, testRomArchive, sevenZipPath, sevenZipNames, runSevenZip, directoryRoot };

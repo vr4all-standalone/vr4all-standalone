@@ -14,7 +14,8 @@ const { createAdb } = require('./src/adb');
 const { parseDeviceStorage } = require('./src/device-storage');
 const { inspectDevice, packages } = require('./src/device-library');
 const { verifyGameFile } = require('./src/file-verification');
-const { verifyPushedFile } = require('./src/transfer-verification');
+const { verifyPushedFile, verifyRequiredRemoteFiles } = require('./src/transfer-verification');
+const { missingLocalRequiredPaths } = require('./src/required-paths');
 const { stageLowercaseDirectory } = require('./src/lowercase-directory');
 const { packageWipeoutData, transferWipeoutData } = require('./src/wipeout-data');
 const { packageAvpData, transferAvpData } = require('./src/avp-data');
@@ -396,7 +397,8 @@ function createApp(options = {}) {
       const names = new Map(entries.map((entry) => [entry.name.toLowerCase(), entry]));
       return entries.length > 0 && (item.requiredEntries || []).every((name) => names.get(name.toLowerCase())?.isFile())
         && (item.requiredDirectories || []).every((name) => names.get(name.toLowerCase())?.isDirectory())
-        && (item.requiredExtensions || []).every((extension) => entries.some((entry) => entry.isFile() && entry.name.toLowerCase().endsWith(extension.toLowerCase())));
+        && (item.requiredExtensions || []).every((extension) => entries.some((entry) => entry.isFile() && entry.name.toLowerCase().endsWith(extension.toLowerCase())))
+        && !(await missingLocalRequiredPaths(local, item.requiredPaths)).length;
     }
     const extensions = (item.extensions || []).map((extension) => extension.toLowerCase());
     if (extensions.includes('.zip')) extensions.push('.7z', '.rar');
@@ -495,8 +497,10 @@ function createApp(options = {}) {
       const nested = new Set((await fs.readdir(path.join(local, entry.name))).map((name) => name.toLowerCase()));
       for (const file of files) if (!nested.has(file.toLowerCase())) throw new Error(`${item.label || item.id} is missing ${folder}/${file}`);
     }
+    const missingPaths = await missingLocalRequiredPaths(local, item.requiredPaths);
+    if (missingPaths.length) throw new Error(`${item.label || item.id} is missing ${missingPaths.slice(0, 3).join(', ')}${missingPaths.length > 3 ? ` and ${missingPaths.length - 3} more files` : ''}`);
     const message = item.requiredEntries?.length || item.requiredDirectories?.length
-      ? `Found ${(item.requiredEntries || []).length} required game files and ${(item.requiredDirectories || []).length} asset folders; their identity and edition are not independently verified`
+      ? `Found ${(item.requiredEntries || []).length} required game files, ${(item.requiredDirectories || []).length} asset folders, and ${(item.requiredPaths || []).length} checked paths; their identity and edition are not independently verified`
       : `Folder found with ${entries.length} item${entries.length === 1 ? '' : 's'}; game contents are not independently verified`;
     return { verification: { level: 'directory', message }, entries: entries.map((entry) => entry.name), path: local };
   }
@@ -659,6 +663,12 @@ function createApp(options = {}) {
           const verified = await verifyPushedFile(adb, input.serial, step.args.at(-2), step.args.at(-1));
           log(`Verified ${item.label || item.id} on the headset (${verified.bytes} bytes).`);
         }
+      }
+      if (game.id === 'silent-hill-3-quest-vr' && input.files?.game) {
+        log('Verifying the transferred Silent Hill 3 files on the headset...');
+        const verified = await verifyRequiredRemoteFiles(adb, input.serial, input.files.game,
+          game.data[0].destination, game.data[0].requiredPaths);
+        log(`Verified ${verified.files} Silent Hill 3 files on the headset (${verified.bytes} bytes).`);
       }
       if (game.id === 'wipeout-vr' && input.files?.gameData) {
         log(isWipeoutDisc(input.files.gameData) ? 'Extracting your Wipeout disc and packaging the game files...' : 'Packaging prepared Wipeout game files as the creator’s wipeout.tar...');

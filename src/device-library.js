@@ -1,5 +1,6 @@
 // Read-only probes for catalogued ports on the selected Android headset.
 const packages = {
+  'silent-hill-3-quest-vr': 'dev.sh3quest.vr',
   'vib-ribbon-vr': 'io.github.corriedivitt.vibribbonvr',
   'rage-racer-vr': 'org.rageracer.quest',
   'birdman64-vr': 'app.birdman64vr',
@@ -221,6 +222,12 @@ async function inspectDevice(adb, serial, games, knownPackages = {}) {
     return listCache.get(directory);
   }
   async function hasData(game) {
+    if (game.id === 'silent-hill-3-quest-vr') {
+      const root = '/sdcard/Android/data/dev.sh3quest.vr/files/game/';
+      const output = await adb.run(['-s', serial, 'shell', 'find', root, '-type', 'f']).catch(() => '');
+      const files = new Set(output.split(/\r?\n/).map((name) => name.trim().replace(/^\.\//, '').replace(root, '')).filter(Boolean));
+      return game.data[0].requiredPaths.every((name) => files.has(name));
+    }
     if (game.id === 'vib-ribbon-vr') {
       const names = await list('/sdcard/Android/data/io.github.corriedivitt.vibribbonvr/files/disc/');
       return names.some((name) => /\.cue$/i.test(name)) && names.some((name) => /\.bin$/i.test(name));

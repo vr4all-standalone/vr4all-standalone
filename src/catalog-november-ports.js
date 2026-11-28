@@ -1,8 +1,24 @@
-// Quest releases and input requirements checked against creators' pages through 19 November 2026.
+// Quest releases and input requirements checked against creators' pages through 27 November 2026.
 const download = '/sdcard/Download/';
 const n64 = ['.z64', '.n64', '.v64'];
+// File names from the creator's android/app/src/main/assets/game_files.txt manifest.
+const sh3RequiredPaths = require('./sh3-required-paths.json');
 
 const novemberPorts = [
+  {
+    id: 'silent-hill-3-quest-vr', title: 'Silent Hill 3 Quest VR', gameName: 'Silent Hill 3', series: 'moistman42069', category: 'PC', color: '#a34444',
+    description: 'Silent Hill 3 in native standalone VR on Quest, using your own 2003 PC game.',
+    projectUrl: 'https://github.com/moistman42069/SilentHill3-Quest-VR',
+    source: { repo: 'moistman42069/SilentHill3-Quest-VR', assetPattern: '^SH3QuestVR-[0-9.]+\\.apk$' },
+    verifyApkHash: true,
+    data: [{ id: 'game', label: 'Owned Silent Hill 3 (2003) PC game folder', kind: 'directory',
+      destination: '/sdcard/Android/data/dev.sh3quest.vr/files/game/',
+      requiredEntries: ['sh3.exe'], requiredDirectories: ['data'], requiredPaths: sh3RequiredPaths,
+      copyEntries: ['sh3.exe', 'data'],
+      note: 'Choose the installed SILENT HILL 3 folder containing sh3.exe and data, or a ZIP, 7z, or RAR of that folder. VR4ALL checks all 79 data files listed by the creator and copies the game to the Quest. PlayStation 2 and HD Collection files are not supported.' }],
+    guidance: 'VR4ALL downloads the creator’s Quest APK and copies your own 2003 Windows PC game directly to its documented headset folder. Any regional PC edition is accepted by the creator. Quest 3 and 3S are recommended; Quest 2 and Pro are supported. Keep at least 5 GB free on the headset.',
+    afterInstall: 'Open SH3 Quest VR under Unknown Sources. Its launcher checks the transferred PC files; press Check again if needed, then Play in VR. APK updates preserve your game files.',
+  },
   {
     id: 'liberty-city-vr', title: 'GTA III: Liberty City VR', gameName: 'Grand Theft Auto III', series: 'kornacious', category: 'PC', color: '#d5a35a',
     description: 'Grand Theft Auto III in native standalone VR on Quest 3, built from your own PC game or original US Xbox disc.',
@@ -289,6 +305,7 @@ const novemberPorts = [
 ];
 
 const novemberPortFacets = {
+  'silent-hill-3-quest-vr': ['PC', 'Horror'],
   'vib-ribbon-vr': ['PlayStation', 'Rhythm'],
   'rage-racer-vr': ['PlayStation', 'Racing'],
   'birdman64-vr': ['Nintendo 64', 'Flight combat'],
